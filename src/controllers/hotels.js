@@ -93,8 +93,7 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
         'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
-        // We intentionally move the data one level up
-        'availabilityUri': (data, source, key) => { data.availability = source[key].latestSnapshot; return data; },
+        'availabilityUri': (data, source, key) => { data.availability = source[key]; return data; },
       };
       for (let fieldModifier in fieldModifiers) {
         if (flattenedOffChainData[fieldModifier] !== undefined) {
