@@ -224,7 +224,7 @@ const find = async (req, res, next) => {
   }
 };
 
-const dataUris = async (req, res, next) => {
+const meta = async (req, res, next) => {
   try {
     const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
     return res.status(200).json({
@@ -233,6 +233,7 @@ const dataUris = async (req, res, next) => {
       descriptionUri: resolvedHotel.dataUri.contents.descriptionUri,
       ratePlansUri: resolvedHotel.dataUri.contents.ratePlansUri,
       availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
+      dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
@@ -242,5 +243,5 @@ const dataUris = async (req, res, next) => {
 module.exports = {
   find,
   findAll,
-  dataUris,
+  meta,
 };

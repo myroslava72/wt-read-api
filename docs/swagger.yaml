@@ -38,6 +38,11 @@ paths:
                   ethNetwork:
                     type: string
                     description: Name of the ethereum network against which this instance runs.
+                  dataFormatVersion:
+                    description: Version number indicating the data format specification version the server expects from hotels.
+                    type: string
+                    format: semver
+                    maxLength: 20
   /hotels:
     get:
       summary: Lists hotels
@@ -184,9 +189,9 @@ paths:
           $ref: '#/components/responses/NotFoundError'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  '/hotels/{hotelId}/dataUris':
+  '/hotels/{hotelId}/meta':
     get:
-      summary: List of on-chain and off-chain identifiers where to reach all of the hotel's data.
+      summary: Hotel record meta information - mostly on-chain and off-chain identifiers of places where to reach all of the hotel's data.
       parameters:
         - name: hotelId
           in: path
@@ -201,7 +206,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DataUrisResponse'
+                $ref: '#/components/schemas/MetaResponse'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -495,7 +500,7 @@ components:
     AvailabilityResponse:
       $ref: 'https://raw.githubusercontent.com/windingtree/wiki/6aef0a3b1b5fc3976e7255fad4099b15a4d6c638/hotel-data-swagger.yaml#/components/schemas/Availability'
 
-    DataUrisResponse:
+    MetaResponse:
       type: object
       description: Collection of idnetifiers required to look up hotel data
       required:
@@ -517,6 +522,11 @@ components:
         availabilityUri:
           description: URI of the Hotel data index (pointing off-chain)
           $ref: 'https://raw.githubusercontent.com/windingtree/wiki/6aef0a3b1b5fc3976e7255fad4099b15a4d6c638/hotel-data-swagger.yaml#/components/schemas/UriType'
+        dataFormatVersion:
+          description: Version number indicating the data format specification version.
+          type: string
+          format: semver
+          maxLength: 20
 
     Error:
       title: Error

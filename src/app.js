@@ -7,6 +7,7 @@ const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
 const config = require('./config');
+const { DATA_FORMAT_VERSION } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
@@ -50,6 +51,7 @@ app.get('/', (req, res) => {
     config: process.env.WT_CONFIG,
     wtIndexAddress: config.wtIndexAddress,
     ethNetwork: config.ethNetwork,
+    dataFormatVersion: DATA_FORMAT_VERSION,
   };
   res.status(200).json(response);
 });

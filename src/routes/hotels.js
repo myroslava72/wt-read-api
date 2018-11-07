@@ -15,7 +15,7 @@ const hotelsRouter = express.Router();
 
 hotelsRouter.get('/hotels', injectWtLibs, hotelsController.findAll, handleOnChainErrors);
 hotelsRouter.get('/hotels/:hotelAddress', injectWtLibs, validateHotelAddress, resolveHotel, hotelsController.find, handleOnChainErrors);
-hotelsRouter.get('/hotels/:hotelAddress/dataUris', injectWtLibs, validateHotelAddress, resolveHotel, hotelsController.dataUris, handleOnChainErrors);
+hotelsRouter.get('/hotels/:hotelAddress/meta', injectWtLibs, validateHotelAddress, resolveHotel, hotelsController.meta, handleOnChainErrors);
 
 hotelsRouter.get('/hotels/:hotelAddress/availability', injectWtLibs, validateHotelAddress, resolveHotel, availabilityController.findAll, handleOnChainErrors, handleDataFetchingErrors);
 
