@@ -1,6 +1,6 @@
 {
   "name": "wt-read-api",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": " API to interact with the Winding Tree platform",
   "main": "index.js",
   "scripts": {
