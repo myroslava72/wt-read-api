@@ -7,7 +7,7 @@ const findAll = async (req, res, next) => {
       return next(new Http404Error('noAvailability', 'No availabilityUri specified.'));
     }
     let availability = plainHotel.dataUri.contents.availabilityUri.contents;
-    res.status(200).json(availability.latestSnapshot);
+    res.status(200).json(availability);
   } catch (e) {
     next(e);
   }

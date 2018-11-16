@@ -13,9 +13,9 @@ const detectRatePlans = (roomTypeId, ratePlansObject) => {
 };
 
 const detectAvailability = (roomTypeId, availabilityObject) => {
-  let availability = availabilityObject && availabilityObject.latestSnapshot.availability[roomTypeId];
+  let availability = availabilityObject && availabilityObject.roomTypes[roomTypeId];
   return {
-    updatedAt: availabilityObject && availabilityObject.latestSnapshot.updatedAt,
+    updatedAt: availabilityObject && availabilityObject.updatedAt,
     availability: {
       [roomTypeId]: availability || [],
     },

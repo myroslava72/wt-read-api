@@ -42,7 +42,7 @@ describe('Availability', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.eql(AVAILABILITY.latestSnapshot);
+          expect(res.body).to.eql(AVAILABILITY);
         });
     });
 
