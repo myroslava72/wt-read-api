@@ -72,7 +72,7 @@ items: [
     ...
     { 
       id: '0x585c0771Fe960f99aBdba8dc77e5d31Be2Ada74d',
-      name: 'WT Hotel',
+      name: 'WT Hotel'
     },
     ...
 ]
@@ -98,59 +98,58 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
 
 
 ```javascript
-{ 
-  id: '0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a',
-  location: { latitude: 35.89421911, longitude: 139.94637467 },
-  name: 'Winding Tree Hotel',
-  description: 'string',
-  contacts: 
+{
+  "id": "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
+  "location": { "latitude": 35.89421911, "longitude": 139.94637467 },
+  "name": "Winding Tree Hotel",
+  "description": "string",
+  "contacts": 
    { 
-    general: 
+    "general": 
       { 
-        email: 'joseph.urban@example.com',
-        phone: 44123456789,
-        url: 'string',
-        ethereum: 'string',
-        additionalContacts: [Array] 
+        "email": "joseph.urban@example.com",
+        "phone": 44123456789,
+        "url": "string",
+        "ethereum": "string",
+        "additionalContacts": [] 
       } 
     },
-  roomTypes: {
-    room-type-1111: {
-      id: 'room-type-1111',
-      name: 'Room with windows',
-      description: 'some fancy room type description',
-      totalQuantity: 0,
-      occupancy: {
-        min: 1,
-        max: 3,
+  "roomTypes": {
+    "room-type-1111": {
+      "id": "room-type-1111",
+      "name": "Room with windows",
+      "description": "some fancy room type description",
+      "totalQuantity": 0,
+      "occupancy": {
+        "min": 1,
+        "max": 3
       },
-      amenities: [
-        'TV',
+      "amenities": [
+        "TV"
       ],
-      images: [
-        'https://example.com/room-image.jpg',
+      "images": [
+        "https://example.com/room-image.jpg"
       ],
-      updatedAt: '2018-06-19T13:19:58.190Z',
-      properties: {
-        nonSmoking: 'some',
-      },
+      "updatedAt": "2018-06-19T13:19:58.190Z",
+      "properties": {
+        "nonSmoking": "some"
+      }
     }
   },
-  address: 
+  "address": 
    { 
-     line1: 'string',
-     line2: 'string',
-     postalCode: 'string',
-     city: 'string',
-     state: 'string',
-     country: 'string' 
+     "line1": "string",
+     "line2": "string",
+     "postalCode": "string",
+     "city": "string",
+     "state": "string",
+     "country": "string" 
    },
-  currency: 'string',
-  images: [ 'string' ],
-  amenities: [ 'WiFi' ],
-  updatedAt: '2018-06-19T13:19:58.190Z'
- }
-
+  "currency": "string",
+  "images": [ "string" ],
+  "amenities": [ "WiFi" ],
+  "updatedAt": "2018-06-19T13:19:58.190Z"
+}
 ```
 
 ## Publicly available instances
