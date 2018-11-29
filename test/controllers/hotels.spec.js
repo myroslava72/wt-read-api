@@ -554,6 +554,14 @@ describe('Hotels', function () {
         .expect(404);
     });
 
+    it('should return a 422 for an invalid address', async () => {
+      await request(server)
+        .get('/hotels/meta')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422);
+    });
+
     it('should not work for an address in a badly checksummed format', async () => {
       await request(server)
         .get(`/hotels/${address.toUpperCase()}`)
