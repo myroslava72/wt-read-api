@@ -7,9 +7,6 @@ const findAll = async (req, res, next) => {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
     let ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
-    for (let ratePlanId in ratePlans) {
-      ratePlans[ratePlanId].id = ratePlanId;
-    }
     res.status(200).json(ratePlans);
   } catch (e) {
     next(e);
@@ -24,12 +21,11 @@ const find = async (req, res, next) => {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
     const ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
-    let ratePlan = ratePlans[ratePlanId];
-    if (!ratePlan) {
+    let ratePlan = ratePlans.filter((rp) => { return rp.id === ratePlanId; });
+    if (!ratePlan.length) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    ratePlan.id = ratePlanId;
-    res.status(200).json(ratePlan);
+    res.status(200).json(ratePlan[0]);
   } catch (e) {
     next(e);
   }

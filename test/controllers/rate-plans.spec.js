@@ -41,8 +41,8 @@ describe('Rate plans', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(RATE_PLANS);
-          for (let ratePlan in res.body) {
-            expect(res.body[ratePlan]).to.have.property('id');
+          for (let ratePlan of res.body) {
+            expect(ratePlan).to.have.property('id');
           }
         });
     });

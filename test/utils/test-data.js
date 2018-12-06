@@ -5,8 +5,49 @@ const HOTEL_DESCRIPTION = {
   },
   'name': 'string',
   'description': 'string',
-  'roomTypes': {
-    'room-type-1111': {
+  'roomTypes': [
+    {
+      'id': 'room-type-1111',
+      'name': 'room-type-1111 name',
+      'description': 'room-type-1111 desc',
+      'totalQuantity': 0,
+      'occupancy': {
+        'min': 1,
+        'max': 3,
+      },
+      'amenities': [
+        'TV',
+      ],
+      'images': [
+        'string',
+      ],
+      'updatedAt': '2018-06-19T13:19:58.190Z',
+      'properties': {
+        'nonSmoking': 'some',
+      },
+    },
+    {
+      'id': 'room-type-2222',
+      'name': 'room-type-2222 name',
+      'description': 'room-type-2222 desc',
+      'totalQuantity': 0,
+      'occupancy': {
+        'min': 1,
+        'max': 3,
+      },
+      'amenities': [
+        'TV',
+      ],
+      'images': [
+        'string',
+      ],
+      'updatedAt': '2018-06-19T13:19:58.190Z',
+      'properties': {
+        'nonSmoking': 'some',
+      },
+    },
+    {
+      'id': 'room-type-3333',
       'name': 'string',
       'description': 'string',
       'totalQuantity': 0,
@@ -25,46 +66,7 @@ const HOTEL_DESCRIPTION = {
         'nonSmoking': 'some',
       },
     },
-    'room-type-2222': {
-      'name': 'string',
-      'description': 'string',
-      'totalQuantity': 0,
-      'occupancy': {
-        'min': 1,
-        'max': 3,
-      },
-      'amenities': [
-        'TV',
-      ],
-      'images': [
-        'string',
-      ],
-      'updatedAt': '2018-06-19T13:19:58.190Z',
-      'properties': {
-        'nonSmoking': 'some',
-      },
-    },
-    'room-type-3333': {
-      'name': 'string',
-      'description': 'string',
-      'totalQuantity': 0,
-      'occupancy': {
-        'min': 1,
-        'max': 3,
-      },
-      'amenities': [
-        'TV',
-      ],
-      'images': [
-        'string',
-      ],
-      'updatedAt': '2018-06-19T13:19:58.190Z',
-      'properties': {
-        'nonSmoking': 'some',
-      },
-    },
-
-  },
+  ],
   'contacts': {
     'general': {
       'email': 'joseph.urban@example.com',
@@ -104,8 +106,9 @@ const HOTEL_DESCRIPTION = {
   ],
 };
 
-const RATE_PLANS = {
-  'rate-plan-1': {
+const RATE_PLANS = [
+  {
+    'id': 'rate-plan-1',
     'name': 'rate plan 1',
     'description': 'string',
     'currency': 'string',
@@ -144,7 +147,8 @@ const RATE_PLANS = {
       },
     },
   },
-  'rate-plan-2': {
+  {
+    'id': 'rate-plan-2',
     'name': 'rate plan 2',
     'description': 'string',
     'currency': 'string',
@@ -183,13 +187,14 @@ const RATE_PLANS = {
       },
     },
   },
-};
+];
 
 const AVAILABILITY = {
   'updatedAt': '2018-07-09T09:22:54.548Z',
-  'roomTypes': {
-    'room-type-1111': [
+  'roomTypes':
+    [
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-07',
         'quantity': 8,
         'restrictions': {
@@ -197,6 +202,7 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-08',
         'quantity': 7,
         'restrictions': {
@@ -204,26 +210,32 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-09',
         'quantity': 1,
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-10',
         'quantity': 5,
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-11',
         'quantity': 4,
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-12',
         'quantity': 10,
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-13',
         'quantity': 11,
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-14',
         'quantity': 6,
         'restrictions': {
@@ -231,15 +243,15 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-1111',
         'date': '2018-07-15',
         'quantity': 7,
         'restrictions': {
           'noDeparture': true,
         },
       },
-    ],
-    'room-type-2222': [
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-07',
         'quantity': 2,
         'restrictions': {
@@ -247,6 +259,7 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-08',
         'quantity': 2,
         'restrictions': {
@@ -254,26 +267,32 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-09',
         'quantity': 2,
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-10',
         'quantity': 1,
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-11',
         'quantity': 0,
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-12',
         'quantity': 0,
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-13',
         'quantity': 0,
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-14',
         'quantity': 0,
         'restrictions': {
@@ -281,6 +300,7 @@ const AVAILABILITY = {
         },
       },
       {
+        'roomTypeId': 'room-type-2222',
         'date': '2018-07-15',
         'quantity': 0,
         'restrictions': {
@@ -288,7 +308,6 @@ const AVAILABILITY = {
         },
       },
     ],
-  },
 };
 
 module.exports = {
