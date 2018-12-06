@@ -309,8 +309,8 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
           expect(res.body).to.have.property('roomTypes');
-          let roomType = res.body.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; });
-          expect(roomType.length).to.be.eql(9);
+          let data = res.body.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; });
+          expect(data.length).to.be.eql(9);
         });
     });
 
@@ -323,8 +323,8 @@ describe('Room types', function () {
         .expect(200)
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
-          let roomType = res.body.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; });
-          expect(roomType.length).to.be.eql(0);
+          let data = res.body.roomTypes.filter((rt) => { return rt.id === roomType; });
+          expect(data.length).to.be.eql(0);
         });
     });
 
