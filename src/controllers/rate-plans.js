@@ -21,11 +21,11 @@ const find = async (req, res, next) => {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
     const ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
-    let ratePlan = ratePlans.filter((rp) => { return rp.id === ratePlanId; });
-    if (!ratePlan.length) {
+    let ratePlan = ratePlans.find((rp) => { return rp.id === ratePlanId; });
+    if (!ratePlan) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    res.status(200).json(ratePlan[0]);
+    res.status(200).json(ratePlan);
   } catch (e) {
     next(e);
   }

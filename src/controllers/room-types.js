@@ -65,11 +65,11 @@ const find = async (req, res, next) => {
   try {
     const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsQuery);
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
-    let roomType = roomTypes.filter((rt) => { return rt.id === roomTypeId; });
-    if (!roomType.length) {
+    let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
+    if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
-    roomType = setAdditionalFields(roomType[0], plainHotel, fieldsQuery);
+    roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
     res.status(200).json(roomType);
   } catch (e) {
     next(e);
@@ -82,8 +82,8 @@ const findRatePlans = async (req, res, next) => {
     let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['ratePlans']);
     
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
-    let roomType = roomTypes.filter((rt) => { return rt.id === roomTypeId; });
-    if (!roomType.length) {
+    let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
+    if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
     if (!plainHotel.dataUri.contents.ratePlansUri) {
@@ -102,8 +102,8 @@ const findAvailability = async (req, res, next) => {
     let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['availability']);
     
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
-    let roomType = roomTypes.filter((rt) => { return rt.id === roomTypeId; });
-    if (!roomType.length) {
+    let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
+    if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
     if (!plainHotel.dataUri.contents.availabilityUri) {
