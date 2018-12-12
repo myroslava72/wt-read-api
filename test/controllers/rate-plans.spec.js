@@ -40,6 +40,7 @@ describe('Rate plans', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
+          expect(res.status).to.be.eql(200);
           expect(res.body).to.eql(RATE_PLANS);
           for (let ratePlan of res.body) {
             expect(ratePlan).to.have.property('id');
@@ -69,6 +70,14 @@ describe('Rate plans', function () {
         .set('accept', 'application/json')
         .expect(404);
     });
+
+    it('should return 404 for unknown hotel id', async () => {
+      await request(server)
+        .get('/hotels/0xDbdc1F2800e6Ced54aFee6AaA450df627e4593F2/ratePlans')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
   });
 
   describe('GET /hotels/:hotelAddress/ratePlans/:ratePlanId', () => {
@@ -82,7 +91,7 @@ describe('Rate plans', function () {
         });
     });
 
-    it('should return 404', async () => {
+    it('should return 404 for unknown rate plan id', async () => {
       await request(server)
         .get(`/hotels/${address}/ratePlans/rate-plan-0000`)
         .set('content-type', 'application/json')
