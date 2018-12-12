@@ -60,7 +60,7 @@ $ docker run -p 8080:3000 -e WT_CONFIG=playground windingtree/wt-read-api
 You can run a node with a configuration entirely based on environment variables. Allowed options are:
 
 - `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
-- `ADAPTER_SWARM` - Eanbles [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
+- `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
 - `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
 - `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
 - `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
