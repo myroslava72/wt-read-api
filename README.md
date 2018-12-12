@@ -57,6 +57,25 @@ $ docker run -p 8080:3000 -e WT_CONFIG=playground windingtree/wt-read-api
 - After that you can access the wt-read-api on local port `8080`
 - This deployment is using a Ropsten configuration that can be found in `src/config/playground.js`
 
+You can run a node with a configuration entirely based on environment variables. Allowed options are:
+
+- `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
+- `ADAPTER_SWARM` - Eanbles [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
+- `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
+- `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
+- `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
+- `WT_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTIndex.sol)
+- `PORT` - HTTP Port where the API will lsiten, 3000 by default.
+- `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
+- `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
+- `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/`
+
+For example the playground configuration can be emulated with the following command:
+
+```sh
+docker run -p 8080:3000 -e WT_CONFIG=envvar -e WT_INDEX_ADDRESS=0x082fa119ffc7427652741456669ce1b306d207e3 -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com -e ADAPTER_SWARM=1 -e ADAPTER_HTTPS=1 -e ETH_NETWORK_NAME=ropsten windingtree/wt-read-api
+```
+
 ## Examples
 ### Get list of hotels
 
