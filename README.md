@@ -121,6 +121,7 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
   "id": "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
   "location": { "latitude": 35.89421911, "longitude": 139.94637467 },
   "name": "Winding Tree Hotel",
+  "dataFormatVersion": "0.2.0",
   "description": "string",
   "contacts": 
    { 
@@ -133,8 +134,8 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
         "additionalContacts": [] 
       } 
     },
-  "roomTypes": {
-    "room-type-1111": {
+  "roomTypes": [
+    {
       "id": "room-type-1111",
       "name": "Room with windows",
       "description": "some fancy room type description",
@@ -154,7 +155,7 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
         "nonSmoking": "some"
       }
     }
-  },
+  ],
   "address": 
    { 
      "line1": "string",

@@ -1,5 +1,6 @@
 const wtJsLibs = require('@windingtree/wt-js-libs');
 const { baseUrl } = require('../config');
+const { DataFormatValidator } = require('../services/validation');
 const {
   HttpValidationError,
   Http404Error,
@@ -10,14 +11,14 @@ const {
   DESCRIPTION_FIELDS,
   DEFAULT_HOTELS_FIELDS,
   DEFAULT_HOTEL_FIELDS,
+  DEFAULT_PAGE_SIZE,
+  SCHEMA_PATH,
+  HOTEL_SCHEMA_MODEL,
 } = require('../constants');
 const {
   mapHotelObjectToResponse,
   mapHotelFieldsFromQuery,
 } = require('../services/property-mapping');
-const {
-  DEFAULT_PAGE_SIZE,
-} = require('../constants');
 const {
   paginate,
   LimitValidationError,
@@ -64,12 +65,20 @@ const flattenObject = (contents, fields) => {
         result[field] = flattenObject(searchSpace, currentFieldDef[field]);
       }
     } else if (contents && typeof contents === 'object') { // Mapping object such as roomTypes
-      for (let key in contents) {
-        if (contents[key][field] !== undefined) {
-          if (!result[key]) {
-            result[key] = {};
+      if (Array.isArray(contents)) {
+        if (!result || Object.keys(result).length === 0) {
+          result = contents.map((x) => { let res = {}; res[field] = x[field]; return res; });
+        } else {
+          result = result.map((x, idx, r) => { let res = r[idx]; res[field] = contents[idx][field]; return res; });
+        }
+      } else {
+        for (let key in contents) {
+          if (contents[key][field] !== undefined) {
+            if (!result[key]) {
+              result[key] = {};
+            }
+            result[key][field] = contents[key][field];
           }
-          result[key][field] = contents[key][field];
         }
       }
     }
@@ -85,6 +94,7 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
       const plainHotel = await hotel.toPlainObject(offChainFields);
       const flattenedOffChainData = flattenObject(plainHotel.dataUri.contents, offChainFields);
       hotelData = {
+        dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
         ...(flattenObject(plainHotel, offChainFields)),
       };
@@ -162,11 +172,27 @@ const calculateFields = (fieldsQuery) => {
 const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
-  let rawHotels = [];
+  let resolvedItems = [];
+  let resolvedHotelObject;
+  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, fields);
   for (let hotel of items) {
-    rawHotels.push(resolveHotelObject(hotel, fields.toFlatten, fields.onChain));
+    try {
+      resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
+      DataFormatValidator.validateHotel(resolvedHotelObject, HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      resolvedItems.push(resolvedHotelObject);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        hotel = {
+          error: 'Upstream hotel data format validation failed: ' + e.toString(),
+          originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
+          data: resolvedHotelObject,
+        };
+        resolvedItems.push(hotel);
+      } else {
+        next(e);
+      }
+    }
   }
-  const resolvedItems = await Promise.all(rawHotels);
   let realItems = resolvedItems.filter((i) => !i.error);
   let realErrors = resolvedItems.filter((i) => i.error);
   let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
@@ -214,7 +240,21 @@ const find = async (req, res, next) => {
   try {
     const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, fields);
+    let resolvedHotel;
+    try {
+      resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
+      DataFormatValidator.validateHotel(resolvedHotel, HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = new HttpValidationError();
+        err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+        err.data = resolvedHotel;
+        next(err);
+      } else {
+        next(e);
+      }
+    }
     if (resolvedHotel.error) {
       return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
     }

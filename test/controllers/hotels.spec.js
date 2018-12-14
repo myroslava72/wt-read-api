@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
+const _ = require('lodash');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
@@ -21,6 +22,8 @@ const {
   FakeNiceHotel,
   FakeHotelWithBadOnChainData,
   FakeHotelWithBadOffChainData,
+  FakeOldFormatHotel,
+  FakeWrongFormatHotel,
 } = require('../utils/fake-hotels');
 
 describe('Hotels', function () {
@@ -61,6 +64,25 @@ describe('Hotels', function () {
           expect(items[1]).to.have.property('id', hotel1address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('location');
+        });
+    });
+
+    it('should return validation errors if they happen to individual hotels', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+        getAllHotels: sinon.stub().resolves([new FakeOldFormatHotel(), new FakeWrongFormatHotel()]),
+      });
+      await request(server)
+        .get('/hotels?fields=description,name,contacts,address,timezone,currency,updatedAt,defaultCancellationAmount')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, errors } = res.body;
+          expect(items.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(2);
+          expect(errors[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
+          expect(errors[1].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
+          wtJsLibsWrapper.getWTIndex.restore();
         });
     });
 
@@ -179,7 +201,7 @@ describe('Hotels', function () {
         });
     });
 
-    it('should return all fields that a client asks for', async () => {
+    it('should return all fields that a client asks for in hotel list', async () => {
       const fields = [
         'managerAddress',
         'id',
@@ -196,6 +218,7 @@ describe('Hotels', function () {
         'updatedAt',
         'notificationsUri',
         'bookingUri',
+        'dataFormatVersion',
       ];
       const query = `fields=${fields.join()}`;
 
@@ -209,8 +232,8 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
             expect(hotel).to.have.all.keys(fields);
-            for (let roomType in hotel.roomTypes) {
-              expect(hotel.roomTypes[roomType]).to.have.property('id');
+            for (let roomType of hotel.roomTypes) {
+              expect(roomType).to.have.property('id');
             }
           });
         });
@@ -225,8 +248,8 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
             expect(hotel).to.have.all.keys(fields);
-            for (let roomType in hotel.roomTypes) {
-              expect(hotel.roomTypes[roomType]).to.have.property('id');
+            for (let roomType of hotel.roomTypes) {
+              expect(roomType).to.have.property('id');
             }
           });
         });
@@ -354,7 +377,7 @@ describe('Hotels', function () {
       address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
     });
 
-    it('should return default fields', async () => {
+    it('should return default fields for hotel detail', async () => {
       const defaultHotelFields = [
         'id',
         'location',
@@ -366,18 +389,103 @@ describe('Hotels', function () {
         'images',
         'amenities',
         'updatedAt',
+        'dataFormatVersion',
       ];
       await request(server)
         .get(`/hotels/${address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
+        .expect(200)
         .expect((res) => {
           expect(res.body).to.have.all.keys(defaultHotelFields);
-        })
-        .expect(200);
+        });
     });
 
-    it('should return all fields that a client asks for', async () => {
+    it('should return validation errors for default field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      hotelDescription.description = 23;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^Unable to validate a model with a type: number, expected: string/);
+        });
+    });
+
+    it('should return validation errors for missing default field', async () => {
+      let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
+      delete hotelDescription.description;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^description is a required field/);
+        });
+    });
+
+    it('should return validation errors for non-default field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      hotelDescription.timezone = false;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=timezone`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^Unable to validate a model with a type: boolean, expected: string/);
+        });
+    });
+
+    it('should return validation errors for missing non-default field', async () => {
+      let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
+      delete hotelDescription.defaultCancellationAmount;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=defaultCancellationAmount`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^defaultCancellationAmount is a required field/);
+        });
+    });
+
+    it('should return validation errors for missing value in nested field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.location.latitude;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^latitude is a required field/);
+        });
+    });
+
+    it('should return validation errors for missing nested exact field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.location.latitude;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=location.latitude`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^latitude is a required field/);
+        });
+    });
+
+    it('should return all fields that a client asks for in hotel detail', async () => {
       // defaultCancellationAmount was problematic when set to 0
       const fields = [
         'name',
@@ -386,6 +494,7 @@ describe('Hotels', function () {
         'defaultCancellationAmount',
         'notificationsUri',
         'bookingUri',
+        'dataFormatVersion',
       ];
       const query = `fields=${fields.join()}`;
 
@@ -425,12 +534,13 @@ describe('Hotels', function () {
           expect(res.body.address).to.have.property('postalCode');
           expect(res.body.address).to.have.property('line1');
           expect(res.body.address.country).to.be.undefined;
+          expect(res.body.address.city).to.be.undefined;
         })
         .expect(200);
     });
 
     it('should return all nested fields even from an object of objects', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.description'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.description', 'roomTypes.id'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -438,21 +548,22 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'dataFormatVersion']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.have.property('description');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.all.keys(['name', 'description', 'id']);
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.have.property('description');
+            expect(roomType).to.not.have.property('amenities');
           }
         })
         .expect(200);
     });
 
     it('should return ratePlans if asked for', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'ratePlans.price'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.id', 'ratePlans.price', 'ratePlans.id'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -460,26 +571,26 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'ratePlans', 'id']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'ratePlans', 'id', 'dataFormatVersion']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.not.have.property('amenities');
           }
-          expect(Object.keys(res.body.ratePlans).length).to.be.gt(0);
-          for (let ratePlan in res.body.ratePlans) {
-            expect(res.body.ratePlans[ratePlan]).to.have.property('id');
-            expect(res.body.ratePlans[ratePlan]).to.have.property('price');
-            expect(res.body.ratePlans[ratePlan]).to.not.have.property('description');
+          expect(res.body.ratePlans.length).to.be.gt(0);
+          for (let ratePlan of res.body.ratePlans) {
+            expect(ratePlan).to.have.property('id');
+            expect(ratePlan).to.have.property('price');
+            expect(ratePlan).to.not.have.property('description');
           }
         })
         .expect(200);
     });
 
     it('should return availability if asked for', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'availability.updatedAt'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.id', 'availability.updatedAt'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -487,13 +598,13 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'availability']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'availability', 'dataFormatVersion']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.not.have.property('amenities');
           }
           expect(res.body.availability).to.have.property('updatedAt');
         })
@@ -531,7 +642,7 @@ describe('Hotels', function () {
     });
 
     it('should not return any non-existent fields even if a client asks for them', async () => {
-      const fields = ['managerAddress', 'name'];
+      const fields = ['managerAddress', 'name', 'dataFormatVersion'];
       const invalidFields = ['invalid', 'invalidField'];
       const query = `fields=${fields.join()},${invalidFields.join()}`;
 
