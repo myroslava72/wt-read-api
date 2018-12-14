@@ -133,8 +133,8 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
         "additionalContacts": [] 
       } 
     },
-  "roomTypes": {
-    "room-type-1111": {
+  "roomTypes": [
+    {
       "id": "room-type-1111",
       "name": "Room with windows",
       "description": "some fancy room type description",
@@ -154,7 +154,7 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
         "nonSmoking": "some"
       }
     }
-  },
+  ],
   "address": 
    { 
      "line1": "string",
