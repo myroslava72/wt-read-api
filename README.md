@@ -73,7 +73,14 @@ You can run a node with a configuration entirely based on environment variables.
 For example the playground configuration can be emulated with the following command:
 
 ```sh
-docker run -p 8080:3000 -e WT_CONFIG=envvar -e WT_INDEX_ADDRESS=0x082fa119ffc7427652741456669ce1b306d207e3 -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com -e ADAPTER_SWARM=1 -e ADAPTER_HTTPS=1 -e ETH_NETWORK_NAME=ropsten windingtree/wt-read-api
+docker run -p 8080:3000 \
+  -e WT_CONFIG=envvar \
+  -e WT_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
+  -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ \
+  -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com \
+  -e ADAPTER_SWARM=1 \
+  -e ADAPTER_HTTPS=1 \
+  -e ETH_NETWORK_NAME=ropsten windingtree/wt-read-api
 ```
 
 ## Examples
