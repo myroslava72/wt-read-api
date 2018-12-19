@@ -38,7 +38,7 @@ const DESCRIPTION_FIELDS = [
 
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 300;
-const DATA_FORMAT_VERSION = '0.1.0';
+const DATA_FORMAT_VERSION = '0.2.0';
 
 module.exports = {
   DESCRIPTION_FIELDS,

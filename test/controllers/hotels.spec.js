@@ -179,7 +179,7 @@ describe('Hotels', function () {
         });
     });
 
-    it('should return all fields that a client asks for', async () => {
+    it('should return all fields that a client asks for in hotel list', async () => {
       const fields = [
         'managerAddress',
         'id',
@@ -209,8 +209,8 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
             expect(hotel).to.have.all.keys(fields);
-            for (let roomType in hotel.roomTypes) {
-              expect(hotel.roomTypes[roomType]).to.have.property('id');
+            for (let roomType of hotel.roomTypes) {
+              expect(roomType).to.have.property('id');
             }
           });
         });
@@ -225,8 +225,8 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
             expect(hotel).to.have.all.keys(fields);
-            for (let roomType in hotel.roomTypes) {
-              expect(hotel.roomTypes[roomType]).to.have.property('id');
+            for (let roomType of hotel.roomTypes) {
+              expect(roomType).to.have.property('id');
             }
           });
         });
@@ -377,7 +377,7 @@ describe('Hotels', function () {
         .expect(200);
     });
 
-    it('should return all fields that a client asks for', async () => {
+    it('should return all fields that a client asks for in hotel detail', async () => {
       // defaultCancellationAmount was problematic when set to 0
       const fields = [
         'name',
@@ -430,7 +430,7 @@ describe('Hotels', function () {
     });
 
     it('should return all nested fields even from an object of objects', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.description'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.description', 'roomTypes.id'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -440,19 +440,19 @@ describe('Hotels', function () {
         .expect((res) => {
           expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.have.property('description');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.have.property('description');
+            expect(roomType).to.not.have.property('amenities');
           }
         })
         .expect(200);
     });
 
     it('should return ratePlans if asked for', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'ratePlans.price'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.id', 'ratePlans.price', 'ratePlans.id'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -462,24 +462,24 @@ describe('Hotels', function () {
         .expect((res) => {
           expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'ratePlans', 'id']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.not.have.property('amenities');
           }
-          expect(Object.keys(res.body.ratePlans).length).to.be.gt(0);
-          for (let ratePlan in res.body.ratePlans) {
-            expect(res.body.ratePlans[ratePlan]).to.have.property('id');
-            expect(res.body.ratePlans[ratePlan]).to.have.property('price');
-            expect(res.body.ratePlans[ratePlan]).to.not.have.property('description');
+          expect(res.body.ratePlans.length).to.be.gt(0);
+          for (let ratePlan of res.body.ratePlans) {
+            expect(ratePlan).to.have.property('id');
+            expect(ratePlan).to.have.property('price');
+            expect(ratePlan).to.not.have.property('description');
           }
         })
         .expect(200);
     });
 
     it('should return availability if asked for', async () => {
-      const fields = ['name', 'timezone', 'roomTypes.name', 'availability.updatedAt'];
+      const fields = ['name', 'timezone', 'roomTypes.name', 'roomTypes.id', 'availability.updatedAt'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -489,11 +489,11 @@ describe('Hotels', function () {
         .expect((res) => {
           expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'availability']);
           expect(res.body.address).to.be.undefined;
-          expect(Object.keys(res.body.roomTypes).length).to.be.gt(0);
-          for (let roomType in res.body.roomTypes) {
-            expect(res.body.roomTypes[roomType]).to.have.property('id');
-            expect(res.body.roomTypes[roomType]).to.have.property('name');
-            expect(res.body.roomTypes[roomType]).to.not.have.property('amenities');
+          expect(res.body.roomTypes.length).to.be.gt(0);
+          for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('name');
+            expect(roomType).to.not.have.property('amenities');
           }
           expect(res.body.availability).to.have.property('updatedAt');
         })
@@ -552,6 +552,14 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
+    });
+
+    it('should return a 422 for an invalid address', async () => {
+      await request(server)
+        .get('/hotels/meta')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422);
     });
 
     it('should not work for an address in a badly checksummed format', async () => {
