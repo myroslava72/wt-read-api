@@ -19,7 +19,8 @@ const injectWtLibs = async (req, res, next) => {
 const validateHotelAddress = (req, res, next) => {
   const { hotelAddress } = req.params;
   const { wt } = res.locals;
-  if (!wt.instance.dataModel.web3Utils.checkAddressChecksum(hotelAddress)) {
+
+  if (wt.instance.dataModel.web3Utils.isZeroAddress(hotelAddress) || !wt.instance.dataModel.web3Utils.checkAddressChecksum(hotelAddress)) {
     return next(new HttpValidationError('hotelChecksum', 'Given hotel address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for hotel address.'));
   }
   next();

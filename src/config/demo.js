@@ -3,7 +3,7 @@ const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
 module.exports = {
-  wtIndexAddress: '0x2964288481089b2abe91e727b2829babb01f5fa2',
+  wtIndexAddress: '0xa433590275a3a1ebca247a230076d2d281f46a49',
   port: 3000,
   baseUrl: process.env.BASE_URL || 'https://demo-api.windingtree.com',
   ethNetwork: 'ropsten',
