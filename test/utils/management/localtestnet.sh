@@ -49,4 +49,4 @@ else
   start_ganache
 fi
 
-./node_modules/.bin/nyc --reporter=text ./node_modules/mocha/bin/mocha "test/**/*.spec.js" --timeout 20000
+./node_modules/.bin/nyc --reporter=text ./node_modules/mocha/bin/mocha "test/**/*.spec.js" --timeout 20000 "$@"

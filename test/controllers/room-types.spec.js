@@ -42,8 +42,8 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType in res.body) {
-            expect(res.body[roomType]).to.have.property('id');
+          for (let roomType of res.body) {
+            expect(roomType).to.have.property('id');
           }
         });
     });
@@ -55,9 +55,9 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType in res.body) {
-            expect(res.body[roomType]).to.have.property('id');
-            expect(res.body[roomType]).to.have.property('ratePlans');
+          for (let roomType of res.body) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('ratePlans');
           }
         });
     });
@@ -69,9 +69,9 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType in res.body) {
-            expect(res.body[roomType]).to.have.property('id');
-            expect(res.body[roomType]).to.have.property('availability');
+          for (let roomType of res.body) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('availability');
           }
         });
     });
@@ -83,10 +83,10 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType in res.body) {
-            expect(res.body[roomType]).to.have.property('id');
-            expect(res.body[roomType]).to.have.property('availability');
-            expect(res.body[roomType]).to.have.property('ratePlans');
+          for (let roomType of res.body) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('availability');
+            expect(roomType).to.have.property('ratePlans');
           }
         });
       await request(server)
@@ -95,10 +95,10 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType in res.body) {
-            expect(res.body[roomType]).to.have.property('id');
-            expect(res.body[roomType]).to.have.property('availability');
-            expect(res.body[roomType]).to.have.property('ratePlans');
+          for (let roomType of res.body) {
+            expect(roomType).to.have.property('id');
+            expect(roomType).to.have.property('availability');
+            expect(roomType).to.have.property('ratePlans');
           }
         });
     });
@@ -145,7 +145,7 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('ratePlans');
-          expect(Object.values(res.body.ratePlans).length).to.be.eql(1);
+          expect(res.body.ratePlans.length).to.be.eql(1);
         });
     });
 
@@ -157,7 +157,7 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('ratePlans');
-          expect(Object.values(res.body.ratePlans).length).to.be.eql(1);
+          expect(res.body.ratePlans.length).to.be.eql(1);
         });
       await request(server)
         .get(`/hotels/${address}/roomTypes/room-type-1111?fields=ratePlans&fields=availability`)
@@ -166,7 +166,7 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('ratePlans');
-          expect(Object.values(res.body.ratePlans).length).to.be.eql(1);
+          expect(res.body.ratePlans.length).to.be.eql(1);
         });
     });
 
@@ -179,21 +179,22 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('ratePlans');
-          expect(Object.values(res.body.ratePlans).length).to.be.eql(0);
+          expect(res.body.ratePlans.length).to.be.eql(0);
         });
     });
 
     it('should include availability if fields is present', async () => {
+      let roomType = 'room-type-1111';
       await request(server)
-        .get(`/hotels/${address}/roomTypes/room-type-1111?fields=availability`)
+        .get(`/hotels/${address}/roomTypes/${roomType}?fields=availability`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('availability');
           expect(res.body.availability).to.have.property('updatedAt');
-          expect(res.body.availability).to.have.nested.property('availability.room-type-1111');
-          expect(res.body.availability.availability['room-type-1111'].length).to.be.eql(9);
+          expect(res.body.availability).to.have.property('roomTypes');
+          expect(res.body.availability.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; }).length).to.be.eql(9);
         });
     });
 
@@ -206,7 +207,7 @@ describe('Room types', function () {
         .expect((res) => {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('availability');
-          expect(Object.keys(res.body.availability).length).to.be.eql(0);
+          expect(res.body.availability.length).to.be.eql(0);
         });
     });
 
@@ -240,7 +241,7 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          const ratePlans = Object.values(res.body);
+          const ratePlans = res.body;
           expect(ratePlans.length).to.be.eql(1);
           expect(ratePlans[0]).to.have.property('id', 'rate-plan-1');
         });
@@ -253,7 +254,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          const ratePlans = Object.values(res.body);
+          const ratePlans = res.body;
           expect(ratePlans.length).to.be.eql(0);
         });
     });
@@ -300,27 +301,30 @@ describe('Room types', function () {
 
   describe('GET /hotels/:hotelAddress/roomTypes/:roomTypeId/availability', () => {
     it('should return availability data', async () => {
+      let roomType = 'room-type-1111';
       await request(server)
-        .get(`/hotels/${address}/roomTypes/room-type-1111/availability`)
+        .get(`/hotels/${address}/roomTypes/${roomType}/availability`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
-          expect(res.body).to.have.nested.property('availability.room-type-1111');
-          expect(res.body.availability['room-type-1111'].length).to.be.eql(9);
+          expect(res.body).to.have.property('roomTypes');
+          let data = res.body.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; });
+          expect(data.length).to.be.eql(9);
         });
     });
 
     it('should return empty object if no availability is associated', async () => {
+      let roomType = 'room-type-1111';
       await request(server)
-        .get(`/hotels/${address}/roomTypes/room-type-3333/availability`)
+        .get(`/hotels/${address}/roomTypes/${roomType}/availability`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
-          expect(res.body).to.have.nested.property('availability.room-type-3333');
-          expect(res.body.availability['room-type-3333'].length).to.be.eql(0);
+          let data = res.body.roomTypes.filter((rt) => { return rt.id === roomType; });
+          expect(data.length).to.be.eql(0);
         });
     });
 
