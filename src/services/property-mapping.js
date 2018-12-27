@@ -15,6 +15,7 @@ const fieldMapping = {
   ratePlans: 'ratePlansUri',
   availability: 'availabilityUri',
 };
+const reversedFieldMapping = Object.keys(fieldMapping).reduce((reversed, field) => { reversed[fieldMapping[field]] = field; return reversed; }, {});
 
 const mapHotelFieldsFromQuery = (fields) => {
   return fields.reduce((newFields, field) => {
@@ -27,4 +28,5 @@ const mapHotelFieldsFromQuery = (fields) => {
 module.exports = {
   mapHotelObjectToResponse,
   mapHotelFieldsFromQuery,
+  REVERSED_FIELD_MAPPING: reversedFieldMapping,
 };

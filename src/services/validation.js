@@ -12,6 +12,9 @@ const {
   DATA_FORMAT_VERSION,
   HOTEL_SCHEMA_MODEL,
 } = require('../constants');
+const {
+  REVERSED_FIELD_MAPPING,
+} = require('./property-mapping');
 
 /**
  * Utility class for data format validation.
@@ -34,7 +37,7 @@ class DataFormatValidator {
       throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
     }
 
-    let validation = (new Validator()).validate(data, schemas[modelName], schemas, true); // TODO disallowExtraProperties?
+    let validation = (new Validator()).validate(data, schemas[modelName], schemas, true, false);
     if (!validation.valid) {
       throw new HttpValidationError(validation);
     }
@@ -113,8 +116,9 @@ class DataFormatValidator {
     for (let field of fields) {
       if (field.indexOf('.') > -1) {
         let [base, rest] = field.split('.', 2);
-        if (base === 'availabilityUri') base = 'availability'; // TODO use property-mapping
-        if (base === 'ratePlansUri') base = 'ratePlans';
+        if (base in REVERSED_FIELD_MAPPING) {
+          base = REVERSED_FIELD_MAPPING[base];
+        }
         nestedBaseFields[base] = nestedBaseFields[base] || [];
         nestedBaseFields[base].push(rest);
       }
