@@ -5,7 +5,7 @@ const WTIndexContract = require('@windingtree/wt-contracts/build/contracts/WTInd
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
 
-const { DATA_FORMAT_VERSION } = require('../src/constants');
+const { SUPPORTED_DATA_FORMAT_VERSIONS } = require('../src/constants');
 
 // dirty hack for web3@1.0.0 support for localhost testrpc, see
 // https://github.com/trufflesuite/truffle-contract/issues/56#issuecomment-331084530
@@ -51,7 +51,7 @@ const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, rat
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = SUPPORTED_DATA_FORMAT_VERSIONS[0];
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerHotel(dataUri, {

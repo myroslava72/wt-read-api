@@ -189,7 +189,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
         };
         resolvedItems.push(hotel);
       } else {
-        next(e);
+        throw e;
       }
     }
   }
