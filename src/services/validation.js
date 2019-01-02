@@ -27,10 +27,10 @@ class DataFormatValidator {
    * @param schemas The components.schemas part of swagger definition
    */
   static validateHotel (data, modelName, schemas) {
-    if (!data.dataFormatVersion) { // TODO: warning?
+    if (!data.dataFormatVersion) {
       throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in hotel data for id ${data.id}`] });
     }
-    if (!SUPPORTED_DATA_FORMAT_VERSIONS.find(v => v === data.dataFormatVersion)) { // TODO: skip semver patch, warning?
+    if (!SUPPORTED_DATA_FORMAT_VERSIONS.find(v => v === data.dataFormatVersion)) {
       throw new HttpValidationError({ valid: false, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${SUPPORTED_DATA_FORMAT_VERSIONS}`] });
     }
     if (!schemas.hasOwnProperty(modelName)) {

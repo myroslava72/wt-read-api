@@ -462,6 +462,7 @@ components:
         - type: object
           required:
           - id
+          - dataFormatVersion
           properties:
             id:
               $ref: 'https://raw.githubusercontent.com/windingtree/wiki/1b7bd3e03f88fdfce6d2f0cf27059caf889eb036/hotel-data-swagger.yaml#/components/schemas/EthereumAddressType'
@@ -470,6 +471,11 @@ components:
             roomTypes:
               description: Room types in the hotel
               $ref: '#/components/schemas/RoomTypesResponse'
+            dataFormatVersion:
+              description: Version number indicating the data format specification version.
+              type: string
+              format: semver
+              maxLength: 20
     HotelDetail:
       allOf:
       - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/1b7bd3e03f88fdfce6d2f0cf27059caf889eb036/hotel-data-swagger.yaml#/components/schemas/HotelDescription'

@@ -626,6 +626,21 @@ describe('Hotels', function () {
         });
     });
 
+    it('should return 422 when on-chain data is outdated', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+        getHotel: sinon.stub().resolves(new FakeOldFormatHotel()),
+      });
+
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          wtJsLibsWrapper.getWTIndex.restore();
+        });
+    });
+
     it('should return 502 when off-chain data is inaccessible', async () => {
       sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),

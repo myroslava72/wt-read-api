@@ -244,19 +244,23 @@ const find = async (req, res, next) => {
     let resolvedHotel;
     try {
       resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
+      if (resolvedHotel.error) {
+        return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
+      }
       DataFormatValidator.validateHotel(resolvedHotel, HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = new HttpValidationError();
-        err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+        if (e.code.hasOwnProperty('GetFormattedErrors')) {
+          err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+        } else {
+          err.msgLong = e.code.errors.toString();
+        }
         err.data = resolvedHotel;
-        next(err);
+        return res.status(err.status).json(err.toPlainObject());
       } else {
         next(e);
       }
-    }
-    if (resolvedHotel.error) {
-      return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
     }
     return res.status(200).json(resolvedHotel);
   } catch (e) {
