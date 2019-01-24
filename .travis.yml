@@ -25,6 +25,9 @@ jobs:
     - docker build -t wt-read-api:$TRAVIS_BRANCH .
     - docker tag wt-read-api:$TRAVIS_BRANCH 029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$TRAVIS_BRANCH
     - docker push 029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$TRAVIS_BRANCH
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker tag wt-read-api:$TRAVIS_BRANCH windingtree/wt-read-api:$TRAVIS_BRANCH
+    - docker push windingtree/wt-read-api:$TRAVIS_BRANCH
   - stage: Start service from docker with latest merged tag
     install: true
     sudo: true
