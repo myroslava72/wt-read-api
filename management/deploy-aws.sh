@@ -35,7 +35,7 @@ TASK_DEF="[{\"portMappings\": [{\"hostPort\": 0,\"protocol\": \"tcp\",\"containe
     ],
     \"image\": \"029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$LATEST_TAG\",
     \"name\": \"wt-read-api\",
-    \"memoryReservation\": 128,
+    \"memoryReservation\": 64,
     \"cpu\": 128
   }]"
 
