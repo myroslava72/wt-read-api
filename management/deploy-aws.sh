@@ -33,7 +33,7 @@ TASK_DEF="[{\"portMappings\": [{\"hostPort\": 0,\"protocol\": \"tcp\",\"containe
         \"value\": \"$WT_CONFIG\"
       }
     ],
-    \"image\": \"029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$LATEST_TAG\",
+    \"image\": \"docker.io/windingtree/wt-read-api:$LATEST_TAG\",
     \"name\": \"wt-read-api\",
     \"memoryReservation\": 64,
     \"cpu\": 128
