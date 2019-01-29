@@ -22,6 +22,8 @@ jobs:
     - docker build -t windingtree/wt-read-api:$TRAVIS_BRANCH .
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker push windingtree/wt-read-api:$TRAVIS_BRANCH
+    - docker tag windingtree/wt-read-api:$TRAVIS_BRANCH windingtree/wt-read-api:latest
+    - docker push windingtree/wt-read-api:latest
   - stage: Start service from docker with latest merged tag
     install: true
     sudo: true
