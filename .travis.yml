@@ -12,19 +12,18 @@ jobs:
     - npm run lint
     - npm test
     - npm run coverage
-  - stage: Build docker image and upload to AWS
+  - stage: Build and publish docker image
     sudo: true
     services:
     - docker
     install: true
     if: tag IS present
     script:
-    - pip install --user awscli
-    - export PATH=$PATH:$HOME/.local/bin
-    - eval $(aws ecr get-login --no-include-email --region eu-west-1)
-    - docker build -t wt-read-api:$TRAVIS_BRANCH .
-    - docker tag wt-read-api:$TRAVIS_BRANCH 029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$TRAVIS_BRANCH
-    - docker push 029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$TRAVIS_BRANCH
+    - docker build -t windingtree/wt-read-api:$TRAVIS_BRANCH .
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - docker push windingtree/wt-read-api:$TRAVIS_BRANCH
+    - docker tag windingtree/wt-read-api:$TRAVIS_BRANCH windingtree/wt-read-api:latest
+    - docker push windingtree/wt-read-api:latest
   - stage: Start service from docker with latest merged tag
     install: true
     sudo: true
@@ -46,3 +45,5 @@ env:
   - secure: ZuGWaKHwqK+kgX6xWzQ9GiiMvE0w3lbbQI2gQT8cJpwOvRzFlzc0UoGbCPEUOiaCboBhmjeaonmB+3oibvu7lwejPijBeqLZ6/yQ7JSmNxNs6j5pM56AYaeEfeQYVDjI08vLBcVh4ZWq/wOix8aXWA4d69wSdDYoYv+GcKPi99ZK6tfDxWMwHaDbCJC6JZrBjMDShFTQnuKqHwIcuTBiA+n8KDtGLS3TvT8GdIDLOrk7W6wsO+Pw8ViBZx6nXGEOlHCV4pJE8jFmqNzyGoco4wutenyoTh3nIkTgpFnL2T1q1gIQ9t99Sz4JENvIXYp0rR0MLLXJ7ZYNioF9DX0LK34SAkOq/XXvri4H0L1AnoxB12uGNGyVlI08jk2k4pT9oqZ+aaegtLaGR1j9h9hKltUcORbsQ+OXdEycGEtrsHM58YKAcrWYnDtkHBD5QfPtj29JlMBwwKUpPVz+MQqCSdGSoMN1BDDDxaltr7rsiA4320rxMaBoWDCN0I2nolSuf1NHx9xzj6sdhkEfBzIMxmoRkcA9G2XqLr5bu6ET80CSPjaax2CPyiSSZGLtLlnmeeMzcwoevMLMM4XWNV78J3+pgtqykoaRYBN4PI9fBFrRxmNzv1vfQh05cZ3lAmhABYispuF02VOBzDUQhwHaY+SJXbZDHT3U+TFMIG5IZC8=
   - secure: hINTP0maD3IhgnkrHmkXQEffU2kujBkaTbyHYRvYJWiAdOrKbFS+Rmgz7ZixjxHvB4zCkJkuHLRdiYcCKg1FXwFmqG7Qml5bSZYLWVt0J9n8pWGfy2UqJ5+wRkxAqtChc6LJNH/yqteM+amuTZt1Skt+ByS7l2vG4T5CjsNMJ2MTqx+gtPuGbexyurLEROWojf6HtIYT9ijodHVJQ+RReTkNgnTP/ZQGlo2Z81/lhb8BpPtAE/Bl6X7xLU8u+Z3tg847HJgWLd0XRsk9VDf9e7lr5b/J56SwGCE2NBp9btBSdakDdacl+RQ3C5DvifFd28EqVp4d7A4f6cIo/IXxL2l+5HcXF+AqfR/OL0TTCqWlAEp8auOl3oouytKtNQqHeH3xecUP6OeOyCN5dHkKvAVf5uHULe4c3/o/HQaPLYDiWFini+13e59bBP+19tIG9gESlNnoKUk27UQUwBVizeKUHHMmxXFjnsHFp387+nyNEpjPcArcvVc3YrsMZ62CCOvvNFnm8gv1b6815IcLeVYzju++iC8tf+RGX6MUe0P/1Mo/9ATjahipNOYNScX0tG1/BA610VQVzLKLjXxlXdMS4SaY9nE6IThKXOOJnmk/WFNlMJbRfq1CcKbdWFtGjwxb1fT+Yqn5S8dj3BZBna4utWIxLflCFq1LzEK02Oc=
   - secure: ZT3gTqyQQsZHFvuBTyLD3QQLAD41zCEQ7zVXrazcooj/NZ6Pvt4zyK4gFKzFYFZNZ/cCix/YIQRiZt8kIHpxUbeahyAVoov+x/Q/T0B5Ug8jZHLtJBH73T1fqwyhQt4kDkfDROrg+9XztheF+GWAXxXn+hHPR+VEVF8+Cba/SdNVoL4rP2wuP9E0/Re7+ay7OFurVPk2kRoQ7KVqgdFsr+zE9xs92Ye71TFacKPRUnlxue5cmM/UoEFD3Yecq+sMIHVGmrCfwPgdfvcFRB6nQKGG34/Dyl0xl0YFhyx3DqNBlaeYGYHjOUhZORk2Q9dpgK5cvw/ZL/dwxC+mlipQSZVCOIxc9YUYbSaRWF31iqq7UzYXRr6S/7nn6m276r/sQv8AMwuIBCvtZP9+EXd8R/2OqbRvqp4VBUbHyv+xO6lUhY2IIe8omzmAzy9E3PjyQkBKCLJPdIGrhKEZ/zT4x1BDO/kddz7NEWyxXhWbKh4bj2vCXRYX0SLATf1Bs5g10lOM2mChOqwahR2/+H03FSqSLgzqEHmbanX3yz8dfF3bwZ0mGWaVMQZk3wI345CKLeZY+HuJVXn0BL9VEhZdoHOn6/86va2hTvBXEflrIyEjbVO1gVEPwSI++WbhuUJo4CS9ND0lE6owZEq3XN/9rYw31e/8a4zWSWz6eO5POQA=
+  - secure: AHvZaSot/PiBp8IUe48zs0vDNzjHPZAfkI4oX7IbrYo4Aw1BPPqTYn3bkp1byFEOwqXR8YAm4MOXhc2jk/PK+qKA6Tw8XTW1ZfarelSjUr/Rl88EfppXBzcqBfgRVFNw5SPn8gT4426lTiUtbPtOTMD3YoagGBj+xh5DKCnu83f4HlXAuu9bRqDjt3oaS4jTWJbyC9ScS+oh1Y6K5nRcf9rBerN+WT3Ttft+XKdswtNSqSvM5pKXLd+EgarMNokRC28jc1s7rzNVnzKZ3DWAFxFjjENcZljR7q66aWuGewoUsJv8801z0/rIxgZJh4nFb7BfTuit+00eXL08t7NVCwGskhiAKrlMoWg4TEsrNTm+jpC5IuaaFGz5qsDBUo6hzkDrjoDPRcOGCVQDLl2A3D/ucy4LbT+AGNOZJjbyKqDy2Zg3B31yE0FVCRT2TvH2xlxuCscwFOnTrTE7w2MeHHVdrbJzZ+C+Yn9L9Gzt3DlDT6pD7JhKXedS0b4/hWtHLerrAyskUNUiXMeE6CLBxMqzJgR7L1AoohiH1QqNjBVSl4/na9FP42W3Si0q/RjsAYCoJKI+evGemc0wL9Cx3Cnt/VA70XxqP20dX6ez5xvvKzZBFtFqmOlXPP2owz7NaRIwu56ybpZcFxAH+KfT9iw9Fj3sRsM+6kvRakgvNiw=
+  - secure: epU7VYjyfgrhV8SNaZq4gjtlYP8s8yoOPfO9+Wu9ANi8V77PrNgvtfHK3IiO8ldINX2tV7Y8C8J8QFjjDjrT12apouZAgkR2B5p1V31lkdf8nuL/cmXe2ZQxjLLIYooy94/V6zxGRGBDUCVYdjDJkOZEj9OkPPiXa77KUumLPqmvAlZn2clDxFBIxeN4xJu7dBPIaj8ih1OhdEwtCxBpLWlvVLiAvCLuoOgHCFIkwB6ppO/jBYJzvg6fWNUs0I0oVt6VXJ5GgPSAJmX/U4w3bv27c5c+2f0LXsNXyy4Q8TsyO4ROAV4iPWzC8FXf/yCl9XaK1k2u3j/qa6krE4gBIssUeV/t9uwreJyzrXJw3iATjR4aA8mgyXyAtdPLCKinsRqZBeNtof7HV7RLtyH1kI3AGmaZ8hKuXRx3v6Hj8OYStRhmJyUJqbThubWSdhGIhaQlm13Q1xGtSEVIEIORcdUyEhZK2hXu0X0OQ0oIUCociZ/h5Pws0aXV9D5Dgp4sWR+1HM32L0VGgMGWUqbnsvK+lF6Tvny01JJZwJs8hdvdO32MN9N8NymEEbYMFCtF6AUIsmZD0z6oizwzxWLV+aKokSJAyxQhHQlgfcDfE36LY/V+tjaAY4Z3JaUTjaVzuyoItshV3icqWzvLyF47CJslxfA6wcyjjOogvYUCW40=
