@@ -130,7 +130,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   '/hotels/{hotelId}':
     get:
-      summary: Get hotel `id`
+      summary: Get hotel by `id`
       parameters:
         - name: hotelId
           required: true
@@ -399,6 +399,172 @@ paths:
         '404':
           $ref: '#/components/responses/NotFoundError'
 
+  /airlines:
+    get:
+      summary: Lists airlines
+      parameters:
+        - name: limit
+          in: query
+          description: maximum number of records to return
+          required: false
+          schema:
+            default: 30
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 300
+        - name: startWith
+          in: query
+          description: The `id` of the first record that will be included in the result
+          required: false
+          schema:
+            $ref: >-
+              https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType
+        - name: fields
+          in: query
+          description: >
+            List of fields to return with the airline item. Selecting only `id`
+            field leads to fastest responses as all data are retrieved from
+            WTIndex only.
+          required: false
+          schema:
+            default:
+              - id
+              - name
+            type: array
+            items:
+              type: string
+              enum:
+                - id
+                - name
+                - description
+                - flights
+                - code
+                - contacts
+                - updatedAt
+                - defaultCancellationAmount
+                - currency
+                - images
+                - managerAddress
+                - updatedAt
+                - cancellationPolicies
+                - notificationsUri
+                - bookingUri
+      responses:
+        '200':
+          description: >-
+            List of airlines. The API tries to always fulfil the requested limit,
+            so in some cases, the `errors` field might be present.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of resolved airlines.
+                    items:
+                      $ref: '#/components/schemas/AirlineListItem'
+                  errors:
+                    type: array
+                    description: >-
+                      List of checked airlines whose requested data cannot be
+                      accessed (i. e. off-chain data cannot be reached).
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
+                  next:
+                    description: >-
+                      Uri to next page of records. When there's no next page,
+                      this is not set.
+                    $ref: >-
+                      https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/UriType
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  '/airlines/{airlineId}':
+    get:
+      summary: Get airline by `id`
+      parameters:
+        - name: airlineId
+          required: true
+          in: path
+          description: Airline id as returned by `GET /airline`
+          schema:
+            $ref: >-
+              https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType
+        - name: fields
+          required: false
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              default:
+                - id
+                - name
+                - description
+                - code
+                - contacts
+                - currency
+                - images
+                - updatedAt
+              enum:
+                - id
+                - name
+                - description
+                - flights
+                - code
+                - contacts
+                - updatedAt
+                - defaultCancellationAmount
+                - currency
+                - images
+                - managerAddress
+                - updatedAt
+                - cancellationPolicies
+                - notificationsUri
+                - bookingUri
+      responses:
+        '200':
+          description: Airline object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AirlineDetail'
+        '400':
+          $ref: '#/components/responses/InvalidRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  '/airlines/{airlineId}/flightinstances/{flightInstanceId}':
+    get:
+      parameters:
+        - name: airlineId
+          in: path
+          required: true
+          description: Airline Id as returned by `GET /airline`
+          schema:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+        - name: flightInstanceId
+          in: path
+          required: true
+          description: Id of flight instance
+          schema:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/ObjectIdType'
+      responses:
+        '200':
+          description: Flight instance details
+          content:
+            application/json:
+              schema:
+                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
 components:
   responses:
     InvalidRequestError:
@@ -435,7 +601,7 @@ components:
           type: object
           description: >-
             Additional data to this error, typically contains `id` that
-            identifies the errorring record.
+            identifies the erroring record.
     HotelListItem:
       allOf:
         - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/hotel-data-swagger.yaml#/components/schemas/HotelDescriptionBase'
@@ -487,6 +653,56 @@ components:
         
     AvailabilityResponse:
       $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/hotel-data-swagger.yaml#/components/schemas/Availability'
+
+    AirlineListItem:
+      allOf:
+        - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/AirlineDescriptionBase'
+        - type: object
+          required:
+          - id
+          properties:
+            id:
+              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            managerAddress:
+              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            flights:
+              description: Flights operated by the airline
+              $ref: '#/components/schemas/FlightsResponse'
+
+    AirlineListError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          description: Human readable error from the API
+          type: string
+        originalError:
+          description: Text of the original exception that caused this error
+          type: string
+        data:
+          type: object
+          description: >-
+            Additional data to this error, typically contains `id` that
+            identifies the erroring record.
+
+    AirlineDetail:
+      allOf:
+      - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/AirlineDescription'
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+          flights:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flights'
+
+    FlightsResponse:
+      description: Array of room types
+      type: array
+      items:
+        $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flight'
 
     MetaResponse:
       type: object
