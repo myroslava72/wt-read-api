@@ -1,15 +1,26 @@
-const config = require('../config');
+let { config } = require('../config');
 
 function getInstance () {
   return config.wtLibs;
 }
 
-async function getWTIndex () {
+function _setConfig (c) {
+  config = c;
+}
+
+async function getWTHotelIndex () {
+  const wtLibsInstance = getInstance();
+  return wtLibsInstance.getWTIndex(config.wtIndexAddress);
+}
+
+async function getWTAirlineIndex () {
   const wtLibsInstance = getInstance();
   return wtLibsInstance.getWTIndex(config.wtIndexAddress);
 }
 
 module.exports = {
   getInstance,
-  getWTIndex,
+  _setConfig,
+  getWTHotelIndex,
+  getWTAirlineIndex,
 };

@@ -75,6 +75,7 @@ For example the playground configuration can be emulated with the following comm
 ```sh
 docker run -p 8080:3000 \
   -e WT_CONFIG=envvar \
+  -e WT_SEGMENT=hotels \
   -e WT_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
   -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ \
   -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com \
@@ -177,6 +178,10 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
   "updatedAt": "2018-06-19T13:19:58.190Z"
 }
 ```
+
+# Get a list of airlines
+# Get an airline
+# Get a flight instance
 
 ## Publicly available instances
 

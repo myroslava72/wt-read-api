@@ -6,14 +6,14 @@ const {
   HttpBadGatewayError,
 } = require('../errors');
 const {
-  HOTEL_FIELDS,
-  HOTEL_DESCRIPTION_FIELDS,
-  DEFAULT_HOTELS_FIELDS,
-  DEFAULT_HOTEL_FIELDS,
+  AIRLINE_FIELDS,
+  AIRLINE_DESCRIPTION_FIELDS,
+  DEFAULT_AIRLINES_FIELDS,
+  DEFAULT_AIRLINE_FIELDS,
 } = require('../constants');
 const {
-  mapHotelObjectToResponse,
-  mapHotelFieldsFromQuery,
+  mapAirlineObjectToResponse,
+  mapAirlineFieldsFromQuery,
 } = require('../services/property-mapping');
 const {
   DEFAULT_PAGE_SIZE,
@@ -86,38 +86,37 @@ const flattenObject = (contents, fields) => {
   return result;
 };
 
-const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
-  let hotelData = {};
+const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
+  let airlineData = {};
   try {
     if (offChainFields.length) {
-      const plainHotel = await hotel.toPlainObject(offChainFields);
-      const flattenedOffChainData = flattenObject(plainHotel.dataUri.contents, offChainFields);
-      hotelData = {
+      const plainAirline = await airline.toPlainObject(offChainFields);
+      const flattenedOffChainData = flattenObject(plainAirline.dataUri.contents, offChainFields);
+      airlineData = {
         ...flattenedOffChainData.descriptionUri,
-        ...(flattenObject(plainHotel, offChainFields)),
+        ...(flattenObject(plainAirline, offChainFields)),
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
-        'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
-        'availabilityUri': (data, source, key) => { data.availability = source[key]; return data; },
+        'flightsUri': (data, source, key) => { data.flights = source[key]; return data; },
       };
       for (let fieldModifier in fieldModifiers) {
         if (flattenedOffChainData[fieldModifier] !== undefined) {
-          hotelData = fieldModifiers[fieldModifier](hotelData, flattenedOffChainData, fieldModifier);
+          airlineData = fieldModifiers[fieldModifier](airlineData, flattenedOffChainData, fieldModifier);
         }
       }
     }
     for (let i = 0; i < onChainFields.length; i += 1) {
-      if (hotel[onChainFields[i]]) {
-        hotelData[onChainFields[i]] = await hotel[onChainFields[i]];
+      if (airline[onChainFields[i]]) {
+        airlineData[onChainFields[i]] = await airline[onChainFields[i]];
       }
     }
-    // Always append hotel chain address as id property
-    hotelData.id = hotel.address;
+    // Always append airline chain address as id property
+    airlineData.id = airline.address;
   } catch (e) {
-    let message = 'Cannot get hotel data';
+    let message = 'Cannot get airline data';
     if (e instanceof wtJsLibs.errors.RemoteDataReadError) {
       message = 'Cannot access on-chain data, maybe the deployed smart contract is broken';
     }
@@ -128,20 +127,20 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
       error: message,
       originalError: e.message,
       data: {
-        id: hotel.address,
+        id: airline.address,
       },
     };
   }
-  return mapHotelObjectToResponse(hotelData);
+  return mapAirlineObjectToResponse(airlineData);
 };
 
 const calculateFields = (fieldsQuery) => {
   const fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  const mappedFields = mapHotelFieldsFromQuery(fieldsArray);
+  const mappedFields = mapAirlineFieldsFromQuery(fieldsArray);
   return {
     mapped: mappedFields,
     onChain: mappedFields.map((f) => {
-      if (HOTEL_FIELDS.indexOf(f) > -1) {
+      if (AIRLINE_FIELDS.indexOf(f) > -1) {
         return f;
       }
       return null;
@@ -151,12 +150,11 @@ const calculateFields = (fieldsQuery) => {
       if (f.indexOf('.') > -1) {
         firstPart = f.substring(0, f.indexOf('.'));
       }
-      if (HOTEL_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
+      if (AIRLINE_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
         return `descriptionUri.${f}`;
       }
       if ([
-        'ratePlansUri',
-        'availabilityUri',
+        'flightsUri',
         'notificationsUri',
         'bookingUri',
       ].indexOf(firstPart) > -1) {
@@ -167,20 +165,20 @@ const calculateFields = (fieldsQuery) => {
   };
 };
 
-const fillHotelList = async (path, fields, hotels, limit, startWith) => {
+const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
-  let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
-  let rawHotels = [];
-  for (let hotel of items) {
-    rawHotels.push(resolveHotelObject(hotel, fields.toFlatten, fields.onChain));
+  let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
+  let rawAirlines = [];
+  for (let airline of items) {
+    rawAirlines.push(resolveAirlineObject(airline, fields.toFlatten, fields.onChain));
   }
-  const resolvedItems = await Promise.all(rawHotels);
+  const resolvedItems = await Promise.all(rawAirlines);
   let realItems = resolvedItems.filter((i) => !i.error);
   let realErrors = resolvedItems.filter((i) => i.error);
   let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
-    const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
+    const nestedResult = await fillAirlineList(path, fields, airlines, limit - realItems.length, nextStart);
     realItems = realItems.concat(nestedResult.items);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
@@ -201,18 +199,18 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
 
 const findAll = async (req, res, next) => {
   const { limit, startWith } = req.query;
-  const fieldsQuery = req.query.fields || DEFAULT_HOTELS_FIELDS;
+  const fieldsQuery = req.query.fields || DEFAULT_AIRLINES_FIELDS;
 
   try {
-    let hotels = await res.locals.wt.hotelIndex.getAllHotels();
-    const { items, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
+    let airlines = await res.locals.wt.airlineIndex.getAllAirlines();
+    const { items, errors, next } = await fillAirlineList(req.path, calculateFields(fieldsQuery), airlines, limit, startWith);
     res.status(200).json({ items, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
       return next(new HttpValidationError('paginationLimitError', 'Limit must be a natural number greater than 0.'));
     }
     if (e instanceof MissingStartWithError) {
-      return next(new Http404Error('paginationStartWithError', 'Cannot find startWith in hotel collection.'));
+      return next(new Http404Error('paginationStartWithError', 'Cannot find startWith in airline collection.'));
     }
     next(e);
   }
@@ -220,31 +218,30 @@ const findAll = async (req, res, next) => {
 
 const find = async (req, res, next) => {
   try {
-    const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
+    const fieldsQuery = req.query.fields || DEFAULT_AIRLINE_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
-    if (resolvedHotel.error) {
-      return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
+    const resolvedAirline = await resolveAirlineObject(res.locals.wt.airline, fields.toFlatten, fields.onChain);
+    if (resolvedAirline.error) {
+      return next(new HttpBadGatewayError('airlineNotAccessible', resolvedAirline.error, 'Airline data is not accessible.'));
     }
-    return res.status(200).json(resolvedHotel);
+    return res.status(200).json(resolvedAirline);
   } catch (e) {
-    return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
+    return next(new HttpBadGatewayError('airlineNotAccessible', e.message, 'Airline data is not accessible.'));
   }
 };
 
 const meta = async (req, res, next) => {
   try {
-    const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
+    const resolvedAirline = await res.locals.wt.airline.toPlainObject([]);
     return res.status(200).json({
-      address: resolvedHotel.address,
-      dataUri: resolvedHotel.dataUri.ref,
-      descriptionUri: resolvedHotel.dataUri.contents.descriptionUri,
-      ratePlansUri: resolvedHotel.dataUri.contents.ratePlansUri,
-      availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
-      dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
+      address: resolvedAirline.address,
+      dataUri: resolvedAirline.dataUri.ref,
+      descriptionUri: resolvedAirline.dataUri.contents.descriptionUri,
+      flightsUri: resolvedAirline.dataUri.contents.flightsUri,
+      dataFormatVersion: resolvedAirline.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
-    return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
+    return next(new HttpBadGatewayError('airlineNotAccessible', e.message, 'Airline data is not accessible.'));
   }
 };
 

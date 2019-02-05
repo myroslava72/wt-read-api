@@ -3,8 +3,9 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
+const initSegment = require('../../src/config/index').initSegment;
 const {
-  deployIndex,
+  deployHotelIndex,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -18,14 +19,18 @@ const {
 
 describe('Availability', function () {
   let server;
+  let config;
   let wtLibsInstance;
   let address, indexContract;
 
   beforeEach(async () => {
+    process.env.WT_SEGMENT = 'hotels';
+    config = initSegment();
+    wtJsLibsWrapper._setConfig(config);
+
     server = require('../../src/index');
-    const config = require('../../src/config');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployIndex();
+    indexContract = await deployHotelIndex();
     config.wtIndexAddress = indexContract.address;
     address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
   });
@@ -47,7 +52,7 @@ describe('Availability', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
@@ -56,7 +61,7 @@ describe('Availability', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 

@@ -39,6 +39,7 @@ module.exports = {
   baseUrl: process.env.BASE_URL,
   ethNetwork: process.env.ETH_NETWORK_NAME,
   wtLibs: WtJsLibs.createInstance({
+    segment: process.env.WT_SEGMENT,
     dataModelOptions: {
       provider: process.env.ETH_NETWORK_PROVIDER,
     },

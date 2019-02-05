@@ -1,14 +1,42 @@
 const winston = require('winston');
+const assert = require('assert');
+const WtJsLibs = require('@windingtree/wt-js-libs');
+
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 
 const env = process.env.WT_CONFIG || 'dev';
 
-module.exports = Object.assign({
-  logger: winston.createLogger({
-    level: 'info',
-    transports: [
-      new winston.transports.Console({
-        format: winston.format.simple(),
-      }),
-    ],
-  }),
-}, require(`./${env}`));
+let config;
+
+const init = () => {
+  config = Object.assign({
+    logger: winston.createLogger({
+      level: 'info',
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.simple(),
+        }),
+      ],
+    }),
+  }, require(`./${env}`));
+};
+
+const initSegment = () => {
+  const segment = process.env.WT_SEGMENT || 'hotels';
+  assert([HOTEL_SEGMENT_ID, AIRLINE_SEGMENT_ID].indexOf(segment) !== -1);
+  init();
+  config.segment = segment;
+  config.wtLibs = WtJsLibs.createInstance({
+    segment: config.segment,
+    dataModelOptions: { provider: config.wtLibs.options.dataModelOptions.provider },
+    offChainDataOptions: config.wtLibs.options.offChainDataOptions,
+    networkSetup: config.wtLibs.options.networkSetup,
+  });
+  return config;
+};
+initSegment();
+
+module.exports = {
+  config,
+  initSegment,
+};

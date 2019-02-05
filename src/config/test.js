@@ -8,6 +8,7 @@ module.exports = {
   wtIndexAddress: 'will-be-set-during-init',
   ethNetwork: 'test',
   wtLibs: WtJsLibs.createInstance({
+    segment: process.env.WT_SEGMENT || 'hotels',
     dataModelOptions: {
       provider: 'http://localhost:8545',
     },

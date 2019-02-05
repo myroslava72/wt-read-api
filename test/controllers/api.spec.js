@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
 const request = require('supertest');
-const config = require('../../src/config');
+const { config } = require('../../src/config');
 
 describe('API', function () {
   let server;

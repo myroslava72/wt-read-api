@@ -6,11 +6,12 @@ const morgan = require('morgan');
 const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
-const config = require('./config');
+const { config } = require('./config');
 const { DATA_FORMAT_VERSION } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
+const { airlinesRouter } = require('./routes/airlines');
 
 const swaggerDocument = YAML.load(path.resolve('./docs/swagger.yaml'));
 swaggerDocument.servers = [{ url: config.baseUrl }];
@@ -56,8 +57,9 @@ app.get('/', (req, res) => {
   res.status(200).json(response);
 });
 
-// Router
+// Router TODO separate swagger def?
 app.use(hotelsRouter);
+app.use(airlinesRouter);
 
 // 404 handler
 app.use('*', (req, res, next) => {
