@@ -17,6 +17,9 @@
     "type": "git",
     "url": "git+https://github.com/windingtree/wt-read-api.git"
   },
+  "bin": {
+    "wt-read-api": "./management/start-server.js"
+  },
   "keywords": [
     "winding-tree",
     "api",
