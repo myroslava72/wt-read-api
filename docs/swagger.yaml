@@ -431,6 +431,7 @@ paths:
             default:
               - id
               - name
+              - code
             type: array
             items:
               type: string
@@ -444,7 +445,6 @@ paths:
                 - updatedAt
                 - defaultCancellationAmount
                 - currency
-                - images
                 - managerAddress
                 - updatedAt
                 - cancellationPolicies
@@ -505,10 +505,8 @@ paths:
                 - id
                 - name
                 - description
-                - code
                 - contacts
                 - currency
-                - images
                 - updatedAt
               enum:
                 - id
@@ -520,7 +518,6 @@ paths:
                 - updatedAt
                 - defaultCancellationAmount
                 - currency
-                - images
                 - managerAddress
                 - updatedAt
                 - cancellationPolicies

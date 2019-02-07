@@ -41,7 +41,6 @@ const DEFAULT_AIRLINE_FIELDS = [
   'description',
   'contacts',
   'currency',
-  'images',
   'updatedAt',
 ];
 const DEFAULT_AIRLINES_FIELDS = [
@@ -60,7 +59,6 @@ const AIRLINE_DESCRIPTION_FIELDS = [
   'description',
   'contacts',
   'currency',
-  'images',
   'updatedAt',
   'defaultCancellationAmount',
   'cancellationPolicies',
