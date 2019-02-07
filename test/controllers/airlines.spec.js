@@ -194,7 +194,6 @@ describe('Airlines', function () {
         'contacts',
         'flights',
         'currency',
-        'images',
         'updatedAt',
         'notificationsUri',
         'bookingUri',
@@ -367,7 +366,6 @@ describe('Airlines', function () {
         'description',
         'contacts',
         'currency',
-        'images',
         'updatedAt',
       ];
       await request(server)
