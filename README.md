@@ -5,7 +5,7 @@ API written in nodejs to fetch information from the Winding Tree platform.
 ## Requirements
 - Nodejs >=10
 
-### Getting stared
+## Development
 In order to install and run tests, we must:
 ```
 git clone git@github.com:windingtree/wt-read-api.git
@@ -14,10 +14,11 @@ npm install
 npm test
 ```
 
-### Running dev mode
+### Running in dev mode
 With all the dependencies installed, you can start the dev server.
-First step is starting Ganache (local Ethereum network node). You can skip this
-step if you have a different network already running.
+First step is starting [Ganache](https://github.com/trufflesuite/ganache)
+(local Ethereum network node). You can skip this step if you have a different
+network already running.
 ```bash
 npm run dev-net
 ```
@@ -37,7 +38,7 @@ Now we can run our dev server.
 ```bash
 npm run dev
 ```
-When using a `local` config, we internally run a script to deploy WT Index. It is not immediate,
+When using a `dev` config, we internally run a script to deploy WT Index. It is not immediate,
 so you might experience some errors in a first few seconds. And that's the reason why
 it is not used in the same manner in tests.
 
@@ -46,26 +47,44 @@ with the live server. An [OAS](https://github.com/OAI/OpenAPI-Specification) des
 
 You can tweak with the configuration in `src/config/`.
 
-### Running node against Ropsten testnet contract
+## Running this server
 
-- For our deployment on https://playground-api.windingtree.com, we use a Docker image.
-- You can use it in your local environment by running the following commands:
+### Docker
+
+You can run the whole API in a docker container, and you can
+control which config will be used by passing an appropriate value
+to WT_CONFIG variable at runtime.
+
 ```sh
 $ docker build -t windingtree/wt-read-api .
 $ docker run -p 8080:3000 -e WT_CONFIG=playground windingtree/wt-read-api
 ```
-- After that you can access the wt-read-api on local port `8080`
-- This deployment is using a Ropsten configuration that can be found in `src/config/playground.js`
+After that you can access the wt-read-api on local port `8080`. This deployment
+is using a Ropsten configuration that can be found in `src/config/playground.js`.
 
-You can run a node with a configuration entirely based on environment variables. Allowed options are:
+### NPM
 
+You can install and run this from NPM as well:
+
+```sh
+$ npm install -g @windingtree/wt-read-api
+$ WT_CONFIG=playground wt-read-api
+```
+
+### Running in production
+
+You can customize the behaviour of the instance by many environment
+variables which get applied if you run the API with `WT_CONFIG=envvar`.
+These are:
+
+- `WT_CONFIG` - Which config will be used. Defaults to `dev`.
 - `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
 - `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
 - `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
 - `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
 - `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
 - `WT_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTIndex.sol)
-- `PORT` - HTTP Port where the API will lsiten, 3000 by default.
+- `PORT` - HTTP Port where the API will listen, defaults to 3000.
 - `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
 - `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/`
