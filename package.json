@@ -20,6 +20,9 @@
   "bin": {
     "wt-read-api": "./management/start-server.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "winding-tree",
     "api",
