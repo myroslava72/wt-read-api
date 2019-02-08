@@ -12,7 +12,7 @@ const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = requ
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 
-const swaggerDocument = YAML.load(path.resolve('./docs/swagger.yaml'));
+const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
 swaggerDocument.servers = [{ url: config.baseUrl }];
 swaggerDocument.info.version = version;
 

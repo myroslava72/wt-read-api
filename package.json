@@ -1,6 +1,6 @@
 {
-  "name": "wt-read-api",
-  "version": "0.10.0",
+  "name": "@windingtree/wt-read-api",
+  "version": "0.11.0",
   "description": " API to interact with the Winding Tree platform",
   "main": "index.js",
   "scripts": {
@@ -16,6 +16,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/windingtree/wt-read-api.git"
+  },
+  "bin": {
+    "wt-read-api": "./management/start-server.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "winding-tree",
