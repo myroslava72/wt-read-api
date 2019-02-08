@@ -7,7 +7,7 @@ const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
-const { DATA_FORMAT_VERSION, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('./constants');
+const { DATA_FORMAT_VERSION, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ACCEPTED_SEGMENTS } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
@@ -22,6 +22,17 @@ swaggerDocument.info.version = version;
 app.disable('x-powered-by');
  
 // Swagger docs
+// remove unused endpoint definitions
+const segmentsToStart = process.env.WT_SEGMENTS.split(',');
+for (let segment of ACCEPTED_SEGMENTS) {
+  if (segmentsToStart.indexOf(segment) === -1) {
+    for (let path in swaggerDocument.paths) {
+      if (path.startsWith(`/${segment}`)) {
+        delete swaggerDocument.paths[path];
+      }
+    }
+  }
+}
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -58,7 +69,6 @@ app.get('/', (req, res) => {
 });
 
 // Router
-const segmentsToStart = process.env.WT_SEGMENTS.split(',');
 if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
   app.use(hotelsRouter);
 }

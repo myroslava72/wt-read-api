@@ -9,12 +9,17 @@ const injectWtLibs = async (req, res, next) => {
   if (res.locals.wt) {
     next();
   }
-  res.locals.wt = {
-    hotelInstance: wtJsLibs.getInstance(HOTEL_SEGMENT_ID),
-    hotelIndex: await wtJsLibs.getWTHotelIndex(),
-    airlineInstance: wtJsLibs.getInstance(AIRLINE_SEGMENT_ID),
-    airlineIndex: await wtJsLibs.getWTAirlineIndex(),
-  };
+  let usedSegments = process.env.WT_SEGMENTS.split(',');
+  let wt = {};
+  if (usedSegments.indexOf(HOTEL_SEGMENT_ID) !== -1) {
+    wt.hotelInstance = wtJsLibs.getInstance(HOTEL_SEGMENT_ID);
+    wt.hotelIndex = await wtJsLibs.getWTHotelIndex();
+  }
+  if (usedSegments.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
+    wt.airlineInstance = wtJsLibs.getInstance(AIRLINE_SEGMENT_ID);
+    wt.airlineIndex = await wtJsLibs.getWTAirlineIndex();
+  }
+  res.locals.wt = wt;
   next();
 };
 
