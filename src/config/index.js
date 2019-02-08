@@ -1,44 +1,38 @@
 const winston = require('winston');
-const assert = require('assert');
 const WtJsLibs = require('@windingtree/wt-js-libs');
 
-const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
+const { ACCEPTED_SEGMENTS } = require('../constants');
 
 const env = process.env.WT_CONFIG || 'dev';
 
-let config;
+let config = Object.assign({
+  port: process.env.PORT || 3000,
+  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+  wtLibs: {},
+  logger: winston.createLogger({
+    level: process.env.LOG_LEVEL || 'info',
+    transports: [
+      new winston.transports.Console({
+        format: winston.format.simple(),
+      }),
+    ],
+  }),
+}, require(`./${env}`));
 
-const init = () => {
-  config = Object.assign({
-    port: process.env.PORT || 3000,
-    baseUrl: process.env.BASE_URL || 'http://localhost:3000',
-    logger: winston.createLogger({
-      level: process.env.LOG_LEVEL || 'info',
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.simple(),
-        }),
-      ],
-    }),
-  }, require(`./${env}`));
-};
-
-const initSegment = () => {
-  const segment = process.env.WT_SEGMENT || 'hotels';
-  assert([HOTEL_SEGMENT_ID, AIRLINE_SEGMENT_ID].indexOf(segment) !== -1);
-  init();
-  config.segment = segment;
-  config.wtLibs = WtJsLibs.createInstance({
-    segment: config.segment,
-    dataModelOptions: { provider: config.wtLibs.options.dataModelOptions.provider },
-    offChainDataOptions: config.wtLibs.options.offChainDataOptions,
-    networkSetup: config.wtLibs.options.networkSetup,
+// setup js-libs instances
+process.env.WT_SEGMENTS = process.env.WT_SEGMENTS ? process.env.WT_SEGMENTS : 'hotels,airlines';
+for (let segment of process.env.WT_SEGMENTS.split(',')) {
+  if (ACCEPTED_SEGMENTS.indexOf(segment) === -1) {
+    throw new Error(`Unknown segment ${segment}.`);
+  }
+  config.wtLibs[segment] = WtJsLibs.createInstance({
+    segment: segment,
+    dataModelOptions: { provider: config.wtLibsOptions.dataModelOptions.provider },
+    offChainDataOptions: config.wtLibsOptions.offChainDataOptions,
+    networkSetup: config.wtLibsOptions.networkSetup,
   });
-  return config;
-};
-initSegment();
+}
 
 module.exports = {
   config,
-  initSegment,
 };

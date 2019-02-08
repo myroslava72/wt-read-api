@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const initSegment = require('../../src/config/index').initSegment;
+const { AIRLINE_SEGMENT_ID } = require('../../src/constants');
 const {
   deployAirlineIndex,
   deployFullAirline,
@@ -21,17 +21,12 @@ describe('Flights', function () {
   let server;
   let wtLibsInstance;
   let address, indexContract;
-  let config;
 
   beforeEach(async () => {
-    process.env.WT_SEGMENT = 'airlines';
-    config = initSegment();
-    wtJsLibsWrapper._setConfig(config);
-
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance();
+    wtLibsInstance = wtJsLibsWrapper.getInstance(AIRLINE_SEGMENT_ID);
     indexContract = await deployAirlineIndex();
-    config.wtIndexAddress = indexContract.address;
+    wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
     address = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
   });
 

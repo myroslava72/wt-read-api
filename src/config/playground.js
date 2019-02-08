@@ -1,13 +1,13 @@
-const WtJsLibs = require('@windingtree/wt-js-libs');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
 module.exports = {
-  wtIndexAddress: '0xfb562057d613175c850df65e435bb0824b65d319',
+  wtIndexAddresses: {
+    hotels: '0xfb562057d613175c850df65e435bb0824b65d319',
+  },
   baseUrl: 'https://playground-api.windingtree.com',
   ethNetwork: 'ropsten',
-  wtLibs: WtJsLibs.createInstance({
-    segment: process.env.WT_SEGMENT,
+  wtLibsOptions: {
     dataModelOptions: {
       provider: 'https://ropsten.infura.io/' + process.env.INFURA_API_KEY,
     },
@@ -29,5 +29,5 @@ module.exports = {
         },
       },
     },
-  }),
+  },
 };

@@ -4,8 +4,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const initSegment = require('../../src/config/index').initSegment;
-const { DATA_FORMAT_VERSION } = require('../../src/constants');
+const { HOTEL_SEGMENT_ID, DATA_FORMAT_VERSION } = require('../../src/constants');
 const {
   deployHotelIndex,
   deployFullHotel,
@@ -26,18 +25,13 @@ const {
 
 describe('Hotels', function () {
   let server;
-  let config;
   let wtLibsInstance, indexContract;
   let hotel0address, hotel1address;
   beforeEach(async () => {
-    process.env.WT_SEGMENT = 'hotels';
-    config = initSegment();
-    wtJsLibsWrapper._setConfig(config);
-
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance();
+    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
     indexContract = await deployHotelIndex();
-    config.wtIndexAddress = indexContract.address;
+    wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
   });
 
   afterEach(() => {

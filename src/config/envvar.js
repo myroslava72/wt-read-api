@@ -1,4 +1,3 @@
-const WtJsLibs = require('@windingtree/wt-js-libs');
 const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
@@ -34,17 +33,19 @@ if (process.env.ADAPTER_HTTPS) {
 }
 
 module.exports = {
-  wtIndexAddress: process.env.WT_INDEX_ADDRESS,
+  wtIndexAddresses: {
+    hotels: process.env.WT_HOTEL_INDEX_ADDRESS,
+    airlines: process.env.WT_AIRLINE_INDEX_ADDRESS,
+  },
   port: process.env.PORT || 3000,
   baseUrl: process.env.BASE_URL,
   ethNetwork: process.env.ETH_NETWORK_NAME,
-  wtLibs: WtJsLibs.createInstance({
-    segment: process.env.WT_SEGMENT,
+  wtLibsOptions: {
     dataModelOptions: {
       provider: process.env.ETH_NETWORK_PROVIDER,
     },
     offChainDataOptions: {
       adapters: offChainAdapters,
     },
-  }),
+  },
 };

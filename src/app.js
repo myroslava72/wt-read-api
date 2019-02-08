@@ -7,7 +7,7 @@ const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
-const { DATA_FORMAT_VERSION } = require('./constants');
+const { DATA_FORMAT_VERSION, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
@@ -50,16 +50,21 @@ app.get('/', (req, res) => {
     info: 'https://github.com/windingtree/wt-read-api/blob/master/README.md',
     version,
     config: process.env.WT_CONFIG,
-    wtIndexAddress: config.wtIndexAddress,
+    wtIndexAddresses: config.wtIndexAddresses,
     ethNetwork: config.ethNetwork,
     dataFormatVersion: DATA_FORMAT_VERSION,
   };
   res.status(200).json(response);
 });
 
-// Router TODO separate swagger def?
-app.use(hotelsRouter);
-app.use(airlinesRouter);
+// Router
+const segmentsToStart = process.env.WT_SEGMENTS.split(',');
+if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
+  app.use(hotelsRouter);
+}
+if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
+  app.use(airlinesRouter);
+}
 
 // 404 handler
 app.use('*', (req, res, next) => {

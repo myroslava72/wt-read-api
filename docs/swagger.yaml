@@ -32,9 +32,15 @@ paths:
                   config:
                     type: string
                     description: Which config is the API using. It might be useful to name configs after used ETH networks.
-                  wtIndexAddress:
-                    type: string
-                    description: Ethereum address of used Winding Tree index.
+                  wtIndexAddresses:
+                    type: object
+                    properties:
+                      airlines:
+                        type: string
+                        description: Ethereum address of used Winding Tree airline index.
+                      hotels:
+                        type: string
+                        description: Ethereum address of used Winding Tree hotel index.
                   ethNetwork:
                     type: string
                     description: Name of the ethereum network against which this instance runs.

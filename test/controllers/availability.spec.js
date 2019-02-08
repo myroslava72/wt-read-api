@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const initSegment = require('../../src/config/index').initSegment;
+const { HOTEL_SEGMENT_ID } = require('../../src/constants');
 const {
   deployHotelIndex,
   deployFullHotel,
@@ -19,19 +19,14 @@ const {
 
 describe('Availability', function () {
   let server;
-  let config;
   let wtLibsInstance;
   let address, indexContract;
 
   beforeEach(async () => {
-    process.env.WT_SEGMENT = 'hotels';
-    config = initSegment();
-    wtJsLibsWrapper._setConfig(config);
-
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance();
+    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
     indexContract = await deployHotelIndex();
-    config.wtIndexAddress = indexContract.address;
+    wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
     address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
   });
 

@@ -1,5 +1,6 @@
 const WTLibs = require('@windingtree/wt-js-libs');
 const wtJsLibs = require('../services/wt-js-libs');
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
   HttpValidationError, HttpForbiddenError,
   HttpInternalError, Http404Error } = require('../errors');
@@ -8,10 +9,10 @@ const injectWtLibs = async (req, res, next) => {
   if (res.locals.wt) {
     next();
   }
-  const wtLibsInstance = wtJsLibs.getInstance();
   res.locals.wt = {
-    instance: wtLibsInstance,
+    hotelInstance: wtJsLibs.getInstance(HOTEL_SEGMENT_ID),
     hotelIndex: await wtJsLibs.getWTHotelIndex(),
+    airlineInstance: wtJsLibs.getInstance(AIRLINE_SEGMENT_ID),
     airlineIndex: await wtJsLibs.getWTAirlineIndex(),
   };
   next();
@@ -21,7 +22,7 @@ const validateHotelAddress = (req, res, next) => {
   const { hotelAddress } = req.params;
   const { wt } = res.locals;
 
-  if (wt.instance.dataModel.web3Utils.isZeroAddress(hotelAddress) || !wt.instance.dataModel.web3Utils.checkAddressChecksum(hotelAddress)) {
+  if (wt.hotelInstance.dataModel.web3Utils.isZeroAddress(hotelAddress) || !wt.hotelInstance.dataModel.web3Utils.checkAddressChecksum(hotelAddress)) {
     return next(new HttpValidationError('hotelChecksum', 'Given hotel address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for hotel address.'));
   }
   next();
@@ -30,7 +31,7 @@ const validateHotelAddress = (req, res, next) => {
 const validateAirlineAddress = (req, res, next) => {
   const { airlineAddress } = req.params;
   const { wt } = res.locals;
-  if (wt.instance.dataModel.web3Utils.isZeroAddress(airlineAddress) || !wt.instance.dataModel.web3Utils.checkAddressChecksum(airlineAddress)) {
+  if (wt.airlineInstance.dataModel.web3Utils.isZeroAddress(airlineAddress) || !wt.airlineInstance.dataModel.web3Utils.checkAddressChecksum(airlineAddress)) {
     return next(new HttpValidationError('airlineChecksum', 'Given airline address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for airline address.'));
   }
   next();
