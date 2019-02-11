@@ -7,7 +7,7 @@ const {
   handleDataFetchingErrors,
 } = require('../middlewares');
 const airlinesController = require('../controllers/airlines');
-const flightsController = require('../controllers/flights');
+const flightsController = require('../controllers/flight-instances');
 
 const airlinesRouter = express.Router();
 

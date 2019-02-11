@@ -331,7 +331,7 @@ const AIRLINE_FLIGHTS = {
   updatedAt: '2019-01-01 12:00:00',
   items: [
     {
-      id: 'IeKeix6G-1',
+      id: 'IeKeix6G',
       origin: 'PRG',
       destination: 'LAX',
       segments: [
@@ -349,7 +349,7 @@ const AIRLINE_FLIGHTS = {
       flightInstancesUri: 'in-memory://airline.com/flightinstancesone',
     },
     {
-      id: 'IeKeix6G-1',
+      id: 'IeKeix7H',
       origin: 'LON',
       destination: 'CAP',
       segments: [

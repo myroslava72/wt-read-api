@@ -13,7 +13,7 @@ const mapObjectToResponse = (hotel, mapping) => {
   }, {});
 };
 const mapHotelObjectToResponse = (hotel) => mapObjectToResponse(hotel, hotelMappingToResponse);
-const mapAirlineObjectToResponse = (hotel) => mapObjectToResponse(hotel, airlineMappingToResponse);
+const mapAirlineObjectToResponse = (airline) => mapObjectToResponse(airline, airlineMappingToResponse);
 
 const hotelMappingFromQuery = {
   managerAddress: 'manager',

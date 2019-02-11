@@ -702,7 +702,7 @@ components:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flights'
 
     FlightsResponse:
-      description: Array of room types
+      description: Array of flight instances
       type: array
       items:
         $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flight'
