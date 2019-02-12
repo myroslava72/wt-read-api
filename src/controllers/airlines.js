@@ -39,7 +39,20 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
       const fieldModifiers = {
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
-        'flightsUri': (data, source, key) => { data.flights = source[key]; return data; },
+        'flightsUri': (data, source, key) => {
+          data.flights = source[key];
+          if (data.flights) {
+            for (let f of data.flights.items) {
+              if (f.flightInstancesUri && f.flightInstancesUri.ref && f.flightInstancesUri.contents) {
+                f.flightInstances = f.flightInstancesUri.contents;
+              } else {
+                f.flightInstances = f.flightInstancesUri;
+              }
+              delete f.flightInstancesUri;
+            }
+          }
+          return data;
+        },
       };
       for (let fieldModifier in fieldModifiers) {
         if (flattenedOffChainData[fieldModifier] !== undefined) {

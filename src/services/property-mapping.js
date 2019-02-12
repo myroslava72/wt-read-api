@@ -5,11 +5,11 @@ const airlineMappingToResponse = {
   manager: 'managerAddress',
 };
 
-const mapObjectToResponse = (hotel, mapping) => {
-  return Object.keys(hotel).reduce((newHotel, field) => {
+const mapObjectToResponse = (obj, mapping) => {
+  return Object.keys(obj).reduce((newObj, field) => {
     const newField = mapping[field] || field;
-    newHotel[newField] = hotel[field];
-    return newHotel;
+    newObj[newField] = obj[field];
+    return newObj;
   }, {});
 };
 const mapHotelObjectToResponse = (hotel) => mapObjectToResponse(hotel, hotelMappingToResponse);

@@ -205,7 +205,8 @@ describe('Airlines', function () {
           items.forEach(airline => {
             expect(airline).to.have.all.keys(fields);
             for (let flight of airline.flights.items) {
-              for (let instance of flight.flightInstancesUri.contents) {
+              expect(flight).to.have.property('flightInstances');
+              for (let instance of flight.flightInstances) {
                 expect(instance).to.have.property('id');
               }
             }
@@ -223,7 +224,8 @@ describe('Airlines', function () {
           items.forEach(airline => {
             expect(airline).to.have.all.keys(fields);
             for (let flight of airline.flights.items) {
-              for (let instance of flight.flightInstancesUri.contents) {
+              expect(flight).to.have.property('flightInstances');
+              for (let instance of flight.flightInstances) {
                 expect(instance).to.have.property('id');
               }
             }
@@ -438,6 +440,7 @@ describe('Airlines', function () {
           for (let flight of res.body.flights.items) {
             expect(flight).to.have.property('id');
             expect(flight).to.have.property('origin');
+            expect(flight).to.have.property('flightInstances');
             expect(flight).to.not.have.property('destination');
             expect(flight).to.not.have.property('segments');
           }
@@ -468,7 +471,7 @@ describe('Airlines', function () {
     });
 
     it('should return flights if asked for', async () => {
-      const fields = ['name', 'flightsUri.items.destination', 'flightsUri.items.id', 'flightsUri.updatedAt'];
+      const fields = ['name', 'flights.items.destination', 'flights.items.id', 'flights.updatedAt'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -502,7 +505,8 @@ describe('Airlines', function () {
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
             expect(flight).to.have.property('id');
-            for (let instance of flight.flightInstancesUri.contents) {
+            expect(flight).to.have.property('flightInstances');
+            for (let instance of flight.flightInstances) {
               expect(instance).to.have.property('id');
               expect(instance).to.have.property('departureDateTime');
               expect(instance).to.have.property('bookingClasses');

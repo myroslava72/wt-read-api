@@ -46,7 +46,15 @@ const flattenObject = (contents, fields) => {
     } else if (contents && typeof contents === 'object') { // Mapping object such as roomTypes
       if (Array.isArray(contents)) {
         if (!result || Object.keys(result).length === 0) {
-          result = contents.map((x) => { let res = {}; res[field] = x[field]; return res; });
+          result = contents.map((x) => {
+            let res = {};
+            if (x[field].ref && x[field].contents) {
+              res[field] = x[field].contents;
+            } else {
+              res[field] = x[field];
+            }
+            return res;
+          });
         } else {
           result = result.map((x, idx, r) => { let res = r[idx]; res[field] = contents[idx][field]; return res; });
         }
