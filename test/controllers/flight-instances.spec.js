@@ -42,8 +42,6 @@ describe('Flight instances', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          console.log('1');
-          console.log(res.body);
           expect(res.status).to.be.eql(200);
           expect(res.body.length).to.be.eql(2);
           for (let instance of res.body) {
