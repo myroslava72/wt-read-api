@@ -55,4 +55,47 @@ describe('Flights', function () {
         });
     });
   });
+
+  describe('GET /airlines/:airlineAddress/flights/:flightId', () => {
+    it('should return a flight', async () => {
+      const flightId = 'IeKeix6G';
+      await request(server)
+        .get(`/airlines/${address}/flights/${flightId}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.body).to.have.property('id', flightId);
+          expect(res.body).to.have.property('origin', 'PRG');
+          expect(res.body).to.have.property('destination', 'LAX');
+          expect(res.body).to.have.property('flightInstances');
+          expect(res.body).to.not.have.property('flightInstancesUri');
+          expect(res.body.flightInstances.length).to.eql(2);
+          for (let instance of res.body.flightInstances) {
+            expect(instance).to.have.property('id');
+            expect(instance).to.have.property('departureDateTime');
+            expect(instance).to.have.property('bookingClasses');
+          }
+        });
+    });
+
+    it('should return 404 for unknown flight id', async () => {
+      const flightId = 'flight-000';
+      await request(server)
+        .get(`/airlines/${address}/flights/${flightId}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
+    it('should return 404 if airline has no flights', async () => {
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const flightId = 'IeKeix6G';
+      await request(server)
+        .get(`/airlines/${airline}/flights/${flightId}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+  });
 });

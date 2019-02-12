@@ -62,7 +62,6 @@ describe('Flight instances', function () {
         .set('accept', 'application/json')
         .expect(404)
         .expect((res) => {
-          console.log(res.body.code);
           expect(res.body.code).to.eql('#flightNotFound');
         });
     });

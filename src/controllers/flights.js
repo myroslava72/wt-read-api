@@ -1,7 +1,8 @@
+const { flattenObject } = require('../services/utils');
 const { Http404Error, HttpBadGatewayError } = require('../errors');
 
 const find = async (req, res, next) => {
-  let { airlineAddress, flightId, flightInstanceId } = req.params;
+  let { airlineAddress, flightId } = req.params;
   try {
     let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri.items.flightInstancesUri']);
     if (!plainAirline.dataUri.contents.flightsUri) {
@@ -15,11 +16,11 @@ const find = async (req, res, next) => {
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
     }
-    let flightInstance = flight.flightInstancesUri.contents.find(i => i.id === flightInstanceId);
-    if (!flightInstance) {
-      return next(new Http404Error('flightInstanceNotFound', 'Flight instance not found'));
-    }
-    res.status(200).json(flightInstance);
+    let flattenedFlight = flattenObject(flight, ['flightInstancesUri']);
+    flight.flightInstances = flattenedFlight.flightInstancesUri;
+    delete flight.flightInstancesUri;
+
+    res.status(200).json(flight);
   } catch (e) {
     next(e);
   }
