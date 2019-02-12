@@ -34,11 +34,12 @@ describe('Flights', function () {
     server.close();
   });
 
-  describe('GET /airlines/:airlineAddress/flightinstances/:flightInstanceId', () => {
+  describe('GET /airlines/:airlineAddress/flights/:flightId/instances/:flightInstanceId', () => {
     it('should return a flight instance', async () => {
       const flightInstanceId = 'IeKeix6G-1';
+      const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flightinstances/${flightInstanceId}`)
+        .get(`/airlines/${address}/flights/${flightId}/instances/${flightInstanceId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -51,8 +52,10 @@ describe('Flights', function () {
     });
 
     it('should return 404 for unknown flight instance id', async () => {
+      const flightInstanceId = 'flight-instance-0000';
+      const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flightinstances/flight-instance-0000`)
+        .get(`/airlines/${address}/flights/${flightId}/instances/${flightInstanceId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
@@ -60,8 +63,10 @@ describe('Flights', function () {
 
     it('should return 404 if airline has no flight instances', async () => {
       const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const flightInstanceId = 'flight-instance-0000';
+      const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${airline}/flightinstances/flight-instance-0000`)
+        .get(`/airlines/${airline}/flights/${flightId}/instances/${flightInstanceId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
@@ -72,8 +77,9 @@ describe('Flights', function () {
         getAirline: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
       });
       const flightInstanceId = 'IeKeix6G-1';
+      const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flightinstances/${flightInstanceId}`)
+        .get(`/airlines/${address}/flights/${flightId}/instances/${flightInstanceId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {

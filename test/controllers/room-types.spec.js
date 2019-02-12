@@ -26,7 +26,7 @@ let _compareRoomTypes = function (roomType1, roomType2) {
   expect(roomType1.images).to.eql(roomType2.images);
   expect(roomType1.updatedAt).to.eql(roomType2.updatedAt);
   expect(roomType1.properties).to.eql(roomType2.properties);
-}
+};
 
 describe('Room types', function () {
   let server;
