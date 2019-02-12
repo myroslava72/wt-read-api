@@ -17,7 +17,7 @@ const {
   FakeAirlineWithBadOffChainData,
 } = require('../utils/fake-airlines');
 
-describe('Flights', function () {
+describe('Flight instances', function () {
   let server;
   let wtLibsInstance;
   let address, indexContract;
@@ -32,6 +32,42 @@ describe('Flights', function () {
 
   afterEach(() => {
     server.close();
+  });
+
+  describe('GET /airlines/:airlineAddress/flights/:flightId/instances', () => {
+    it('should return flight instances', async () => {
+      const flightId = 'IeKeix6G';
+      await request(server)
+        .get(`/airlines/${address}/flights/${flightId}/instances/`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          console.log('1');
+          console.log(res.body);
+          expect(res.status).to.be.eql(200);
+          expect(res.body.length).to.be.eql(2);
+          for (let instance of res.body) {
+            expect(instance).to.have.property('id');
+            expect(instance).to.have.property('departureDateTime');
+            expect(instance).to.have.property('bookingClasses');
+          }
+          expect(res.body[0].bookingClasses.length).to.equal(2);
+          expect(res.body[1].bookingClasses.length).to.equal(1);
+        });
+    });
+
+    it('should return 404 for unknown flight id', async () => {
+      const flightId = 'flight-000';
+      await request(server)
+        .get(`/airlines/${address}/flights/${flightId}/instances/`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404)
+        .expect((res) => {
+          console.log(res.body.code);
+          expect(res.body.code).to.eql('#flightNotFound');
+        });
+    });
   });
 
   describe('GET /airlines/:airlineAddress/flights/:flightId/instances/:flightInstanceId', () => {

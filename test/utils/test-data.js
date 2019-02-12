@@ -371,6 +371,10 @@ const FLIGHT_INSTANCES = [{
     { id: 'economy', availabilityCount: 100 },
     { id: 'business', availabilityCount: 20 },
   ],
+  segments: {
+    'segment1': { departureDateTime: '2018-12-10 12:00:00', arrivalDateTime: '2018-12-10 15:00:00' },
+    'segment2': { departureDateTime: '2018-12-10 20:00:00', arrivalDateTime: '2018-12-11 02:00:00' },
+  },
 }, {
   id: 'IeKeix6G-2',
   departureDateTime: '2018-12-24 12:00:00',

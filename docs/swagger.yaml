@@ -543,6 +543,31 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  '/airlines/{airlineId}/flights/{flightId}/instances':
+    get:
+      parameters:
+        - name: airlineId
+          in: path
+          required: true
+          description: Airline Id as returned by `GET /airline`
+          schema:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+        - name: flightId
+          in: path
+          required: true
+          description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
+          schema:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/ObjectIdType'
+      responses:
+        '200':
+          description: Flight instances
+          content:
+            application/json:
+              schema:
+                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
   '/airlines/{airlineId}/flights/{flightId}/instances/{flightInstanceId}':
     get:
       parameters:
