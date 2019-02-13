@@ -46,6 +46,26 @@ describe('Flights', function () {
             expect(flight).to.have.property('origin');
             expect(flight).to.have.property('destination');
             expect(flight).to.have.property('segments');
+            expect(flight).to.not.have.property('flightInstances');
+          }
+        });
+    });
+
+    it('should return flight list with instances', async () => {
+      await request(server)
+        .get(`/airlines/${address}/flights?fields=flightInstances`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.body).to.have.property('updatedAt');
+          expect(res.body).to.have.property('items');
+          expect(res.body.items.length).to.eql(2);
+          for (let flight of res.body.items) {
+            expect(flight).to.have.property('id');
+            expect(flight).to.have.property('origin');
+            expect(flight).to.have.property('destination');
+            expect(flight).to.have.property('segments');
             expect(flight).to.have.property('flightInstances');
             expect(flight.flightInstances.length).to.eql(2);
           }
@@ -102,6 +122,22 @@ describe('Flights', function () {
       const flightId = 'IeKeix6G';
       await request(server)
         .get(`/airlines/${address}/flights/${flightId}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.body).to.have.property('id', flightId);
+          expect(res.body).to.have.property('origin', 'PRG');
+          expect(res.body).to.have.property('destination', 'LAX');
+          expect(res.body).to.not.have.property('flightInstances');
+          expect(res.body).to.not.have.property('flightInstancesUri');
+        });
+    });
+
+    it('should return a flight with instances', async () => {
+      const flightId = 'IeKeix6G';
+      await request(server)
+        .get(`/airlines/${address}/flights/${flightId}?fields=flightInstances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {

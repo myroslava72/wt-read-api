@@ -24,6 +24,7 @@ const hotelMappingFromQuery = {
 const airlineMappingFromQuery = {
   managerAddress: 'manager',
   flights: 'flightsUri',
+  flightInstances: 'flightInstancesUri',
 };
 
 const mapFieldsFromQuery = (fields, mapping) => {

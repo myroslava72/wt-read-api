@@ -553,6 +553,15 @@ paths:
           description: Airline Id as returned by `GET /airline`
           schema:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+        - name: fields
+          in: query
+          required: false
+          description: Additional fields to return (id, origin, destination and segments are always returned).
+          schema:
+            type: string
+            default: []
+            enum:
+              - flightInstances
       responses:
         '200':
           description: Flight data
@@ -578,6 +587,15 @@ paths:
           description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
           schema:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/ObjectIdType'
+        - name: fields
+          in: query
+          required: false
+          description: Additional fields to return (id, origin, destination and segments are always returned).
+          schema:
+            type: string
+            default: []
+            enum:
+              - flightInstances
       responses:
         '200':
           description: Flight data
