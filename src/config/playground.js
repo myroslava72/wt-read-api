@@ -8,7 +8,7 @@ module.exports = {
   ethNetwork: 'ropsten',
   wtLibs: WtJsLibs.createInstance({
     dataModelOptions: {
-      provider: 'https://ropsten.infura.io/' + process.env.INFURA_API_KEY,
+      provider: process.env.ETH_NETWORK_PROVIDER || 'https://ropsten.infura.io/v3/',
     },
     offChainDataOptions: {
       adapters: {
