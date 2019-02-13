@@ -16,6 +16,7 @@ airlinesRouter.get('/airlines', injectWtLibs, airlinesController.findAll, handle
 airlinesRouter.get('/airlines/:airlineAddress', injectWtLibs, validateAirlineAddress, resolveAirline, airlinesController.find, handleOnChainErrors);
 airlinesRouter.get('/airlines/:airlineAddress/meta', injectWtLibs, validateAirlineAddress, resolveAirline, airlinesController.meta, handleOnChainErrors);
 
+airlinesRouter.get('/airlines/:airlineAddress/flights', injectWtLibs, validateAirlineAddress, resolveAirline, flightsController.findAll, handleOnChainErrors);
 airlinesRouter.get('/airlines/:airlineAddress/flights/:flightId', injectWtLibs, validateAirlineAddress, resolveAirline, flightsController.find, handleOnChainErrors, handleDataFetchingErrors);
 airlinesRouter.get('/airlines/:airlineAddress/flights/:flightId/meta', injectWtLibs, validateAirlineAddress, resolveAirline, flightsController.meta, handleOnChainErrors, handleDataFetchingErrors);
 

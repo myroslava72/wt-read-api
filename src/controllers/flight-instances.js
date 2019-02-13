@@ -1,14 +1,11 @@
 const { Http404Error } = require('../errors');
 
 const find = async (req, res, next) => {
-  let { airlineAddress, flightId, flightInstanceId } = req.params;
+  let { flightId, flightInstanceId } = req.params;
   try {
     let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri.items.flightInstancesUri']);
     if (!plainAirline.dataUri.contents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
-    }
-    if (plainAirline.address !== airlineAddress) {
-      return next(new Http404Error('airlineNotFound', 'Airline not found'));
     }
     const flights = plainAirline.dataUri.contents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
@@ -26,14 +23,11 @@ const find = async (req, res, next) => {
 };
 
 const findAll = async (req, res, next) => {
-  let { airlineAddress, flightId } = req.params;
+  let { flightId } = req.params;
   try {
     let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri.items.flightInstancesUri']);
     if (!plainAirline.dataUri.contents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
-    }
-    if (plainAirline.address !== airlineAddress) {
-      return next(new Http404Error('airlineNotFound', 'Airline not found'));
     }
     const flights = plainAirline.dataUri.contents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
@@ -42,7 +36,6 @@ const findAll = async (req, res, next) => {
     }
     let flightInstances = [];
     for (let instance of flight.flightInstancesUri.contents) {
-      console.log(instance);
       flightInstances.push(instance);
     }
     res.status(200).json(flightInstances);

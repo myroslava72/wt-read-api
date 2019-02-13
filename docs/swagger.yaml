@@ -543,8 +543,28 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  '/airlines/{airlineId}/flights':
+    get:
+      summary: Get flights list by airline id
+      parameters:
+        - name: airlineId
+          in: path
+          required: true
+          description: Airline Id as returned by `GET /airline`
+          schema:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/EthereumAddressType'
+      responses:
+        '200':
+          description: Flight data
+          content:
+            application/json:
+              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flights'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
   '/airlines/{airlineId}/flights/{flightId}':
     get:
+      summary: Get flight by `id`
       parameters:
         - name: airlineId
           in: path
@@ -569,6 +589,7 @@ paths:
 
   '/airlines/{airlineId}/flights/{flightId}/meta':
     get:
+      summary: Get flight meta data
       parameters:
         - name: airlineId
           in: path
@@ -599,6 +620,7 @@ paths:
 
   '/airlines/{airlineId}/flights/{flightId}/instances':
     get:
+      summary: Get flight instances list by flight id
       parameters:
         - name: airlineId
           in: path
@@ -624,6 +646,7 @@ paths:
 
   '/airlines/{airlineId}/flights/{flightId}/instances/{flightInstanceId}':
     get:
+      summary: Get flight instance detail
       parameters:
         - name: airlineId
           in: path

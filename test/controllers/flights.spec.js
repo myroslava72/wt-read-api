@@ -30,6 +30,47 @@ describe('Flights', function () {
     server.close();
   });
 
+  describe('GET /airlines/:airlineAddress/flights', () => {
+    it('should return flight list', async () => {
+      await request(server)
+        .get(`/airlines/${address}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.body).to.have.property('updatedAt');
+          expect(res.body).to.have.property('items');
+          expect(res.body.items.length).to.eql(2);
+          for (let flight of res.body.items) {
+            expect(flight).to.have.property('id');
+            expect(flight).to.have.property('origin');
+            expect(flight).to.have.property('destination');
+            expect(flight).to.have.property('segments');
+            expect(flight).to.have.property('flightInstances');
+            expect(flight.flightInstances.length).to.eql(2);
+          }
+        });
+    });
+
+    it('should return 404 for unknown airline id', async () => {
+      let airlineId = '0x994afd347B160be3973B41F0A144819496d175e9';
+      await request(server)
+        .get(`/airlines/${airlineId}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
+    it('should return 404 if airline has no flights', async () => {
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      await request(server)
+        .get(`/airlines/${airline}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+  });
+
   describe('GET /airlines/:airlineAddress/flights/:flightId/meta', () => {
     it('should return flight instances', async () => {
       const flightId = 'IeKeix6G';
