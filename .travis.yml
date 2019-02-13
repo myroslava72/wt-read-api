@@ -22,6 +22,19 @@ jobs:
     - docker build -t windingtree/wt-read-api:$TRAVIS_BRANCH .
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker push windingtree/wt-read-api:$TRAVIS_BRANCH
+    - docker tag windingtree/wt-read-api:$TRAVIS_BRANCH windingtree/wt-read-api:latest
+    - docker push windingtree/wt-read-api:latest
+  - stage: NPM release
+    if: tag IS present
+    script: echo 'Deploying to NPM...'
+    deploy:
+      provider: npm
+      email: chadima.jiri@gmail.com
+      skip_cleanup: true
+      api_key: "$NPM_TOKEN"
+      on:
+        repo: windingtree/wt-read-api
+        tags: true
   - stage: Start service from docker with latest merged tag
     install: true
     sudo: true
@@ -45,3 +58,4 @@ env:
   - secure: ZT3gTqyQQsZHFvuBTyLD3QQLAD41zCEQ7zVXrazcooj/NZ6Pvt4zyK4gFKzFYFZNZ/cCix/YIQRiZt8kIHpxUbeahyAVoov+x/Q/T0B5Ug8jZHLtJBH73T1fqwyhQt4kDkfDROrg+9XztheF+GWAXxXn+hHPR+VEVF8+Cba/SdNVoL4rP2wuP9E0/Re7+ay7OFurVPk2kRoQ7KVqgdFsr+zE9xs92Ye71TFacKPRUnlxue5cmM/UoEFD3Yecq+sMIHVGmrCfwPgdfvcFRB6nQKGG34/Dyl0xl0YFhyx3DqNBlaeYGYHjOUhZORk2Q9dpgK5cvw/ZL/dwxC+mlipQSZVCOIxc9YUYbSaRWF31iqq7UzYXRr6S/7nn6m276r/sQv8AMwuIBCvtZP9+EXd8R/2OqbRvqp4VBUbHyv+xO6lUhY2IIe8omzmAzy9E3PjyQkBKCLJPdIGrhKEZ/zT4x1BDO/kddz7NEWyxXhWbKh4bj2vCXRYX0SLATf1Bs5g10lOM2mChOqwahR2/+H03FSqSLgzqEHmbanX3yz8dfF3bwZ0mGWaVMQZk3wI345CKLeZY+HuJVXn0BL9VEhZdoHOn6/86va2hTvBXEflrIyEjbVO1gVEPwSI++WbhuUJo4CS9ND0lE6owZEq3XN/9rYw31e/8a4zWSWz6eO5POQA=
   - secure: AHvZaSot/PiBp8IUe48zs0vDNzjHPZAfkI4oX7IbrYo4Aw1BPPqTYn3bkp1byFEOwqXR8YAm4MOXhc2jk/PK+qKA6Tw8XTW1ZfarelSjUr/Rl88EfppXBzcqBfgRVFNw5SPn8gT4426lTiUtbPtOTMD3YoagGBj+xh5DKCnu83f4HlXAuu9bRqDjt3oaS4jTWJbyC9ScS+oh1Y6K5nRcf9rBerN+WT3Ttft+XKdswtNSqSvM5pKXLd+EgarMNokRC28jc1s7rzNVnzKZ3DWAFxFjjENcZljR7q66aWuGewoUsJv8801z0/rIxgZJh4nFb7BfTuit+00eXL08t7NVCwGskhiAKrlMoWg4TEsrNTm+jpC5IuaaFGz5qsDBUo6hzkDrjoDPRcOGCVQDLl2A3D/ucy4LbT+AGNOZJjbyKqDy2Zg3B31yE0FVCRT2TvH2xlxuCscwFOnTrTE7w2MeHHVdrbJzZ+C+Yn9L9Gzt3DlDT6pD7JhKXedS0b4/hWtHLerrAyskUNUiXMeE6CLBxMqzJgR7L1AoohiH1QqNjBVSl4/na9FP42W3Si0q/RjsAYCoJKI+evGemc0wL9Cx3Cnt/VA70XxqP20dX6ez5xvvKzZBFtFqmOlXPP2owz7NaRIwu56ybpZcFxAH+KfT9iw9Fj3sRsM+6kvRakgvNiw=
   - secure: epU7VYjyfgrhV8SNaZq4gjtlYP8s8yoOPfO9+Wu9ANi8V77PrNgvtfHK3IiO8ldINX2tV7Y8C8J8QFjjDjrT12apouZAgkR2B5p1V31lkdf8nuL/cmXe2ZQxjLLIYooy94/V6zxGRGBDUCVYdjDJkOZEj9OkPPiXa77KUumLPqmvAlZn2clDxFBIxeN4xJu7dBPIaj8ih1OhdEwtCxBpLWlvVLiAvCLuoOgHCFIkwB6ppO/jBYJzvg6fWNUs0I0oVt6VXJ5GgPSAJmX/U4w3bv27c5c+2f0LXsNXyy4Q8TsyO4ROAV4iPWzC8FXf/yCl9XaK1k2u3j/qa6krE4gBIssUeV/t9uwreJyzrXJw3iATjR4aA8mgyXyAtdPLCKinsRqZBeNtof7HV7RLtyH1kI3AGmaZ8hKuXRx3v6Hj8OYStRhmJyUJqbThubWSdhGIhaQlm13Q1xGtSEVIEIORcdUyEhZK2hXu0X0OQ0oIUCociZ/h5Pws0aXV9D5Dgp4sWR+1HM32L0VGgMGWUqbnsvK+lF6Tvny01JJZwJs8hdvdO32MN9N8NymEEbYMFCtF6AUIsmZD0z6oizwzxWLV+aKokSJAyxQhHQlgfcDfE36LY/V+tjaAY4Z3JaUTjaVzuyoItshV3icqWzvLyF47CJslxfA6wcyjjOogvYUCW40=
+  - secure: FbOYsZ+uJlW8pFzo/4y7yhy/1tCoEsfjG+LV8RDNCr69R61AEQKmm2IiCn0AqhIfFCTc5NdxhevLBRHDFDM/P2tFojUz+0bFhUo++Vw//HapTVsyHcQfAy3IhSe/pmGib5xaxYc7L3u4cSCKkQBmQ5zGjBnMtxE0p9h3965Jwkz2CGJ+DsLR/IvkyRhKzKq+Ik+LGd4ClAk5n361amPD/ph6+us4+DxFU8J109cbVEyPWfZLlWtRvKJUArByFegJD6xGiJJP9JkHXWr81k5tyv/EjpkDIkA25/fGjoI01z65bWaBWPYw4rKx/d0HfLGmVDjuS88HXciMqHwFkuZPSRpwaH9kY22EiKXyDOpToSMVyLon3ViXjJyoQ67VkLi3FNmTNLnWAcUnrG1mrQOKCkhCVRx5tvGMCjW55AaFDBIDXh7NtW12iBile05WKo4cI2v888ezIGloi/DJthlAhHnp54+OicbaWqLFjtYLyJXZ0ReD45GOsolD7LCAyWI77xzr7APdLXw6PsBZ+U5bG5j7KHwscsBXWxA1IvCraz6BkC3j4LyAEfTnLZ+RFLAE0KEcWto6NI79mjWY50P6tq15WAYyEQzbBUlSXgJAV47Nu1q8THuTtgsBJtgPW+bT/VT2+tjxObr6gHg1N2HNAgOPpFyHKRbGWfXS5Mu6tT4=
