@@ -1,4 +1,17 @@
 /**
+ * Prepare fields for `flattenObject`.
+ * In case the query contains overlapping keys (e.g. `flights` and `flights.items`) these need to be reverse sorted,
+ * otherwise only `flights.items` will be resolved.
+ *
+ * @param fields
+ * @private
+ */
+function _sortFields (fields) {
+  fields.sort();
+  fields.reverse();
+}
+
+/**
  * Flatten resolved storage pointers (off-chain data) to simple object.
  *
  * @param contents Object containing storage pointers
@@ -6,6 +19,7 @@
  * @returns {Object} POJO object
  */
 const flattenObject = (contents, fields) => {
+  _sortFields(fields);
   let currentFieldDef = {},
     currentLevelName,
     result = {};

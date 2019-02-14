@@ -29,7 +29,17 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
   let airlineData = {};
   try {
     if (offChainFields.length) {
-      const plainAirline = await airline.toPlainObject(offChainFields);
+      const loadInstances = offChainFields.indexOf('flightsUri.items.flightInstancesUri') > -1;
+      const depth = loadInstances ? undefined : 3;
+
+      let plainAirline = await airline.toPlainObject(offChainFields, depth);
+
+      if (!loadInstances && plainAirline.dataUri.contents.flightsUri && plainAirline.dataUri.contents.flightsUri.contents) {
+        for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
+          delete flight.flightInstancesUri;
+        }
+      }
+
       const flattenedOffChainData = flattenObject(plainAirline.dataUri.contents, offChainFields);
       airlineData = {
         ...flattenedOffChainData.descriptionUri,

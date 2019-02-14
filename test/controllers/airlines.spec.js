@@ -45,7 +45,7 @@ describe('Airlines', function () {
       airline1address = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
     });
 
-    it('should return default fields for airlines', async () => {
+    it('should return default fields for airlines list', async () => {
       await request(server)
         .get('/airlines')
         .set('content-type', 'application/json')
@@ -61,6 +61,84 @@ describe('Airlines', function () {
           expect(items[1]).to.have.property('id', airline1address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('code');
+          expect(items[1]).to.not.have.property('flights');
+        });
+    });
+
+    it('should return flights for airlines when asked for', async () => {
+      await request(server)
+        .get('/airlines?fields=id,name,code,flights')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, errors } = res.body;
+          expect(items.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('name');
+          expect(items[0]).to.have.property('code');
+          expect(items[0]).to.have.property('flights');
+          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('name');
+          expect(items[1]).to.have.property('code');
+          expect(items[1]).to.have.property('flights');
+          for (let airline of res.body.items) {
+            for (let flight of airline.flights.items) {
+              expect(flight).to.not.have.property('flightInstances');
+              expect(flight).to.have.property('origin');
+            }
+          }
+        });
+    });
+
+    it('should return flight instances for airlines when asked for', async () => {
+      await request(server)
+        .get('/airlines?fields=id,name,code,flights.items.flightInstances')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, errors } = res.body;
+          expect(items.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('name');
+          expect(items[0]).to.have.property('code');
+          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('name');
+          expect(items[1]).to.have.property('code');
+          for (let airline of res.body.items) {
+            for (let flight of airline.flights.items) {
+              expect(flight).to.have.property('flightInstances');
+              expect(flight).to.not.have.property('origin');
+            }
+          }
+        });
+    });
+
+    it('should return full flight instances for airlines when asked for', async () => {
+      await request(server)
+        .get('/airlines?fields=id,name,code,flights,flights.items.flightInstances')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, errors } = res.body;
+          expect(items.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('name');
+          expect(items[0]).to.have.property('code');
+          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('name');
+          expect(items[1]).to.have.property('code');
+          for (let airline of res.body.items) {
+            for (let flight of airline.flights.items) {
+              expect(flight).to.have.property('flightInstances');
+              expect(flight).to.have.property('origin');
+            }
+          }
         });
     });
 
@@ -184,7 +262,6 @@ describe('Airlines', function () {
         'managerAddress',
         'id',
         'name',
-        'description',
         'contacts',
         'flights',
         'currency',
@@ -192,7 +269,8 @@ describe('Airlines', function () {
         'notificationsUri',
         'bookingUri',
       ];
-      const query = `fields=${fields.join()}`;
+      const queryFields = fields.concat(['flights.items.flightInstances']);
+      const query = `fields=${queryFields.join()}`;
 
       await request(server)
         .get(`/airlines?${query}`)
@@ -212,7 +290,7 @@ describe('Airlines', function () {
             }
           });
         });
-      const query2 = (fields.map((f) => `fields=${f}`)).join('&');
+      const query2 = (queryFields.map((f) => `fields=${f}`)).join('&');
       await request(server)
         .get(`/airlines?${query2}`)
         .set('content-type', 'application/json')
@@ -355,11 +433,10 @@ describe('Airlines', function () {
       address = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
     });
 
-    it('should return default fields', async () => {
+    it('should return default fields for airline detai', async () => {
       const defaultAirlineFields = [
         'id',
         'name',
-        'description',
         'contacts',
         'currency',
         'updatedAt',
@@ -370,6 +447,7 @@ describe('Airlines', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.all.keys(defaultAirlineFields);
+          expect(res.body).to.not.have.property('flights');
         })
         .expect(200);
     });
@@ -448,7 +526,7 @@ describe('Airlines', function () {
         .expect(200);
     });
 
-    it('should return all nested fields even from an object of objects', async () => {
+    it('should return all nested fields even from an object of objects xxx', async () => {
       const fields = ['name', 'currency', 'flights'];
       const query = `fields=${fields.join()}`;
 
@@ -465,6 +543,7 @@ describe('Airlines', function () {
             expect(flight).to.have.property('origin');
             expect(flight).to.have.property('destination');
             expect(flight).to.have.property('segments');
+            expect(flight).to.not.have.property('flightInstances');
           }
         })
         .expect(200);
@@ -491,8 +570,8 @@ describe('Airlines', function () {
         .expect(200);
     });
 
-    it('should return flight instances if asked for', async () => {
-      const fields = ['id', 'name', 'flights.updatedAt', 'flights.items.flightInstances', 'flights.items.id'];
+    it('should return flight instances if asked for xxx', async () => {
+      const fields = ['id', 'name', 'flights.items.flightInstances', 'flights'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -505,6 +584,8 @@ describe('Airlines', function () {
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
             expect(flight).to.have.property('id');
+            expect(flight).to.have.property('origin');
+            expect(flight).to.have.property('destination');
             expect(flight).to.have.property('flightInstances');
             for (let instance of flight.flightInstances) {
               expect(instance).to.have.property('id');

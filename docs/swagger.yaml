@@ -496,6 +496,7 @@ paths:
                 - name
                 - description
                 - flights
+                - flights.items.flightInstances
                 - code
                 - contacts
                 - updatedAt
@@ -573,6 +574,7 @@ paths:
                 - name
                 - description
                 - flights
+                - flights.items.flightInstances
                 - code
                 - contacts
                 - updatedAt

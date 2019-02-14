@@ -322,7 +322,6 @@ const AIRLINE_DESCRIPTION = {
   },
   id: '0xD8b8aF90986174d5c5558aAC0905AA1DB2Ee41ce',
   currency: 'EUR',
-  description: 'Small but flexible',
   updatedAt: '2019-02-01 10:00:00',
   defaultCancellationAmount: 0,
 };
