@@ -132,8 +132,12 @@ paths:
                       https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/UriType
         '400':
           $ref: '#/components/responses/InvalidRequestError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}':
     get:
       summary: Get hotel by `id`
@@ -193,8 +197,12 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/meta':
     get:
       summary: Hotel record meta information - mostly on-chain and off-chain identifiers of places where to reach all of the hotel's data.
@@ -217,8 +225,12 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/roomTypes':
     get:
       summary: List room types for hotel `id`
@@ -252,8 +264,12 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/roomTypes/{roomTypeId}':
     get:
       summary: Get room type `id`
@@ -292,8 +308,12 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/roomTypes/{roomTypeId}/ratePlans':
     get:
       summary: Get rate plans of the room type `id`
@@ -319,6 +339,12 @@ paths:
                 $ref: '#/components/schemas/RatePlansResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/roomTypes/{roomTypeId}/availability':
     get:
       summary: Get availability of the room type `id`. The availability field contains only a single key with room type id.
@@ -344,6 +370,12 @@ paths:
                 $ref: '#/components/schemas/AvailabilityResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/availability':
     get:
       parameters:
@@ -362,6 +394,12 @@ paths:
                 $ref: '#/components/schemas/AvailabilityResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/ratePlans':
     get:
       parameters:
@@ -380,6 +418,12 @@ paths:
                 $ref: '#/components/schemas/RatePlansResponse'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
   '/hotels/{hotelId}/ratePlans/{ratePlanId}':
     get:
       parameters:
@@ -404,6 +448,12 @@ paths:
                 $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/hotel-data-swagger.yaml#/components/schemas/RatePlan'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   /airlines:
     get:
@@ -486,8 +536,12 @@ paths:
                       https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/UriType
         '400':
           $ref: '#/components/responses/InvalidRequestError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}':
     get:
@@ -540,8 +594,12 @@ paths:
           $ref: '#/components/responses/InvalidRequestError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}/flights':
     get:
@@ -570,6 +628,12 @@ paths:
               $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flights'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}/flights/{flightId}':
     get:
@@ -604,6 +668,12 @@ paths:
               $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/Flight'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}/flights/{flightId}/meta':
     get:
@@ -635,6 +705,12 @@ paths:
                   $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/shared-resources.yaml#/components/schemas/UriType'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}/flights/{flightId}/instances':
     get:
@@ -661,6 +737,12 @@ paths:
                 $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/FlightInstances'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
   '/airlines/{airlineId}/flights/{flightId}/instances/{flightInstanceId}':
     get:
@@ -693,6 +775,12 @@ paths:
                 $ref: 'https://raw.githubusercontent.com/windingtree/wiki/ef3fd90df7fcd1461cad1be2cb5bfeefb4fe4633/airline-data-swagger.yaml#/components/schemas/FlightInstance'
         '404':
           $ref: '#/components/responses/NotFoundError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntityError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/HttpBadGatewayError'
 
 components:
   responses:
@@ -708,8 +796,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    UnprocessableEntityError:
+      description: The object was not found (HTTP code 422)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     InternalServerError:
       description: Internal server error (HTTP code 500)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    HttpBadGatewayError:
+      description: Internal server error (HTTP code 502)
       content:
         application/json:
           schema:
