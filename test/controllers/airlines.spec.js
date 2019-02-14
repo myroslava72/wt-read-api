@@ -426,7 +426,7 @@ describe('Airlines', function () {
     });
 
     it('should return all fields the client asks for even from an object of objects', async () => {
-      const fields = ['name', 'currency', 'flights.items.id', 'flights.items.origin', 'flights.items.flightInstancesUri', 'flights.updatedAt'];
+      const fields = ['name', 'currency', 'flights.items.id', 'flights.items.origin', 'flights.items.flightInstances', 'flights.updatedAt'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -492,7 +492,7 @@ describe('Airlines', function () {
     });
 
     it('should return flight instances if asked for', async () => {
-      const fields = ['id', 'name', 'flights.updatedAt', 'flights.items.flightInstancesUri', 'flights.items.id'];
+      const fields = ['id', 'name', 'flights.updatedAt', 'flights.items.flightInstances', 'flights.items.id'];
       const query = `fields=${fields.join()}`;
 
       await request(server)

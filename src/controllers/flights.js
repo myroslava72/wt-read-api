@@ -3,12 +3,14 @@ const { flattenObject } = require('../services/utils');
 const { Http404Error, HttpBadGatewayError } = require('../errors');
 
 const find = async (req, res, next) => {
-  let fieldsQuery = (req.query.fields && req.query.fields.split(',')) || [];
-  fieldsQuery = mapAirlineFieldsFromQuery(fieldsQuery);
+  let fieldsQuery = req.query.fields || [];
+  let fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
+  fieldsArray = mapAirlineFieldsFromQuery(fieldsArray);
   let { flightId } = req.params;
   try {
-    const fieldsToResolve = fieldsQuery.indexOf('flightInstancesUri') > -1 ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
-    const depth = fieldsQuery.indexOf('flightInstancesUri') > -1 ? undefined : 2;
+    const loadInstances = fieldsArray.indexOf('flightInstancesUri') > -1;
+    const fieldsToResolve = loadInstances ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
+    const depth = loadInstances ? undefined : 2;
     let plainAirline = await res.locals.wt.airline.toPlainObject(fieldsToResolve, depth);
     if (!plainAirline.dataUri.contents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
@@ -18,7 +20,7 @@ const find = async (req, res, next) => {
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
     }
-    const flattenedFlight = flattenObject(flight, fieldsQuery);
+    const flattenedFlight = flattenObject(flight, fieldsArray);
     flight.flightInstances = flattenedFlight.flightInstancesUri;
     delete flight.flightInstancesUri;
 
@@ -29,18 +31,20 @@ const find = async (req, res, next) => {
 };
 
 const findAll = async (req, res, next) => {
-  let fieldsQuery = (req.query.fields && req.query.fields.split(',')) || [];
-  fieldsQuery = mapAirlineFieldsFromQuery(fieldsQuery);
+  let fieldsQuery = req.query.fields || [];
+  let fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
+  fieldsArray = mapAirlineFieldsFromQuery(fieldsArray);
   try {
-    const fieldsToResolve = fieldsQuery.indexOf('flightInstancesUri') > -1 ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
-    const depth = fieldsQuery.indexOf('flightInstancesUri') > -1 ? undefined : 2;
+    const loadInstances = fieldsArray.indexOf('flightInstancesUri') > -1;
+    const fieldsToResolve = loadInstances ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
+    const depth = loadInstances ? undefined : 2;
     let plainAirline = await res.locals.wt.airline.toPlainObject(fieldsToResolve, depth);
     if (!plainAirline.dataUri.contents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
     const flights = [];
     for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
-      let flattenedFlight = flattenObject(flight, fieldsQuery);
+      let flattenedFlight = flattenObject(flight, fieldsArray);
       flight.flightInstances = flattenedFlight.flightInstancesUri;
       delete flight.flightInstancesUri;
       flights.push(flight);

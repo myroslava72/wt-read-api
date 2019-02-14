@@ -34,11 +34,7 @@ const findAll = async (req, res, next) => {
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
     }
-    let flightInstances = [];
-    for (let instance of flight.flightInstancesUri.contents) {
-      flightInstances.push(instance);
-    }
-    res.status(200).json(flightInstances);
+    res.status(200).json(flight.flightInstancesUri.contents);
   } catch (e) {
     next(e);
   }
