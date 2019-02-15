@@ -1,4 +1,4 @@
-const wtJsLibs = require('@windingtree/wt-js-libs');
+const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
 
 /**
  * Usage:

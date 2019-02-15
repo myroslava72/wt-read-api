@@ -1,4 +1,4 @@
-const WTLibs = require('@windingtree/wt-js-libs');
+const { 'wt-js-libs': WTLibs } = require('@windingtree/wt-js-libs');
 const wtJsLibs = require('../services/wt-js-libs');
 const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
