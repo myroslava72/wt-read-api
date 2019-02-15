@@ -107,6 +107,9 @@ docker run -p 8080:3000 \
 ```
 
 ## Examples
+
+See [API definition](docs/swagger.yaml) for full details.
+
 ### Hotels
 #### Get list of hotels
 
@@ -267,11 +270,28 @@ updatedAt: '2019-02-01 10:00:00',
 id: '0x0f7aDd75c09E2F8F5e4444fcde917267257471bD'
 ```
 
-#### Get a flight instance
-Best way to access flight instances is to leverage [wt-js-libs's StoragePointer](https://github.com/windingtree/wt-js-libs/blob/master/src/storage-pointer.js#L21) using e.g. `airline.dataUri.contents.flightsUri.contents.items[0].flightInstancesUri.contents`.
+#### Get a flight
+Use GET at `/airlines/:address/flights/:id`. Use `fields` query param to get instances data as well.
 
-Still, in case you need to access a flight instance by id you can use `/airlines/:address/flightinstances/:id`.
-The `field` query parameter is supported as well. See [swagger definition](docs/swagger.yaml) for supported fields.
+```javascript
+id: "IeKeix6G",
+origin: "PRG",
+destination: "LAX",
+segments: [
+  {
+    id: "segment1",
+    departureAirport: "PRG",
+    arrivalAirport: "CDG"
+  },
+  {
+    id: "segment2",
+    departureAirport: "CDG",
+    arrivalAirport: "LAX"
+  }
+]
+```
+#### Get a flight instance
+Use GET at `/airlines/:address/flights/:flightId/instances/:instanceId`.
 
 ```javascript
 id: 'IeKeix6G-1',
@@ -280,6 +300,16 @@ bookingClasses: [
   { id: 'economy', availabilityCount: 100 },
   { id: 'business', availabilityCount: 20 }
 ]
+segments: {
+  segment1: {
+    departureDateTime: "2018-12-10 12:00:00",
+    arrivalDateTime: "2018-12-10 15:00:00"
+  },
+  segment2: {
+    departureDateTime: "2018-12-10 20:00:00",
+    arrivalDateTime: "2018-12-11 02:00:00"
+  }
+}
 ```
 
 ## Publicly available instances
