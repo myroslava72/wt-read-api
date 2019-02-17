@@ -3,8 +3,9 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
+const { HOTEL_SEGMENT_ID } = require('../../src/constants');
 const {
-  deployIndex,
+  deployHotelIndex,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -16,6 +17,17 @@ const {
   FakeHotelWithBadOffChainData,
 } = require('../utils/fake-hotels');
 
+let _compareRoomTypes = function (roomType1, roomType2) {
+  expect(roomType1.id).to.eql(roomType2.id);
+  expect(roomType1.totalQuantity).to.eql(roomType2.totalQuantity);
+  expect(roomType1.amenities).to.eql(roomType2.amenities);
+  expect(roomType1.name).to.eql(roomType2.name);
+  expect(roomType1.description).to.eql(roomType2.description);
+  expect(roomType1.images).to.eql(roomType2.images);
+  expect(roomType1.updatedAt).to.eql(roomType2.updatedAt);
+  expect(roomType1.properties).to.eql(roomType2.properties);
+};
+
 describe('Room types', function () {
   let server;
   let wtLibsInstance;
@@ -23,10 +35,9 @@ describe('Room types', function () {
 
   beforeEach(async () => {
     server = require('../../src/index');
-    const config = require('../../src/config');
-    wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployIndex();
-    config.wtIndexAddress = indexContract.address;
+    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
+    indexContract = await deployHotelIndex();
+    wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
     address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
   });
 
@@ -54,10 +65,11 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
+          let i = 0;
           for (let roomType of res.body) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('ratePlans');
+            _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
         });
     });
@@ -68,10 +80,11 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
+          let i = 0;
           for (let roomType of res.body) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
+            _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
         });
     });
@@ -82,11 +95,12 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
+          let i = 0;
           for (let roomType of res.body) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
             expect(roomType).to.have.property('ratePlans');
+            _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
         });
       await request(server)
@@ -94,11 +108,12 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
+          let i = 0;
           for (let roomType of res.body) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
             expect(roomType).to.have.property('ratePlans');
+            _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
         });
     });
@@ -112,7 +127,7 @@ describe('Room types', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
@@ -121,7 +136,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
   });
@@ -220,7 +235,7 @@ describe('Room types', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
@@ -229,7 +244,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
   });
@@ -285,7 +300,7 @@ describe('Room types', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
@@ -294,7 +309,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
   });
@@ -354,7 +369,7 @@ describe('Room types', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
@@ -363,7 +378,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
   });

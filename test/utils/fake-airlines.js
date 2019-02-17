@@ -3,17 +3,17 @@ const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
 /**
  * Usage:
  * const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
- * sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
- *   getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
+ * sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
+ *   getAirline: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
  * });
- * wtJsLibsWrapper.getWTHotelIndex.restore();
+ * wtJsLibsWrapper.getWTAirlineIndex.restore();
  */
 
-let fakeHotelCounter = 1;
+let fakeAirlineCounter = 1;
 
-class FakeNiceHotel {
+class FakeNiceAirline {
   constructor () {
-    this.address = `nice-hotel-${fakeHotelCounter++}`;
+    this.address = `nice-airline-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     return Promise.resolve({
@@ -21,7 +21,7 @@ class FakeNiceHotel {
         get descriptionUri () {
           return Promise.resolve({
             contents: {
-              name: 'nice hotel',
+              name: 'nice airline',
             },
           });
         },
@@ -34,7 +34,7 @@ class FakeNiceHotel {
         contents: {
           descriptionUri: {
             contents: {
-              name: 'nice hotel',
+              name: 'nice airline',
             },
           },
         },
@@ -43,9 +43,9 @@ class FakeNiceHotel {
   }
 }
       
-class FakeHotelWithBadOnChainData {
+class FakeAirlineWithBadOnChainData {
   constructor () {
-    this.address = `fake-hotel-on-chain-${fakeHotelCounter++}`;
+    this.address = `fake-airline-on-chain-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     throw new wtJsLibs.errors.RemoteDataReadError('something');
@@ -54,10 +54,10 @@ class FakeHotelWithBadOnChainData {
     throw new wtJsLibs.errors.RemoteDataReadError('something');
   }
 }
-      
-class FakeHotelWithBadOffChainData {
+
+class FakeAirlineWithBadOffChainData {
   constructor () {
-    this.address = `fake-hotel-off-chain-${fakeHotelCounter++}`;
+    this.address = `fake-airline-off-chain-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     throw new wtJsLibs.errors.StoragePointerError('something');
@@ -68,7 +68,7 @@ class FakeHotelWithBadOffChainData {
 }
 
 module.exports = {
-  FakeNiceHotel,
-  FakeHotelWithBadOnChainData,
-  FakeHotelWithBadOffChainData,
+  FakeNiceAirline,
+  FakeAirlineWithBadOnChainData,
+  FakeAirlineWithBadOffChainData,
 };

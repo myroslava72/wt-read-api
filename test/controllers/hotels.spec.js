@@ -4,9 +4,9 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { DATA_FORMAT_VERSION } = require('../../src/constants');
+const { HOTEL_SEGMENT_ID, DATA_FORMAT_VERSION } = require('../../src/constants');
 const {
-  deployIndex,
+  deployHotelIndex,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -29,10 +29,9 @@ describe('Hotels', function () {
   let hotel0address, hotel1address;
   beforeEach(async () => {
     server = require('../../src/index');
-    const config = require('../../src/config');
-    wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployIndex();
-    config.wtIndexAddress = indexContract.address;
+    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
+    indexContract = await deployHotelIndex();
+    wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
   });
 
   afterEach(() => {
@@ -65,7 +64,7 @@ describe('Hotels', function () {
     });
 
     it('should return errors if they happen to individual hotels', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
       });
       await request(server)
@@ -77,12 +76,12 @@ describe('Hotels', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(1);
           expect(errors.length).to.be.eql(1);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid hotels', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -100,12 +99,12 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
     it('should not break when requesting much more hotels than actually available', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -123,12 +122,12 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
     it('should not provide next if all hotels are broken', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -148,13 +147,13 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(0);
           expect(errors.length).to.be.eql(6);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid hotels and provide valid next', async () => {
       const nextNiceHotel = new FakeNiceHotel();
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -175,7 +174,7 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(4);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/hotels?limit=4&fields=id,location,name&startWith=${nextNiceHotel.address}`);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
@@ -269,7 +268,7 @@ describe('Hotels', function () {
 
     it('should properly transfer limit even if not in querystring', async () => {
       const nextNiceHotel = new FakeNiceHotel();
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOnChainData(),
@@ -287,7 +286,7 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(30);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/hotels?limit=${DEFAULT_PAGE_SIZE}&fields=id,location,name&startWith=${nextNiceHotel.address}`);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
@@ -334,7 +333,7 @@ describe('Hotels', function () {
     it('should not touch off-chain data if only on-chain data is requested', async () => {
       const niceHotel = new FakeNiceHotel();
       const toPlainObjectSpy = sinon.spy(niceHotel, 'toPlainObject');
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getAllHotels: sinon.stub().resolves([niceHotel, new FakeHotelWithBadOnChainData()]),
       });
       await request(server)
@@ -343,7 +342,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(toPlainObjectSpy.callCount).to.be.eql(0);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
   });
@@ -501,7 +500,7 @@ describe('Hotels', function () {
     });
 
     it('should return 502 when on-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
       });
 
@@ -511,12 +510,12 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
     it('should return 502 when off-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
 
@@ -526,7 +525,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
