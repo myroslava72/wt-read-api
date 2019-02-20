@@ -37,6 +37,7 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
+        'defaultLocale': (data, source, key) => { data[key] = source[key]; return data; },
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
         'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
@@ -98,6 +99,7 @@ const calculateFields = (fieldsQuery) => {
         'availabilityUri',
         'notificationsUri',
         'bookingUri',
+        'defaultLocale',
       ].indexOf(firstPart) > -1) {
         return f;
       }
@@ -181,6 +183,7 @@ const meta = async (req, res, next) => {
       ratePlansUri: resolvedHotel.dataUri.contents.ratePlansUri,
       availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
       dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
+      defaultLocale: resolvedHotel.dataUri.contents.defaultLocale,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));

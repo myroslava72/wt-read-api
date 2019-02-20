@@ -384,7 +384,9 @@ describe('Hotels', function () {
         'managerAddress',
         'defaultCancellationAmount',
         'notificationsUri',
+        'category',
         'bookingUri',
+        'defaultLocale',
       ];
       const query = `fields=${fields.join()}`;
 
@@ -408,7 +410,7 @@ describe('Hotels', function () {
     });
 
     it('should return all the nested fields that a client asks for', async () => {
-      const fields = ['managerAddress', 'name', 'timezone', 'address.postalCode', 'address.line1'];
+      const fields = ['managerAddress', 'name', 'timezone', 'address.postcode', 'address.road'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -421,8 +423,8 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('name');
           expect(res.body).to.have.property('timezone');
           expect(res.body).to.have.property('address');
-          expect(res.body.address).to.have.property('postalCode');
-          expect(res.body.address).to.have.property('line1');
+          expect(res.body.address).to.have.property('postcode');
+          expect(res.body.address).to.have.property('road');
           expect(res.body.address.country).to.be.undefined;
         })
         .expect(200);
@@ -555,7 +557,7 @@ describe('Hotels', function () {
 
     it('should return a 422 for an invalid address', async () => {
       await request(server)
-        .get('/hotels/meta')
+        .get('/hotels/bad-address')
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422);
@@ -587,6 +589,7 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('ratePlansUri');
           expect(res.body).to.have.property('availabilityUri');
           expect(res.body).to.have.property('dataFormatVersion', DATA_FORMAT_VERSION);
+          expect(res.body).to.have.property('defaultLocale', 'en');
           expect(res.body.dataUri).to.match(/^in-memory:\/\//);
           expect(res.body.descriptionUri).to.match(/^in-memory:\/\//);
           expect(res.body.ratePlansUri).to.match(/^in-memory:\/\//);
@@ -608,6 +611,7 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('dataFormatVersion');
           expect(res.body).to.not.have.property('ratePlansUri');
           expect(res.body).to.not.have.property('availabilityUri');
+          expect(res.body).to.have.property('defaultLocale', 'en');
         })
         .expect(200);
     });

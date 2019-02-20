@@ -5,6 +5,7 @@ const HOTEL_DESCRIPTION = {
   },
   'name': 'string',
   'description': 'string',
+  'category': 'hotel',
   'roomTypes': [
     {
       'id': 'room-type-1111',
@@ -82,12 +83,10 @@ const HOTEL_DESCRIPTION = {
     },
   },
   'address': {
-    'line1': 'string',
-    'line2': 'string',
-    'postalCode': 'string',
+    'road': 'string',
+    'postcode': 'string',
     'city': 'string',
-    'state': 'string',
-    'country': 'string',
+    'countryCode': 'CZ',
   },
   'timezone': 'string',
   'currency': 'string',
@@ -128,6 +127,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
+        'type': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
@@ -168,6 +168,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
+        'type': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
