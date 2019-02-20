@@ -74,7 +74,7 @@ const deployFullAirline = async (offChainDataAdapter, index, airlineDescription,
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = SUPPORTED_DATA_FORMAT_VERSIONS[0];
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerAirline(dataUri, {

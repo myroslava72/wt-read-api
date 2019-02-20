@@ -13,7 +13,7 @@ const {
   HOTEL_SCHEMA_MODEL,
 } = require('../constants');
 const {
-  REVERSED_FIELD_MAPPING,
+  REVERSED_HOTEL_FIELD_MAPPING,
 } = require('./property-mapping');
 
 /**
@@ -116,8 +116,8 @@ class DataFormatValidator {
     for (let field of fields) {
       if (field.indexOf('.') > -1) {
         let [base, rest] = field.split('.', 2);
-        if (base in REVERSED_FIELD_MAPPING) {
-          base = REVERSED_FIELD_MAPPING[base];
+        if (base in REVERSED_HOTEL_FIELD_MAPPING) {
+          base = REVERSED_HOTEL_FIELD_MAPPING[base];
         }
         nestedBaseFields[base] = nestedBaseFields[base] || [];
         nestedBaseFields[base].push(rest);

@@ -81,7 +81,7 @@ describe('Hotels', function () {
           expect(errors.length).to.be.eql(2);
           expect(errors[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
           expect(errors[1].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
@@ -626,7 +626,7 @@ describe('Hotels', function () {
     });
 
     it('should return 422 when on-chain data is outdated', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeOldFormatHotel()),
       });
 
@@ -636,7 +636,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(422)
         .expect((res) => {
-          wtJsLibsWrapper.getWTIndex.restore();
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 

@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { AIRLINE_SEGMENT_ID, DATA_FORMAT_VERSION } = require('../../src/constants');
+const { AIRLINE_SEGMENT_ID, SUPPORTED_DATA_FORMAT_VERSIONS } = require('../../src/constants');
 const {
   deployAirlineIndex,
   deployFullAirline,
@@ -684,7 +684,7 @@ describe('Airlines', function () {
           expect(res.body).to.have.property('dataUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('flightsUri');
-          expect(res.body).to.have.property('dataFormatVersion', DATA_FORMAT_VERSION);
+          expect(res.body).to.have.property('dataFormatVersion', SUPPORTED_DATA_FORMAT_VERSIONS[0]);
           expect(res.body.dataUri).to.match(/^in-memory:\/\//);
           expect(res.body.descriptionUri).to.match(/^in-memory:\/\//);
           expect(res.body.flightsUri).to.match(/^in-memory:\/\//);
