@@ -1,12 +1,12 @@
-const wtJsLibs = require('@windingtree/wt-js-libs');
+const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
 
 /**
  * Usage:
  * const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
- * sinon.stub(wtJsLibsWrapper, 'getWTIndex').resolves({
+ * sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
  *   getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
  * });
- * wtJsLibsWrapper.getWTIndex.restore();
+ * wtJsLibsWrapper.getWTHotelIndex.restore();
  */
 
 let fakeHotelCounter = 1;

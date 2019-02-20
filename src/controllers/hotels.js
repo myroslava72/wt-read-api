@@ -1,5 +1,6 @@
-const wtJsLibs = require('@windingtree/wt-js-libs');
-const { baseUrl } = require('../config');
+const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
+const { flattenObject } = require('../services/utils');
+const { baseUrl } = require('../config').config;
 const { DataFormatValidator } = require('../services/validation');
 const {
   HttpValidationError,
@@ -8,7 +9,7 @@ const {
 } = require('../errors');
 const {
   HOTEL_FIELDS,
-  DESCRIPTION_FIELDS,
+  HOTEL_DESCRIPTION_FIELDS,
   DEFAULT_HOTELS_FIELDS,
   DEFAULT_HOTEL_FIELDS,
   DEFAULT_PAGE_SIZE,
@@ -24,68 +25,6 @@ const {
   LimitValidationError,
   MissingStartWithError,
 } = require('../services/pagination');
-
-// Helpers
-const flattenObject = (contents, fields) => {
-  let currentFieldDef = {},
-    currentLevelName,
-    result = {};
-  for (let field of fields) {
-    let remainingPath;
-    if (field.indexOf('.') === -1) {
-      currentLevelName = field;
-    } else {
-      currentLevelName = field.substring(0, field.indexOf('.'));
-      remainingPath = field.substring(field.indexOf('.') + 1);
-    }
-    if (remainingPath) {
-      if (!currentFieldDef[currentLevelName]) {
-        currentFieldDef[currentLevelName] = [];
-      }
-      currentFieldDef[currentLevelName].push(remainingPath);
-    } else {
-      currentFieldDef[currentLevelName] = undefined;
-    }
-  }
-
-  for (let field in currentFieldDef) {
-    if (contents[field] !== undefined) {
-      // No specific children selected
-      if (!currentFieldDef[field]) {
-        // Differentiate between storage pointers and plain objects
-        result[field] = contents[field].contents ? contents[field].contents : contents[field];
-      // Specific children selected
-      } else {
-        let searchSpace;
-        if (contents[field].ref && contents[field].contents) { // StoragePointer
-          searchSpace = contents[field].contents;
-        } else { // POJO
-          searchSpace = contents[field];
-        }
-        result[field] = flattenObject(searchSpace, currentFieldDef[field]);
-      }
-    } else if (contents && typeof contents === 'object') { // Mapping object such as roomTypes
-      if (Array.isArray(contents)) {
-        if (!result || Object.keys(result).length === 0) {
-          result = contents.map((x) => { let res = {}; res[field] = x[field]; return res; });
-        } else {
-          result = result.map((x, idx, r) => { let res = r[idx]; res[field] = contents[idx][field]; return res; });
-        }
-      } else {
-        for (let key in contents) {
-          if (contents[key][field] !== undefined) {
-            if (!result[key]) {
-              result[key] = {};
-            }
-            result[key][field] = contents[key][field];
-          }
-        }
-      }
-    }
-  }
-
-  return result;
-};
 
 const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
   let hotelData = {};
@@ -153,7 +92,7 @@ const calculateFields = (fieldsQuery) => {
       if (f.indexOf('.') > -1) {
         firstPart = f.substring(0, f.indexOf('.'));
       }
-      if (DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
+      if (HOTEL_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
         return `descriptionUri.${f}`;
       }
       if ([
@@ -222,7 +161,7 @@ const findAll = async (req, res, next) => {
   const fieldsQuery = req.query.fields || DEFAULT_HOTELS_FIELDS;
 
   try {
-    let hotels = await res.locals.wt.index.getAllHotels();
+    let hotels = await res.locals.wt.hotelIndex.getAllHotels();
     const { items, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
     res.status(200).json({ items, errors, next });
   } catch (e) {

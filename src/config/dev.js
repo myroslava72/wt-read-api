@@ -1,22 +1,30 @@
-const WtJsLibs = require('@windingtree/wt-js-libs');
+const winston = require('winston');
+
 const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
-const { deployIndex, deployFullHotel } = require('../../management/local-network');
+
+const { deployHotelIndex, deployFullHotel, deployAirlineIndex, deployFullAirline } = require('../../management/local-network');
 const {
   HOTEL_DESCRIPTION,
   RATE_PLANS,
   AVAILABILITY,
+  AIRLINE_DESCRIPTION,
+  AIRLINE_FLIGHTS,
+  FLIGHT_INSTANCES,
 } = require('../../test/utils/test-data');
 
-const winston = require('winston');
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 
 module.exports = {
   port: 3000,
   baseUrl: 'http://localhost:3000',
-  wtIndexAddress: 'will-be-set-during-init',
+  wtIndexAddresses: {
+    hotels: 'will-be-set-during-init',
+    airlines: 'will-be-set-during-init',
+  },
   ethNetwork: 'local',
-  wtLibs: WtJsLibs.createInstance({
+  wtLibsOptions: {
     dataModelOptions: {
       provider: 'http://localhost:8545',
     },
@@ -43,14 +51,25 @@ module.exports = {
         },
       },
     },
-  }),
+  },
   networkSetup: async (currentConfig) => {
-    const indexContract = await deployIndex();
-    currentConfig.wtIndexAddress = indexContract.address;
-    currentConfig.logger.info(`Winding Tree index deployed to ${currentConfig.wtIndexAddress}`);
+    const segmentsToStart = process.env.WT_SEGMENTS.split(',');
+    if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
+      const indexContract = await deployHotelIndex();
+      currentConfig.wtIndexAddresses[HOTEL_SEGMENT_ID] = indexContract.address;
+      currentConfig.logger.info(`Winding Tree hotel index deployed to ${indexContract.address}`);
 
-    const hotelAddress = await deployFullHotel(await currentConfig.wtLibs.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
-    currentConfig.logger.info(`Example hotel deployed to ${hotelAddress}`);
+      const hotelAddress = await deployFullHotel(await currentConfig.wtLibs[HOTEL_SEGMENT_ID].getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+      currentConfig.logger.info(`Example hotel deployed to ${hotelAddress}`);
+    }
+    if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
+      const indexContract = await deployAirlineIndex();
+      currentConfig.wtIndexAddresses[AIRLINE_SEGMENT_ID] = indexContract.address;
+      currentConfig.logger.info(`Winding Tree airline index deployed to ${indexContract.address}`);
+
+      const airlineAddress = await deployFullAirline(await currentConfig.wtLibs[AIRLINE_SEGMENT_ID].getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      currentConfig.logger.info(`Example airline deployed to ${airlineAddress}`);
+    }
   },
   logger: winston.createLogger({
     level: 'debug',

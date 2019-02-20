@@ -310,8 +310,83 @@ const AVAILABILITY = {
     ],
 };
 
+const AIRLINE_DESCRIPTION = {
+  name: 'Mazurka Airlines',
+  code: 'MA',
+  contacts: {
+    general: {
+      email: 'info@airline-mazurka.com',
+      phone: '004078965423',
+      url: 'https://www.airline-mazurka.com',
+    },
+  },
+  id: '0xD8b8aF90986174d5c5558aAC0905AA1DB2Ee41ce',
+  currency: 'EUR',
+  updatedAt: '2019-02-01 10:00:00',
+  defaultCancellationAmount: 0,
+};
+
+const AIRLINE_FLIGHTS = {
+  updatedAt: '2019-01-01 12:00:00',
+  items: [
+    {
+      id: 'IeKeix6G',
+      origin: 'PRG',
+      destination: 'LAX',
+      segments: [
+        {
+          id: 'segment1',
+          departureAirport: 'PRG',
+          arrivalAirport: 'CDG',
+        },
+        {
+          id: 'segment2',
+          departureAirport: 'CDG',
+          arrivalAirport: 'LAX',
+        },
+      ],
+      flightInstancesUri: 'in-memory://airline.com/flightinstancesone',
+    },
+    {
+      id: 'IeKeix7H',
+      origin: 'LON',
+      destination: 'CAP',
+      segments: [
+        {
+          id: 'segment1',
+          departureAirport: 'LON',
+          arrivalAirport: 'CAP',
+        },
+      ],
+      flightInstancesUri: 'in-memory://airline.com/flightinstancestwo',
+    },
+  ],
+};
+
+const FLIGHT_INSTANCES = [{
+  id: 'IeKeix6G-1',
+  departureDateTime: '2018-12-10 12:00:00',
+  bookingClasses: [
+    { id: 'economy', availabilityCount: 100 },
+    { id: 'business', availabilityCount: 20 },
+  ],
+  segments: {
+    'segment1': { departureDateTime: '2018-12-10 12:00:00', arrivalDateTime: '2018-12-10 15:00:00' },
+    'segment2': { departureDateTime: '2018-12-10 20:00:00', arrivalDateTime: '2018-12-11 02:00:00' },
+  },
+}, {
+  id: 'IeKeix6G-2',
+  departureDateTime: '2018-12-24 12:00:00',
+  bookingClasses: [
+    { id: 'economy', availabilityCount: 150 },
+  ],
+}];
+
 module.exports = {
   HOTEL_DESCRIPTION,
   RATE_PLANS,
   AVAILABILITY,
+  AIRLINE_DESCRIPTION,
+  AIRLINE_FLIGHTS,
+  FLIGHT_INSTANCES,
 };

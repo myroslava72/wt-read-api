@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
 const request = require('supertest');
-const config = require('../../src/config');
+const { config } = require('../../src/config');
 
 describe('API', function () {
   let server;
@@ -21,7 +21,9 @@ describe('API', function () {
         expect(res.body).to.have.property('info');
         expect(res.body).to.have.property('version');
         expect(res.body).to.have.property('config', process.env.WT_CONFIG);
-        expect(res.body).to.have.property('wtIndexAddress', config.wtIndexAddress);
+        expect(res.body).to.have.property('wtIndexAddresses');
+        expect(res.body.wtIndexAddresses).to.have.property('hotels', config.wtIndexAddresses.hotels);
+        expect(res.body.wtIndexAddresses).to.have.property('airlines', config.wtIndexAddresses.airlines);
         expect(res.body).to.have.property('ethNetwork', config.ethNetwork);
       })
       .expect(200);

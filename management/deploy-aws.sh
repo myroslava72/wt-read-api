@@ -12,7 +12,7 @@ LATEST_TAG=`git describe --abbrev=0 --tags`
 
 # container startup options
 WT_CONFIG=$ENVIRONMENT
-INFURA_API_KEY=$INFURA_API_KEY
+ETH_NETWORK_PROVIDER_RESOLVED="${ENVIRONMENT^^}_ETH_NETWORK_PROVIDER"
 
 TASK_DEF="[{\"portMappings\": [{\"hostPort\": 0,\"protocol\": \"tcp\",\"containerPort\": 3000}],
    \"logConfiguration\": {
@@ -25,21 +25,27 @@ TASK_DEF="[{\"portMappings\": [{\"hostPort\": 0,\"protocol\": \"tcp\",\"containe
     },
     \"environment\": [
       {
-        \"name\": \"INFURA_API_KEY\",
-        \"value\": \"$INFURA_API_KEY\"
+        \"name\": \"ETH_NETWORK_PROVIDER\",
+        \"value\": \"${!ETH_NETWORK_PROVIDER_RESOLVED}\"
+      },
+      {
+        \"name\": \"BASE_URL\",
+        \"value\": \"https://$ENVIRONMENT-api.windingtree.com\"
       },
       {
         \"name\": \"WT_CONFIG\",
         \"value\": \"$WT_CONFIG\"
       }
     ],
-    \"image\": \"029479441096.dkr.ecr.eu-west-1.amazonaws.com/wt-read-api:$LATEST_TAG\",
+    \"image\": \"docker.io/windingtree/wt-read-api:$LATEST_TAG\",
     \"name\": \"wt-read-api\",
-    \"memoryReservation\": 128,
+    \"memoryReservation\": 64,
     \"cpu\": 128
   }]"
 
+echo $TASK_DEF
+
 echo "Updating task definition"
-aws ecs register-task-definition --region $AWS_REGION --family $TASK_FAMILY --container-definitions "$TASK_DEF" > /dev/null
+#aws ecs register-task-definition --region $AWS_REGION --family $TASK_FAMILY --container-definitions "$TASK_DEF" > /dev/null
 echo "Updating service"
-aws ecs update-service --region $AWS_REGION --cluster shared-docker-cluster-t3 --service "$SERVICE_NAME" --task-definition "$TASK_FAMILY" > /dev/null
+#aws ecs update-service --region $AWS_REGION --cluster shared-docker-cluster-t3 --service "$SERVICE_NAME" --task-definition "$TASK_FAMILY" > /dev/null

@@ -6,13 +6,14 @@ const morgan = require('morgan');
 const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
-const config = require('./config');
-const { SUPPORTED_DATA_FORMAT_VERSIONS } = require('./constants');
+const { config } = require('./config');
+const { SUPPORTED_DATA_FORMAT_VERSIONS, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ACCEPTED_SEGMENTS } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
+const { airlinesRouter } = require('./routes/airlines');
 
-const swaggerDocument = YAML.load(path.resolve('./docs/swagger.yaml'));
+const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
 swaggerDocument.servers = [{ url: config.baseUrl }];
 swaggerDocument.info.version = version;
 
@@ -21,6 +22,17 @@ swaggerDocument.info.version = version;
 app.disable('x-powered-by');
  
 // Swagger docs
+// remove unused endpoint definitions
+const segmentsToStart = process.env.WT_SEGMENTS.split(',');
+for (let segment of ACCEPTED_SEGMENTS) {
+  if (segmentsToStart.indexOf(segment) === -1) {
+    for (let path in swaggerDocument.paths) {
+      if (path.startsWith(`/${segment}`)) {
+        delete swaggerDocument.paths[path];
+      }
+    }
+  }
+}
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -49,7 +61,7 @@ app.get('/', (req, res) => {
     info: 'https://github.com/windingtree/wt-read-api/blob/master/README.md',
     version,
     config: process.env.WT_CONFIG,
-    wtIndexAddress: config.wtIndexAddress,
+    wtIndexAddresses: config.wtIndexAddresses,
     ethNetwork: config.ethNetwork,
     supportedDataFormatVersions: SUPPORTED_DATA_FORMAT_VERSIONS,
   };
@@ -57,7 +69,12 @@ app.get('/', (req, res) => {
 });
 
 // Router
-app.use(hotelsRouter);
+if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
+  app.use(hotelsRouter);
+}
+if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
+  app.use(airlinesRouter);
+}
 
 // 404 handler
 app.use('*', (req, res, next) => {
