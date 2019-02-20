@@ -10,11 +10,7 @@ const {
 } = require('../errors');
 const {
   SUPPORTED_DATA_FORMAT_VERSIONS,
-  HOTEL_SCHEMA_MODEL,
 } = require('../constants');
-const {
-  REVERSED_HOTEL_FIELD_MAPPING,
-} = require('./property-mapping');
 
 /**
  * Utility class for data format validation.
@@ -23,12 +19,13 @@ class DataFormatValidator {
   /**
    * Static method to validate data against specific model in schema.
    * @param data
+   * @param type
    * @param modelName
    * @param schemas The components.schemas part of swagger definition
    */
-  static validateHotel (data, modelName, schemas) {
+  static validate (data, type, modelName, schemas) {
     if (!data.dataFormatVersion) {
-      throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in hotel data for id ${data.id}`] });
+      throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
     }
     if (!SUPPORTED_DATA_FORMAT_VERSIONS.find(v => v === data.dataFormatVersion)) {
       throw new HttpValidationError({ valid: false, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${SUPPORTED_DATA_FORMAT_VERSIONS}`] });
@@ -46,10 +43,12 @@ class DataFormatValidator {
   /**
    * Static method to load schema from URI. Use this to prevent multiple loading and improve performance.
    * @param schemaPath
+   * @param schemaModel Main model schema to validate against
    * @param fields Fields asked for in the request. Remove other required fields from schema to prevent validation errors.
+   * @param fieldsMapping
    * @returns {Promise<String>}
    */
-  static async loadSchemaFromPath (schemaPath, fields) {
+  static async loadSchemaFromPath (schemaPath, schemaModel, fields, fieldsMapping) {
     if (!SUPPORTED_DATA_FORMAT_VERSIONS) {
       throw new MisconfigurationError('Constant SUPPORTED_DATA_FORMAT_VERSIONS is not configured, check API deployment.');
     }
@@ -61,7 +60,7 @@ class DataFormatValidator {
       mainSchemaDocument = await this._loadSchema(mainSchemaDocument);
       DataFormatValidator.CACHE[schemaPath] = _.cloneDeep(mainSchemaDocument);
     }
-    mainSchemaDocument.components.schemas = this._intersectRequiredFields(mainSchemaDocument.components.schemas, HOTEL_SCHEMA_MODEL, fields.mapped);
+    mainSchemaDocument.components.schemas = this._intersectRequiredFields(mainSchemaDocument.components.schemas, schemaModel, fields.mapped, fieldsMapping);
     return mainSchemaDocument;
   }
 
@@ -108,16 +107,18 @@ class DataFormatValidator {
    * @param data Schemas definition
    * @param modelName
    * @param fields Fields asked for in request
+   * @param reversedFieldMapping
    * @returns {*} Updated schemas definition
    * @private
    */
-  static _intersectRequiredFields (data, modelName, fields) {
+  static _intersectRequiredFields (data, modelName, fields, reversedFieldMapping) {
     let nestedBaseFields = {};
     for (let field of fields) {
       if (field.indexOf('.') > -1) {
-        let [base, rest] = field.split('.', 2);
-        if (base in REVERSED_HOTEL_FIELD_MAPPING) {
-          base = REVERSED_HOTEL_FIELD_MAPPING[base];
+        let [base, ...rest] = field.split('.');
+        rest = rest.join('.');
+        if (base in reversedFieldMapping) {
+          base = reversedFieldMapping[base];
         }
         nestedBaseFields[base] = nestedBaseFields[base] || [];
         nestedBaseFields[base].push(rest);
@@ -132,31 +133,38 @@ class DataFormatValidator {
         if (Object.keys(data[modelName].properties).indexOf(nestedField) > -1) {
           if (data[modelName].properties[nestedField].hasOwnProperty('$ref')) {
             let refName = this._getReferenceBaseName(data[modelName].properties[nestedField].$ref);
-            data = this._intersectRequiredFields(data, refName, nestedBaseFields[nestedField]);
+            data = this._intersectRequiredFields(data, refName, nestedBaseFields[nestedField], reversedFieldMapping);
+          } else if (data[modelName].properties[nestedField].type === 'array') {
+            if (data[modelName].properties[nestedField].items.hasOwnProperty('$ref')) {
+              let refName = this._getReferenceBaseName(data[modelName].properties[nestedField].items.$ref);
+              data = this._intersectRequiredFields(data, refName, nestedBaseFields[nestedField], reversedFieldMapping);
+            } else {
+              data[modelName] = this._intersectRequiredFields(data[modelName], nestedField, nestedBaseFields[nestedField], reversedFieldMapping);
+            }
           } else {
-            data[modelName] = this._intersectRequiredFields(data[modelName], nestedField, nestedBaseFields[nestedField]);
+            data[modelName] = this._intersectRequiredFields(data[modelName], nestedField, nestedBaseFields[nestedField], reversedFieldMapping);
           }
         }
       }
     }
     if (data[modelName] && data[modelName].hasOwnProperty('$ref')) {
       let refName = this._getReferenceBaseName(data[modelName].$ref);
-      data = this._intersectRequiredFields(data, refName, fields);
+      data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
     }
-    if (data[modelName].type === 'array') {
+    if (data[modelName] && data[modelName].type === 'array') {
       let refName = this._getReferenceBaseName(data[modelName].items.$ref);
-      data = this._intersectRequiredFields(data, refName, fields);
+      data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
     }
     if (data[modelName] && data[modelName].hasOwnProperty('allOf')) {
       let i = 0;
       for (let part of data[modelName].allOf) {
         if (part.hasOwnProperty('$ref')) {
           let refName = this._getReferenceBaseName(part.$ref);
-          data = this._intersectRequiredFields(data, refName, fields);
+          data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
         } else {
           let propertiesModelName = `${modelName}.${i}`;
           data[propertiesModelName] = part;
-          data = this._intersectRequiredFields(data, propertiesModelName, fields);
+          data = this._intersectRequiredFields(data, propertiesModelName, fields, reversedFieldMapping);
         }
         i += 1;
       }

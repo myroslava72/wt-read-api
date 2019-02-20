@@ -517,7 +517,7 @@ describe('Hotels', function () {
     });
 
     it('should return all the nested fields that a client asks for', async () => {
-      const fields = ['managerAddress', 'name', 'timezone', 'address.postalCode', 'address.line1'];
+      const fields = ['managerAddress', 'name', 'timezone', 'address.postalCode', 'address.road'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -531,7 +531,7 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('timezone');
           expect(res.body).to.have.property('address');
           expect(res.body.address).to.have.property('postalCode');
-          expect(res.body.address).to.have.property('line1');
+          expect(res.body.address).to.have.property('road');
           expect(res.body.address.country).to.be.undefined;
           expect(res.body.address.city).to.be.undefined;
         })

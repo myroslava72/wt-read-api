@@ -20,14 +20,13 @@ const hotelMappingFromQuery = {
   ratePlans: 'ratePlansUri',
   availability: 'availabilityUri',
 };
-// TODO add airline mapping and airline validation
-const REVERSED_HOTEL_FIELD_MAPPING = Object.keys(hotelMappingFromQuery).reduce((reversed, field) => { reversed[hotelMappingFromQuery[field]] = field; return reversed; }, {});
-
 const airlineMappingFromQuery = {
   managerAddress: 'manager',
   flights: 'flightsUri',
   flightInstances: 'flightInstancesUri',
 };
+const REVERSED_HOTEL_FIELD_MAPPING = Object.keys(hotelMappingFromQuery).reduce((reversed, field) => { reversed[hotelMappingFromQuery[field]] = field; return reversed; }, {});
+const REVERSED_AIRLINE_FIELD_MAPPING = Object.keys(airlineMappingFromQuery).reduce((reversed, field) => { reversed[airlineMappingFromQuery[field]] = field; return reversed; }, {});
 
 const mapFieldsFromQuery = (fields, mapping) => {
   return fields.reduce((newFields, field) => {
@@ -45,4 +44,5 @@ module.exports = {
   REVERSED_HOTEL_FIELD_MAPPING,
   mapAirlineObjectToResponse,
   mapAirlineFieldsFromQuery,
+  REVERSED_AIRLINE_FIELD_MAPPING,
 };

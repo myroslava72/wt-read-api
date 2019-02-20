@@ -4,6 +4,7 @@ const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
  * Usage:
  * const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
  * sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+ *   getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
  *   getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
  * });
  * wtJsLibsWrapper.getWTHotelIndex.restore();
@@ -87,7 +88,7 @@ class FakeWrongFormatHotel extends FakeNiceHotel {
     };
   }
 }
-      
+
 class FakeHotelWithBadOnChainData {
   constructor () {
     this.address = `fake-hotel-on-chain-${fakeHotelCounter++}`;
@@ -99,7 +100,7 @@ class FakeHotelWithBadOnChainData {
     throw new wtJsLibs.errors.RemoteDataReadError('something');
   }
 }
-      
+
 class FakeHotelWithBadOffChainData {
   constructor () {
     this.address = `fake-hotel-off-chain-${fakeHotelCounter++}`;

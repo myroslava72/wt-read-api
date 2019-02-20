@@ -1,6 +1,7 @@
 const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
 const { flattenObject } = require('../services/utils');
 const { baseUrl } = require('../config').config;
+const { DataFormatValidator } = require('../services/validation');
 const {
   HttpValidationError,
   Http404Error,
@@ -11,14 +12,15 @@ const {
   AIRLINE_DESCRIPTION_FIELDS,
   DEFAULT_AIRLINES_FIELDS,
   DEFAULT_AIRLINE_FIELDS,
+  DEFAULT_PAGE_SIZE,
+  SCHEMA_PATH,
+  AIRLINE_SCHEMA_MODEL,
 } = require('../constants');
 const {
   mapAirlineObjectToResponse,
   mapAirlineFieldsFromQuery,
+  REVERSED_AIRLINE_FIELD_MAPPING,
 } = require('../services/property-mapping');
-const {
-  DEFAULT_PAGE_SIZE,
-} = require('../constants');
 const {
   paginate,
   LimitValidationError,
@@ -42,6 +44,7 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
 
       const flattenedOffChainData = flattenObject(plainAirline.dataUri.contents, offChainFields);
       airlineData = {
+        dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
         ...(flattenObject(plainAirline, offChainFields)),
       };
@@ -130,11 +133,27 @@ const calculateFields = (fieldsQuery) => {
 const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
-  let rawAirlines = [];
+  let resolvedItems = [];
+  let resolvedAirlineObject;
+  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields, REVERSED_AIRLINE_FIELD_MAPPING);
   for (let airline of items) {
-    rawAirlines.push(resolveAirlineObject(airline, fields.toFlatten, fields.onChain));
+    try {
+      resolvedAirlineObject = await resolveAirlineObject(airline, fields.toFlatten, fields.onChain);
+      DataFormatValidator.validate(resolvedAirlineObject, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      resolvedItems.push(resolvedAirlineObject);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        airline = {
+          error: 'Upstream airline data format validation failed: ' + e.toString(),
+          originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
+          data: resolvedAirlineObject,
+        };
+        resolvedItems.push(airline);
+      } else {
+        throw e;
+      }
+    }
   }
-  const resolvedItems = await Promise.all(rawAirlines);
   let realItems = resolvedItems.filter((i) => !i.error);
   let realErrors = resolvedItems.filter((i) => i.error);
   let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
@@ -182,9 +201,27 @@ const find = async (req, res, next) => {
   try {
     const fieldsQuery = req.query.fields || DEFAULT_AIRLINE_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const resolvedAirline = await resolveAirlineObject(res.locals.wt.airline, fields.toFlatten, fields.onChain);
-    if (resolvedAirline.error) {
-      return next(new HttpBadGatewayError('airlineNotAccessible', resolvedAirline.error, 'Airline data is not accessible.'));
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields, REVERSED_AIRLINE_FIELD_MAPPING);
+    let resolvedAirline;
+    try {
+      resolvedAirline = await resolveAirlineObject(res.locals.wt.airline, fields.toFlatten, fields.onChain);
+      if (resolvedAirline.error) {
+        return next(new HttpBadGatewayError('airlineNotAccessible', resolvedAirline.error, 'Airline data is not accessible.'));
+      }
+      DataFormatValidator.validate(resolvedAirline, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = new HttpValidationError();
+        if (e.code.hasOwnProperty('GetFormattedErrors')) {
+          err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+        } else {
+          err.msgLong = e.code.errors.toString();
+        }
+        err.data = resolvedAirline;
+        return res.status(err.status).json(err.toPlainObject());
+      } else {
+        next(e);
+      }
     }
     return res.status(200).json(resolvedAirline);
   } catch (e) {

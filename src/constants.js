@@ -39,14 +39,17 @@ const DEFAULT_AIRLINE_FIELDS = [
   'id',
   'name',
   'description',
+  'code',
+  'defaultCancellationAmount',
   'contacts',
   'currency',
-  'updatedAt',
 ];
 const DEFAULT_AIRLINES_FIELDS = [
   'id',
   'name',
   'code',
+  'defaultCancellationAmount',
+  'contacts',
 ];
 
 const AIRLINE_FIELDS = [
@@ -69,6 +72,7 @@ const MAX_PAGE_SIZE = 300;
 const SUPPORTED_DATA_FORMAT_VERSIONS = ['0.2.0'];
 const SCHEMA_PATH = 'docs/swagger.yaml';
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
+const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
 
 const HOTEL_SEGMENT_ID = 'hotels';
 const AIRLINE_SEGMENT_ID = 'airlines';
@@ -88,6 +92,7 @@ module.exports = {
   SUPPORTED_DATA_FORMAT_VERSIONS,
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
+  AIRLINE_SCHEMA_MODEL,
   HOTEL_SEGMENT_ID,
   AIRLINE_SEGMENT_ID,
   ACCEPTED_SEGMENTS,

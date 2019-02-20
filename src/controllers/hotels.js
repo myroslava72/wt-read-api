@@ -19,6 +19,7 @@ const {
 const {
   mapHotelObjectToResponse,
   mapHotelFieldsFromQuery,
+  REVERSED_HOTEL_FIELD_MAPPING,
 } = require('../services/property-mapping');
 const {
   paginate,
@@ -113,11 +114,11 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
   let resolvedItems = [];
   let resolvedHotelObject;
-  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, fields);
+  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields, REVERSED_HOTEL_FIELD_MAPPING);
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validateHotel(resolvedHotelObject, HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
       resolvedItems.push(resolvedHotelObject);
     } catch (e) {
       if (e instanceof HttpValidationError) {
@@ -179,14 +180,14 @@ const find = async (req, res, next) => {
   try {
     const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, fields);
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields, REVERSED_HOTEL_FIELD_MAPPING);
     let resolvedHotel;
     try {
       resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
-      DataFormatValidator.validateHotel(resolvedHotel, HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = new HttpValidationError();
