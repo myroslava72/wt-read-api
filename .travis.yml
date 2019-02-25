@@ -35,7 +35,6 @@ jobs:
       on:
         repo: windingtree/wt-read-api
         branch: develop
-        tags: true
   - stage: NPM release
     if: tag IS present
     script: echo 'Deploying to NPM...'
