@@ -25,7 +25,8 @@ jobs:
     - docker tag windingtree/wt-read-api:$TRAVIS_BRANCH windingtree/wt-read-api:latest
     - docker push windingtree/wt-read-api:latest
   - stage: NPM develop release
-    script: echo 'Deploying to NPM...'
+    script:
+    - npm version preminor --preid=`git rev-parse --short HEAD`
     deploy:
       provider: npm
       email: chadima.jiri@gmail.com
@@ -34,7 +35,7 @@ jobs:
       api_key: "$NPM_TOKEN"
       on:
         repo: windingtree/wt-read-api
-        branch: develop
+        branch: feat/develop
   - stage: NPM release
     if: tag IS present
     script: echo 'Deploying to NPM...'
