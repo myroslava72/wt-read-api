@@ -6,7 +6,7 @@ const WTAirlineIndexContract = require('@windingtree/wt-contracts/build/contract
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
 
-const { SUPPORTED_DATA_FORMAT_VERSIONS } = require('../src/constants');
+const { DATA_FORMAT_VERSION } = require('../src/constants');
 
 const getContractWithProvider = (metadata, provider) => {
   let contract = new TruffleContract(metadata);
@@ -38,7 +38,7 @@ const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, rat
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = SUPPORTED_DATA_FORMAT_VERSIONS[0];
+  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerHotel(dataUri, {
@@ -74,7 +74,7 @@ const deployFullAirline = async (offChainDataAdapter, index, airlineDescription,
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = SUPPORTED_DATA_FORMAT_VERSIONS[0];
+  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerAirline(dataUri, {

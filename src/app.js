@@ -7,7 +7,7 @@ const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
-const { SUPPORTED_DATA_FORMAT_VERSIONS, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ACCEPTED_SEGMENTS } = require('./constants');
+const { DATA_FORMAT_VERSION, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ACCEPTED_SEGMENTS } = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
     config: process.env.WT_CONFIG,
     wtIndexAddresses: config.wtIndexAddresses,
     ethNetwork: config.ethNetwork,
-    supportedDataFormatVersions: SUPPORTED_DATA_FORMAT_VERSIONS,
+    dataFormatVersion: DATA_FORMAT_VERSION,
   };
   res.status(200).json(response);
 });

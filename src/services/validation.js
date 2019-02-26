@@ -9,7 +9,7 @@ const {
   MisconfigurationError,
 } = require('../errors');
 const {
-  SUPPORTED_DATA_FORMAT_VERSIONS,
+  DATA_FORMAT_VERSION,
 } = require('../constants');
 
 /**
@@ -27,8 +27,8 @@ class DataFormatValidator {
     if (!data.dataFormatVersion) {
       throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
     }
-    if (!SUPPORTED_DATA_FORMAT_VERSIONS.find(v => v === data.dataFormatVersion)) {
-      throw new HttpValidationError({ valid: false, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${SUPPORTED_DATA_FORMAT_VERSIONS}`] });
+    if (DATA_FORMAT_VERSION !== data.dataFormatVersion) { // TODO: skip semver patch, warning?
+      throw new HttpValidationError({ valid: false, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
     }
     if (!schemas.hasOwnProperty(modelName)) {
       throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
@@ -49,8 +49,8 @@ class DataFormatValidator {
    * @returns {Promise<String>}
    */
   static async loadSchemaFromPath (schemaPath, schemaModel, fields, fieldsMapping) {
-    if (!SUPPORTED_DATA_FORMAT_VERSIONS) {
-      throw new MisconfigurationError('Constant SUPPORTED_DATA_FORMAT_VERSIONS is not configured, check API deployment.');
+    if (!DATA_FORMAT_VERSION) {
+      throw new MisconfigurationError('Constant DATA_FORMAT_VERSION is not configured, check API deployment.');
     }
     let mainSchemaDocument;
     if (DataFormatValidator.CACHE.hasOwnProperty(schemaPath)) {

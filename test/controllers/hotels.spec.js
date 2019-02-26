@@ -5,7 +5,7 @@ const _ = require('lodash');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { HOTEL_SEGMENT_ID, SUPPORTED_DATA_FORMAT_VERSIONS } = require('../../src/constants');
+const { HOTEL_SEGMENT_ID, DATA_FORMAT_VERSION } = require('../../src/constants');
 const {
   deployHotelIndex,
   deployFullHotel,
@@ -712,7 +712,7 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('ratePlansUri');
           expect(res.body).to.have.property('availabilityUri');
-          expect(res.body).to.have.property('dataFormatVersion', SUPPORTED_DATA_FORMAT_VERSIONS[0]);
+          expect(res.body).to.have.property('dataFormatVersion', DATA_FORMAT_VERSION);
           expect(res.body.dataUri).to.match(/^in-memory:\/\//);
           expect(res.body.descriptionUri).to.match(/^in-memory:\/\//);
           expect(res.body.ratePlansUri).to.match(/^in-memory:\/\//);
