@@ -119,11 +119,16 @@ paths:
                     description: List of resolved hotels.
                     items:
                       $ref: '#/components/schemas/HotelListItem'
+                  warnings:
+                    type: array
+                    description: List of resolved hotels passing validation with unsupported declared data format version.
+                    items:
+                      $ref: '#/components/schemas/HotelListError'
                   errors:
                     type: array
                     description: >-
                       List of checked hotels whose requested data cannot be
-                      accessed (i. e. off-chain data cannot be reached).
+                      accessed (i. e. off-chain data cannot be reached) or fail validation.
                     items:
                       $ref: '#/components/schemas/HotelListError'
                   next:
@@ -197,6 +202,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HotelDetail'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -526,11 +536,16 @@ paths:
                     description: List of resolved airlines.
                     items:
                       $ref: '#/components/schemas/AirlineListItem'
+                  warnings:
+                    type: array
+                    description: List of resolved airlines passing validation with unsupported declared data format version.
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
                   errors:
                     type: array
                     description: >-
                       List of checked airlines whose requested data cannot be
-                      accessed (i. e. off-chain data cannot be reached).
+                      accessed (i. e. off-chain data cannot be reached) or fail validation.
                     items:
                       $ref: '#/components/schemas/AirlineListError'
                   next:
@@ -596,6 +611,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AirlineDetail'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':

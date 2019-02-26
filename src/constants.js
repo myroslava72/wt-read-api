@@ -73,6 +73,7 @@ const DATA_FORMAT_VERSION = '0.2.0';
 const SCHEMA_PATH = 'docs/swagger.yaml';
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
+const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
 
 const HOTEL_SEGMENT_ID = 'hotels';
 const AIRLINE_SEGMENT_ID = 'airlines';
@@ -93,6 +94,7 @@ module.exports = {
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
   AIRLINE_SCHEMA_MODEL,
+  VALIDATION_WARNING_HEADER,
   HOTEL_SEGMENT_ID,
   AIRLINE_SEGMENT_ID,
   ACCEPTED_SEGMENTS,

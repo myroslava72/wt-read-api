@@ -17,6 +17,7 @@ const {
 } = require('../utils/test-data');
 const {
   DEFAULT_PAGE_SIZE,
+  VALIDATION_WARNING_HEADER,
 } = require('../../src/constants');
 const {
   FakeNiceHotel,
@@ -76,11 +77,12 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          const { items, errors } = res.body;
+          const { items, warnings, errors } = res.body;
           expect(items.length).to.be.eql(0);
-          expect(errors.length).to.be.eql(2);
-          expect(errors[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
-          expect(errors[1].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
+          expect(warnings.length).to.be.eql(1);
+          expect(errors.length).to.be.eql(1);
+          expect(warnings[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
+          expect(errors[0].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
           wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
@@ -400,6 +402,20 @@ describe('Hotels', function () {
         });
     });
 
+    it('should return validation warning for unsupported version', async () => {
+      let dataFormatVersion = '0.1.0';
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
+        });
+    });
+
     it('should return validation errors for default field', async () => {
       let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
       hotelDescription.description = 23;
@@ -625,7 +641,7 @@ describe('Hotels', function () {
         });
     });
 
-    it('should return 422 when on-chain data is outdated', async () => {
+    it('should return a warning when on-chain data is outdated', async () => {
       sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeOldFormatHotel()),
       });
@@ -634,8 +650,10 @@ describe('Hotels', function () {
         .get(`/hotels/${address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
-        .expect(422)
+        .expect(200)
         .expect((res) => {
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
           wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });

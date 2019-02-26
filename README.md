@@ -318,3 +318,13 @@ segments: {
 
 For currently available public instances of wt-read-api, please see [this
 page](https://github.com/windingtree/wiki/blob/master/developer-resources.md#publicly-available-wt-deployments).
+
+
+## Data validation
+This API serves upstream data and has no control over the content. To ensure basic semantic compatibility,
+data are validated against [model definition](docs/swagger.yaml) and returned as an error when validation fails.
+(Detail endpoints will return 422 HTTP code, lists will contain the data in [`errors` array](docs/swagger.yaml#L127).)
+
+In case the validation succeeds but the declared data format version is different than the version supported by API,
+it is returned with a warning. This usually means there was a non-breaking change in the data format but may have consequences
+in case of a semantic change. (Warnings are returned in headers xxx for detail endpoints, [`warnings` array](docs/swagger.yaml#L122) in list.)

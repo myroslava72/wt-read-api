@@ -15,6 +15,7 @@ const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   AIRLINE_SCHEMA_MODEL,
+  VALIDATION_WARNING_HEADER,
 } = require('../constants');
 const {
   mapAirlineObjectToResponse,
@@ -133,14 +134,14 @@ const calculateFields = (fieldsQuery) => {
 const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
-  let resolvedItems = [];
+  let realItems = [], warningItems = [], realErrors = [];
   let resolvedAirlineObject;
   const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields, REVERSED_AIRLINE_FIELD_MAPPING);
   for (let airline of items) {
     try {
       resolvedAirlineObject = await resolveAirlineObject(airline, fields.toFlatten, fields.onChain);
       DataFormatValidator.validate(resolvedAirlineObject, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
-      resolvedItems.push(resolvedAirlineObject);
+      realItems.push(resolvedAirlineObject);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         airline = {
@@ -148,19 +149,22 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
           originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
           data: resolvedAirlineObject,
         };
-        resolvedItems.push(airline);
+        if (e.code && e.code.valid) {
+          warningItems.push(airline);
+        } else {
+          realErrors.push(airline);
+        }
       } else {
         throw e;
       }
     }
   }
-  let realItems = resolvedItems.filter((i) => !i.error);
-  let realErrors = resolvedItems.filter((i) => i.error);
   let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillAirlineList(path, fields, airlines, limit - realItems.length, nextStart);
     realItems = realItems.concat(nestedResult.items);
+    warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
       next = `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
@@ -170,6 +174,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   }
   return {
     items: realItems,
+    warnings: warningItems,
     errors: realErrors,
     next,
     nextStart,
@@ -184,8 +189,8 @@ const findAll = async (req, res, next) => {
 
   try {
     let airlines = await res.locals.wt.airlineIndex.getAllAirlines();
-    const { items, errors, next } = await fillAirlineList(req.path, calculateFields(fieldsQuery), airlines, limit, startWith);
-    res.status(200).json({ items, errors, next });
+    const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateFields(fieldsQuery), airlines, limit, startWith);
+    res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
       return next(new HttpValidationError('paginationLimitError', 'Limit must be a natural number greater than 0.'));
@@ -218,7 +223,11 @@ const find = async (req, res, next) => {
           err.msgLong = e.code.errors.toString();
         }
         err.data = resolvedAirline;
-        return res.status(err.status).json(err.toPlainObject());
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
       } else {
         next(e);
       }

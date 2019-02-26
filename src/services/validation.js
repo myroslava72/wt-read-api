@@ -27,8 +27,8 @@ class DataFormatValidator {
     if (!data.dataFormatVersion) {
       throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
     }
-    if (DATA_FORMAT_VERSION !== data.dataFormatVersion) { // TODO: skip semver patch, warning?
-      throw new HttpValidationError({ valid: false, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
+    if (DATA_FORMAT_VERSION !== data.dataFormatVersion) {
+      throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
     }
     if (!schemas.hasOwnProperty(modelName)) {
       throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });

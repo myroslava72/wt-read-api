@@ -15,6 +15,7 @@ const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
+  VALIDATION_WARNING_HEADER,
 } = require('../constants');
 const {
   mapHotelObjectToResponse,
@@ -112,14 +113,14 @@ const calculateFields = (fieldsQuery) => {
 const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
-  let resolvedItems = [];
+  let realItems = [], warningItems = [], realErrors = [];
   let resolvedHotelObject;
   const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields, REVERSED_HOTEL_FIELD_MAPPING);
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
       DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
-      resolvedItems.push(resolvedHotelObject);
+      realItems.push(resolvedHotelObject);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         hotel = {
@@ -127,19 +128,22 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
           originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
           data: resolvedHotelObject,
         };
-        resolvedItems.push(hotel);
+        if (e.code && e.code.valid) {
+          warningItems.push(hotel);
+        } else {
+          realErrors.push(hotel);
+        }
       } else {
         throw e;
       }
     }
   }
-  let realItems = resolvedItems.filter((i) => !i.error);
-  let realErrors = resolvedItems.filter((i) => i.error);
   let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
     realItems = realItems.concat(nestedResult.items);
+    warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
       next = `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
@@ -149,6 +153,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   }
   return {
     items: realItems,
+    warnings: warningItems,
     errors: realErrors,
     next,
     nextStart,
@@ -163,8 +168,8 @@ const findAll = async (req, res, next) => {
 
   try {
     let hotels = await res.locals.wt.hotelIndex.getAllHotels();
-    const { items, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
-    res.status(200).json({ items, errors, next });
+    const { items, warnings, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
+    res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
       return next(new HttpValidationError('paginationLimitError', 'Limit must be a natural number greater than 0.'));
@@ -197,7 +202,11 @@ const find = async (req, res, next) => {
           err.msgLong = e.code.errors.toString();
         }
         err.data = resolvedHotel;
-        return res.status(err.status).json(err.toPlainObject());
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
       } else {
         next(e);
       }
