@@ -12,6 +12,18 @@ jobs:
     - npm run lint
     - npm test
     - npm run coverage
+  - stage: NPM develop release
+    script:
+    - npm version preminor --preid="$TRAVIS_COMMIT"
+    deploy:
+      provider: npm
+      email: chadima.jiri@gmail.com
+      skip_cleanup: true
+      tag: develop
+      api_key: "$NPM_TOKEN"
+      on:
+        repo: windingtree/wt-read-api
+        branch: develop
   - stage: Build and publish docker image
     sudo: true
     services:

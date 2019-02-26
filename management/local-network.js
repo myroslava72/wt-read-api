@@ -39,6 +39,7 @@ const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, rat
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
   indexFile.dataFormatVersion = dataFormatVersion || DATA_FORMAT_VERSION;
+  indexFile.defaultLocale = 'en';
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerHotel(dataUri, {
