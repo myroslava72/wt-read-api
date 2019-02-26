@@ -1,5 +1,5 @@
 const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
-const { flattenObject } = require('../services/utils');
+const { flattenObject, formatError } = require('../services/utils');
 const { baseUrl } = require('../config').config;
 const { DataFormatValidator } = require('../services/validation');
 const {
@@ -115,7 +115,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
   let realItems = [], warningItems = [], realErrors = [];
   let resolvedHotelObject;
-  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields, REVERSED_HOTEL_FIELD_MAPPING);
+  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields.mapped, REVERSED_HOTEL_FIELD_MAPPING);
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
@@ -185,7 +185,7 @@ const find = async (req, res, next) => {
   try {
     const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields, REVERSED_HOTEL_FIELD_MAPPING);
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields.mapped, REVERSED_HOTEL_FIELD_MAPPING);
     let resolvedHotel;
     try {
       resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
@@ -195,12 +195,7 @@ const find = async (req, res, next) => {
       DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
     } catch (e) {
       if (e instanceof HttpValidationError) {
-        let err = new HttpValidationError();
-        if (e.code.hasOwnProperty('GetFormattedErrors')) {
-          err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
-        } else {
-          err.msgLong = e.code.errors.toString();
-        }
+        let err = formatError(e);
         err.data = resolvedHotel;
         if (e.code && e.code.valid) {
           return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());

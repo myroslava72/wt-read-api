@@ -1,9 +1,10 @@
 /* eslint-env mocha */
+const _ = require('lodash');
 const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { AIRLINE_SEGMENT_ID } = require('../../src/constants');
+const { AIRLINE_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
   deployAirlineIndex,
   deployFullAirline,
@@ -118,6 +119,34 @@ describe('Flight instances', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(502);
           wtJsLibsWrapper.getWTAirlineIndex.restore();
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
+      await request(server)
+        .get(`/airlines/${airline}/flights/IeKeix6G/instances/IeKeix6G-1`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let flightInstances = _.cloneDeep(FLIGHT_INSTANCES);
+      delete flightInstances[0].segments;
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, flightInstances);
+      await request(server)
+        .get(`/airlines/${airline}/flights/IeKeix6G/instances/IeKeix6G-1`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(422);
+          expect(res.body.long).to.match(/^segments is a required field/);
         });
     });
   });

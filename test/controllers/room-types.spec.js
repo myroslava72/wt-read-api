@@ -1,9 +1,10 @@
 /* eslint-env mocha */
+const _ = require('lodash');
 const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { HOTEL_SEGMENT_ID } = require('../../src/constants');
+const { HOTEL_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
   deployHotelIndex,
   deployFullHotel,
@@ -182,6 +183,36 @@ describe('Room types', function () {
           expect(res.body).to.have.property('id', 'room-type-1111');
           expect(res.body).to.have.property('ratePlans');
           expect(res.body.ratePlans.length).to.be.eql(1);
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.roomTypes[0].name;
+      delete hotelDescription.roomTypes[0].occupancy;
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(422);
+          expect(res.body.long).to.match(/name is a required field/);
+          expect(res.body.long).to.match(/occupancy is a required field/);
         });
     });
 

@@ -69,10 +69,15 @@ const AIRLINE_DESCRIPTION_FIELDS = [
 
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 300;
+
 const DATA_FORMAT_VERSION = '0.2.0';
 const SCHEMA_PATH = 'docs/swagger.yaml';
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
+const ROOM_TYPE_MODEL = 'RoomType';
+const RATE_PLAN_MODEL = 'RatePlan';
+const FLIGHT_MODEL = 'Flight';
+const FLIGHT_INSTANCE_MODEL = 'FlightInstance';
 const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
 
 const HOTEL_SEGMENT_ID = 'hotels';
@@ -94,6 +99,10 @@ module.exports = {
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
   AIRLINE_SCHEMA_MODEL,
+  ROOM_TYPE_MODEL,
+  RATE_PLAN_MODEL,
+  FLIGHT_MODEL,
+  FLIGHT_INSTANCE_MODEL,
   VALIDATION_WARNING_HEADER,
   HOTEL_SEGMENT_ID,
   AIRLINE_SEGMENT_ID,

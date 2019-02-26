@@ -1,3 +1,5 @@
+const { HttpValidationError } = require('../errors');
+
 /**
  * Prepare fields for `flattenObject`.
  * In case the query contains overlapping keys (e.g. `flights` and `flights.items`) these need to be reverse sorted,
@@ -9,6 +11,21 @@
 function _sortFields (fields) {
   fields.sort();
   fields.reverse();
+}
+
+/**
+ * Format error to API response format.
+ * @param e
+ * @private
+ */
+function formatError (e) {
+  let err = new HttpValidationError();
+  if (e.code.hasOwnProperty('GetFormattedErrors')) {
+    err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+  } else {
+    err.msgLong = e.code.errors.toString();
+  }
+  return err;
 }
 
 /**
@@ -90,4 +107,5 @@ const flattenObject = (contents, fields) => {
 
 module.exports = {
   flattenObject,
+  formatError,
 };

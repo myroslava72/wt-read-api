@@ -1,5 +1,5 @@
 const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
-const { flattenObject } = require('../services/utils');
+const { flattenObject, formatError } = require('../services/utils');
 const { baseUrl } = require('../config').config;
 const { DataFormatValidator } = require('../services/validation');
 const {
@@ -136,7 +136,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
   let realItems = [], warningItems = [], realErrors = [];
   let resolvedAirlineObject;
-  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields, REVERSED_AIRLINE_FIELD_MAPPING);
+  const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields.mapped, REVERSED_AIRLINE_FIELD_MAPPING);
   for (let airline of items) {
     try {
       resolvedAirlineObject = await resolveAirlineObject(airline, fields.toFlatten, fields.onChain);
@@ -206,7 +206,7 @@ const find = async (req, res, next) => {
   try {
     const fieldsQuery = req.query.fields || DEFAULT_AIRLINE_FIELDS;
     const fields = calculateFields(fieldsQuery);
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields, REVERSED_AIRLINE_FIELD_MAPPING);
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields.mapped, REVERSED_AIRLINE_FIELD_MAPPING);
     let resolvedAirline;
     try {
       resolvedAirline = await resolveAirlineObject(res.locals.wt.airline, fields.toFlatten, fields.onChain);
@@ -216,12 +216,7 @@ const find = async (req, res, next) => {
       DataFormatValidator.validate(resolvedAirline, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
     } catch (e) {
       if (e instanceof HttpValidationError) {
-        let err = new HttpValidationError();
-        if (e.code.hasOwnProperty('GetFormattedErrors')) {
-          err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
-        } else {
-          err.msgLong = e.code.errors.toString();
-        }
+        let err = formatError(e);
         err.data = resolvedAirline;
         if (e.code && e.code.valid) {
           return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());

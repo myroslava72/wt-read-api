@@ -60,7 +60,7 @@ class DataFormatValidator {
       mainSchemaDocument = await this._loadSchema(mainSchemaDocument);
       DataFormatValidator.CACHE[schemaPath] = _.cloneDeep(mainSchemaDocument);
     }
-    mainSchemaDocument.components.schemas = this._intersectRequiredFields(mainSchemaDocument.components.schemas, schemaModel, fields.mapped, fieldsMapping);
+    mainSchemaDocument.components.schemas = this._intersectRequiredFields(mainSchemaDocument.components.schemas, schemaModel, fields, fieldsMapping);
     return mainSchemaDocument;
   }
 
@@ -113,20 +113,24 @@ class DataFormatValidator {
    */
   static _intersectRequiredFields (data, modelName, fields, reversedFieldMapping) {
     let nestedBaseFields = {};
-    for (let field of fields) {
-      if (field.indexOf('.') > -1) {
-        let [base, ...rest] = field.split('.');
-        rest = rest.join('.');
-        if (base in reversedFieldMapping) {
-          base = reversedFieldMapping[base];
+    if (fields) {
+      for (let field of fields) {
+        if (field.indexOf('.') > -1) {
+          let [base, ...rest] = field.split('.');
+          rest = rest.join('.');
+          if (base in reversedFieldMapping) {
+            base = reversedFieldMapping[base];
+          }
+          nestedBaseFields[base] = nestedBaseFields[base] || [];
+          nestedBaseFields[base].push(rest);
         }
-        nestedBaseFields[base] = nestedBaseFields[base] || [];
-        nestedBaseFields[base].push(rest);
       }
     }
 
     if (data[modelName] && data[modelName].hasOwnProperty('required') && Array.isArray(data[modelName].required)) {
-      data[modelName].required = _.intersection(data[modelName].required, fields);
+      if (!_.isUndefined(fields)) {
+        data[modelName].required = _.intersection(data[modelName].required, fields);
+      }
     }
     if (data[modelName] && data[modelName].hasOwnProperty('properties')) {
       for (let nestedField of Object.keys(nestedBaseFields)) {

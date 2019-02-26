@@ -134,6 +134,7 @@ const RATE_PLANS = [
           'minLengthOfStay': 2,
           'maxAge': 0,
         },
+        'unit': 'absolute',
       },
     ],
     'restrictions': {
@@ -174,6 +175,7 @@ const RATE_PLANS = [
           'minLengthOfStay': 2,
           'maxAge': 0,
         },
+        'unit': 'absolute',
       },
     ],
     'restrictions': {

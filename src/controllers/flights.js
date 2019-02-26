@@ -1,6 +1,12 @@
 const { mapAirlineFieldsFromQuery } = require('../services/property-mapping');
-const { flattenObject } = require('../services/utils');
-const { Http404Error, HttpBadGatewayError } = require('../errors');
+const { flattenObject, formatError } = require('../services/utils');
+const { Http404Error, HttpBadGatewayError, HttpValidationError } = require('../errors');
+const { DataFormatValidator } = require('../services/validation');
+const {
+  VALIDATION_WARNING_HEADER,
+  SCHEMA_PATH,
+  FLIGHT_MODEL,
+} = require('../constants');
 
 const find = async (req, res, next) => {
   let fieldsQuery = req.query.fields || [];
@@ -24,6 +30,23 @@ const find = async (req, res, next) => {
     flight.flightInstances = flattenedFlight.flightInstancesUri;
     delete flight.flightInstancesUri;
 
+    flight.dataFormatVersion = plainAirline.dataUri.contents.dataFormatVersion;
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_MODEL, undefined, {});
+    try {
+      DataFormatValidator.validate(flight, 'flight', FLIGHT_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = formatError(e);
+        err.data = flight;
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
+      } else {
+        next(e);
+      }
+    }
     res.status(200).json(flight);
   } catch (e) {
     next(e);

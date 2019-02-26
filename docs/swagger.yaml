@@ -318,6 +318,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoomTypeResponse'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -459,7 +464,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+                  - type: object
+                    properties:
+                      dataFormatVersion:
+                        description: Version number indicating the data format specification version.
+                        type: string
+                        format: semver
+                        maxLength: 20
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -691,7 +709,21 @@ paths:
           description: Flight data
           content:
             application/json:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
+              schema:
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
+                  - type: object
+                    properties:
+                      dataFormatVersion:
+                        description: Version number indicating the data format specification version.
+                        type: string
+                        format: semver
+                        maxLength: 20
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -798,7 +830,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+                  - type: object
+                    properties:
+                      dataFormatVersion:
+                        description: Version number indicating the data format specification version.
+                        type: string
+                        format: semver
+                        maxLength: 20
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -924,7 +969,12 @@ components:
         properties:
           availability:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/Availability'
-              
+          dataFormatVersion:
+            description: Version number indicating the data format specification version.
+            type: string
+            format: semver
+            maxLength: 20
+
     RatePlansResponse:
       type: array
       items:

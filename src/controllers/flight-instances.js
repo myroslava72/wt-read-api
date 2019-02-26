@@ -1,4 +1,11 @@
-const { Http404Error } = require('../errors');
+const { Http404Error, HttpValidationError } = require('../errors');
+const { DataFormatValidator } = require('../services/validation');
+const { formatError } = require('../services/utils');
+const {
+  VALIDATION_WARNING_HEADER,
+  SCHEMA_PATH,
+  FLIGHT_INSTANCE_MODEL,
+} = require('../constants');
 
 const find = async (req, res, next) => {
   let { flightId, flightInstanceId } = req.params;
@@ -15,6 +22,23 @@ const find = async (req, res, next) => {
     let flightInstance = flight.flightInstancesUri.contents.find(i => i.id === flightInstanceId);
     if (!flightInstance) {
       return next(new Http404Error('flightInstanceNotFound', 'Flight instance not found'));
+    }
+    flightInstance.dataFormatVersion = plainAirline.dataUri.contents.dataFormatVersion;
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL, undefined, {});
+    try {
+      DataFormatValidator.validate(flightInstance, 'flight instance', FLIGHT_INSTANCE_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = formatError(e);
+        err.data = flightInstance;
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
+      } else {
+        next(e);
+      }
     }
     res.status(200).json(flightInstance);
   } catch (e) {
