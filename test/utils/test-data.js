@@ -127,7 +127,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
-        'type': 'percentage',
+        'unit': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
@@ -168,7 +168,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
-        'type': 'percentage',
+        'unit': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
