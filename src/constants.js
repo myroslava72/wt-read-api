@@ -79,6 +79,7 @@ const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
 const ROOM_TYPE_MODEL = 'RoomType';
 const RATE_PLAN_MODEL = 'RatePlan';
+const AVAILABILITY_MODEL = 'AvailabilityForDay';
 const FLIGHT_MODEL = 'Flight';
 const FLIGHT_INSTANCE_MODEL = 'FlightInstance';
 const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
@@ -104,6 +105,7 @@ module.exports = {
   AIRLINE_SCHEMA_MODEL,
   ROOM_TYPE_MODEL,
   RATE_PLAN_MODEL,
+  AVAILABILITY_MODEL,
   FLIGHT_MODEL,
   FLIGHT_INSTANCE_MODEL,
   VALIDATION_WARNING_HEADER,

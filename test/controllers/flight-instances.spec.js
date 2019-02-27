@@ -36,22 +36,61 @@ describe('Flight instances', function () {
   });
 
   describe('GET /airlines/:airlineAddress/flights/:flightId/instances', () => {
+    const flightId = 'IeKeix6G';
+
     it('should return flight instances', async () => {
-      const flightId = 'IeKeix6G';
       await request(server)
         .get(`/airlines/${address}/flights/${flightId}/instances/`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body.length).to.be.eql(2);
-          for (let instance of res.body) {
+          const { items } = res.body;
+          expect(items.length).to.be.eql(2);
+          for (let instance of items) {
             expect(instance).to.have.property('id');
             expect(instance).to.have.property('departureDateTime');
             expect(instance).to.have.property('bookingClasses');
           }
-          expect(res.body[0].bookingClasses.length).to.equal(2);
-          expect(res.body[1].bookingClasses.length).to.equal(1);
+          expect(items[0].bookingClasses.length).to.equal(2);
+          expect(items[1].bookingClasses.length).to.equal(1);
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
+      await request(server)
+        .get(`/airlines/${airline}/flights/${flightId}/instances/`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let flightInstances = _.cloneDeep(FLIGHT_INSTANCES);
+      delete flightInstances[0].bookingClasses;
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, flightInstances);
+      await request(server)
+        .get(`/airlines/${airline}/flights/${flightId}/instances/`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(1);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^bookingClasses is a required field/);
         });
     });
 

@@ -271,9 +271,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  $ref: '#/components/schemas/RoomTypeResponse'
+                $ref: '#/components/schemas/RoomTypesResponse'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -669,7 +667,26 @@ paths:
           description: Flight data
           content:
             application/json:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flights'
+              schema:
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flights'
+                  - type: object
+                    properties:
+                      warnings:
+                        type: array
+                        description: Array of Flights
+                        items:
+                          $ref: '#/components/schemas/AirlineListError'
+                      errors:
+                        type: array
+                        description: Array of Flights
+                        items:
+                          $ref: '#/components/schemas/AirlineListError'
+                      dataFormatVersion:
+                        description: Version number indicating the data format specification version.
+                        type: string
+                        format: semver
+                        maxLength: 20
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -792,7 +809,25 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+                type: object
+                properties:
+                  items:
+                    $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+                  warnings:
+                    type: array
+                    description: Array of Flights
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
+                  errors:
+                    type: array
+                    description: Array of Flights
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
+                  dataFormatVersion:
+                    description: Version number indicating the data format specification version.
+                    type: string
+                    format: semver
+                    maxLength: 20
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -959,9 +994,28 @@ components:
 
     RoomTypesResponse:
       description: Array of room types
-      type: array
-      items:
-        $ref: '#/components/schemas/RoomTypeResponse'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomTypeResponse'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/HotelListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/HotelListError'
+        dataFormatVersion:
+          description: Version number indicating the data format specification version.
+          type: string
+          format: semver
+          maxLength: 20
+
     RoomTypeResponse:
       allOf:
       - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RoomType'
@@ -976,12 +1030,54 @@ components:
             maxLength: 20
 
     RatePlansResponse:
-      type: array
-      items:
-        $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        dataFormatVersion:
+          description: Version number indicating the data format specification version.
+          type: string
+          format: semver
+          maxLength: 20
         
     AvailabilityResponse:
-      $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/Availability'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/AvailabilityForDay'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        updatedAt:
+          type: string
+          description: Date-time when the data was last changed. Used by consumers to handle incremental updates and caching.
+          format: date-time
+        dataFormatVersion:
+          description: Version number indicating the data format specification version.
+          type: string
+          format: semver
+          maxLength: 20
 
     AirlineListItem:
       allOf:

@@ -58,7 +58,32 @@ const findAll = async (req, res, next) => {
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
     }
-    res.status(200).json(flight.flightInstancesUri.contents);
+    const instances = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL, undefined, {});
+    for (let instance of flight.flightInstancesUri.contents) {
+      try {
+        DataFormatValidator.validate(instance, 'flight instance', FLIGHT_INSTANCE_MODEL, swaggerDocument.components.schemas, plainAirline.dataUri.contents.dataFormatVersion);
+        instances.push(instance);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = instance;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
+    }
+    res.status(200).json({
+      items: instances,
+      warnings: warnings,
+      errors: errors,
+      dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
+    });
   } catch (e) {
     next(e);
   }

@@ -22,12 +22,14 @@ class DataFormatValidator {
    * @param type
    * @param modelName
    * @param schemas The components.schemas part of swagger definition
+   * @param dataFormatVersion If the data doesn't contain `dataFormatVersion` field, you may provide a value here.
    */
-  static validate (data, type, modelName, schemas) {
-    if (!data.dataFormatVersion) {
+  static validate (data, type, modelName, schemas, dataFormatVersion) {
+    dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
+    if (!dataFormatVersion) {
       throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
     }
-    if (DATA_FORMAT_VERSION !== data.dataFormatVersion) {
+    if (DATA_FORMAT_VERSION !== dataFormatVersion) {
       throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
     }
     if (!schemas.hasOwnProperty(modelName)) {

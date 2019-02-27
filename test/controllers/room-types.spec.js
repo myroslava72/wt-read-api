@@ -53,8 +53,8 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.eql(HOTEL_DESCRIPTION.roomTypes);
-          for (let roomType of res.body) {
+          expect(res.body.items).to.eql(HOTEL_DESCRIPTION.roomTypes);
+          for (let roomType of res.body.items) {
             expect(roomType).to.have.property('id');
           }
         });
@@ -67,7 +67,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           let i = 0;
-          for (let roomType of res.body) {
+          for (let roomType of res.body.items) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('ratePlans');
             _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
@@ -82,7 +82,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           let i = 0;
-          for (let roomType of res.body) {
+          for (let roomType of res.body.items) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
             _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
@@ -97,7 +97,7 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           let i = 0;
-          for (let roomType of res.body) {
+          for (let roomType of res.body.items) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
             expect(roomType).to.have.property('ratePlans');
@@ -110,12 +110,49 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           let i = 0;
-          for (let roomType of res.body) {
+          for (let roomType of res.body.items) {
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('availability');
             expect(roomType).to.have.property('ratePlans');
             _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(3);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.roomTypes[0].occupancy.max;
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(2);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^max is a required field/);
         });
     });
 
@@ -287,7 +324,7 @@ describe('Room types', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          const ratePlans = res.body;
+          const ratePlans = res.body.items;
           expect(ratePlans.length).to.be.eql(1);
           expect(ratePlans[0]).to.have.property('id', 'rate-plan-1');
         });
@@ -300,8 +337,45 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          const ratePlans = res.body;
+          const ratePlans = res.body.items;
           expect(ratePlans.length).to.be.eql(0);
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/ratePlans`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(1);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let ratePlans = _.cloneDeep(RATE_PLANS);
+      delete ratePlans[0].price;
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, ratePlans, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/ratePlans`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^price is a required field/);
         });
     });
 
@@ -354,8 +428,10 @@ describe('Room types', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
-          expect(res.body).to.have.property('roomTypes');
-          let data = res.body.roomTypes.filter((rt) => { return rt.roomTypeId === roomType; });
+          expect(res.body).to.have.property('items');
+          expect(res.body).to.have.property('warnings');
+          expect(res.body).to.have.property('errors');
+          let data = res.body.items.filter((rt) => { return rt.roomTypeId === roomType; });
           expect(data.length).to.be.eql(9);
         });
     });
@@ -369,8 +445,45 @@ describe('Room types', function () {
         .expect(200)
         .expect((res) => {
           expect(res.body).to.have.property('updatedAt');
-          let data = res.body.roomTypes.filter((rt) => { return rt.id === roomType; });
+          let data = res.body.items.filter((rt) => { return rt.id === roomType; });
           expect(data.length).to.be.eql(0);
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/availability`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(9);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let availability = _.cloneDeep(AVAILABILITY);
+      delete availability.roomTypes[0].date;
+      const hotel = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, availability);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/availability`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(8);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^date is a required field/);
         });
     });
 

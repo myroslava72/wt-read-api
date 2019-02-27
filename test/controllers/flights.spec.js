@@ -73,6 +73,43 @@ describe('Flights', function () {
         });
     });
 
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
+      await request(server)
+        .get(`/airlines/${airline}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
+      delete airlineFlights.items[0].origin;
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      await request(server)
+        .get(`/airlines/${airline}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(res.body).to.have.property('dataFormatVersion');
+          expect(items.length).to.be.eql(1);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^origin is a required field/);
+        });
+    });
+
     it('should return 404 for unknown airline id', async () => {
       let airlineId = '0x994afd347B160be3973B41F0A144819496d175e9';
       await request(server)

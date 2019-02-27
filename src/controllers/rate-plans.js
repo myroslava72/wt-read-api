@@ -14,7 +14,32 @@ const findAll = async (req, res, next) => {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
     let ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
-    res.status(200).json(ratePlans);
+    const items = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    for (let plan of ratePlans) {
+      try {
+        DataFormatValidator.validate(plan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        items.push(plan);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = plan;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
+    }
+    res.status(200).json({
+      items,
+      warnings,
+      errors,
+      dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
+    });
   } catch (e) {
     next(e);
   }
