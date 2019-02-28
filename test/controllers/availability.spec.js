@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { HOTEL_SEGMENT_ID, DATA_FORMAT_VERSION } = require('../../src/constants');
+const { HOTEL_SEGMENT_ID } = require('../../src/constants');
 const {
   deployHotelIndex,
   deployFullHotel,
