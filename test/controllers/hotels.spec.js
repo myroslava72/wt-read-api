@@ -219,7 +219,6 @@ describe('Hotels', function () {
         'updatedAt',
         'notificationsUri',
         'bookingUri',
-        'dataFormatVersion',
       ];
       const query = `fields=${fields.join()}`;
 
@@ -232,7 +231,7 @@ describe('Hotels', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
-            expect(hotel).to.have.all.keys(fields);
+            expect(hotel).to.have.all.keys(['dataFormatVersion', ...fields]);
             for (let roomType of hotel.roomTypes) {
               expect(roomType).to.have.property('id');
             }
@@ -248,7 +247,7 @@ describe('Hotels', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
-            expect(hotel).to.have.all.keys(fields);
+            expect(hotel).to.have.all.keys(['dataFormatVersion', ...fields]);
             for (let roomType of hotel.roomTypes) {
               expect(roomType).to.have.property('id');
             }
@@ -390,7 +389,6 @@ describe('Hotels', function () {
         'images',
         'amenities',
         'updatedAt',
-        'dataFormatVersion',
       ];
       await request(server)
         .get(`/hotels/${address}`)
@@ -398,7 +396,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          expect(res.body).to.have.all.keys(defaultHotelFields);
+          expect(res.body).to.have.all.keys(['dataFormatVersion', ...defaultHotelFields]);
         });
     });
 
@@ -510,7 +508,6 @@ describe('Hotels', function () {
         'notificationsUri',
         'category',
         'bookingUri',
-        'dataFormatVersion',
         'defaultLocale',
       ];
       const query = `fields=${fields.join()}`;
@@ -520,7 +517,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id']);
+          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
         })
         .expect(200);
       const query2 = (fields.map((f) => `fields=${f}`)).join('&');
@@ -529,7 +526,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id']);
+          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
         })
         .expect(200);
     });
@@ -676,7 +673,7 @@ describe('Hotels', function () {
     });
 
     it('should not return any non-existent fields even if a client asks for them', async () => {
-      const fields = ['managerAddress', 'name', 'dataFormatVersion'];
+      const fields = ['managerAddress', 'name'];
       const invalidFields = ['invalid', 'invalidField'];
       const query = `fields=${fields.join()},${invalidFields.join()}`;
 
@@ -685,7 +682,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id']);
+          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
           expect(res.body).to.not.have.all.keys(invalidFields);
         })
         .expect(200);

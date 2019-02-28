@@ -74,7 +74,6 @@ describe('Rate plans', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(200);
           const { items, warnings, errors } = res.body;
-          expect(res.body).to.have.property('dataFormatVersion');
           expect(items.length).to.be.eql(0);
           expect(warnings.length).to.be.eql(2);
           expect(errors.length).to.be.eql(0);
@@ -93,7 +92,6 @@ describe('Rate plans', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(200);
           const { items, warnings, errors } = res.body;
-          expect(res.body).to.have.property('dataFormatVersion');
           expect(items.length).to.be.eql(1);
           expect(warnings.length).to.be.eql(0);
           expect(errors.length).to.be.eql(1);

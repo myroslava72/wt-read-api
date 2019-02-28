@@ -44,7 +44,6 @@ describe('Availability', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body.items).to.eql(AVAILABILITY.roomTypes);
-          expect(res.body).to.have.property('dataFormatVersion', DATA_FORMAT_VERSION);
           expect(res.body).to.have.property('updatedAt');
           expect(res.body).to.have.property('warnings');
           expect(res.body).to.have.property('errors');
@@ -77,7 +76,6 @@ describe('Availability', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(200);
           const { items, warnings, errors } = res.body;
-          expect(res.body).to.have.property('dataFormatVersion');
           expect(items.length).to.be.eql(0);
           expect(warnings.length).to.be.eql(18);
           expect(errors.length).to.be.eql(0);
@@ -96,7 +94,6 @@ describe('Availability', function () {
         .expect((res) => {
           expect(res.status).to.be.eql(200);
           const { items, warnings, errors } = res.body;
-          expect(res.body).to.have.property('dataFormatVersion');
           expect(items.length).to.be.eql(17);
           expect(warnings.length).to.be.eql(0);
           expect(errors.length).to.be.eql(1);

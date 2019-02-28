@@ -459,11 +459,9 @@ describe('Airlines', function () {
 
     it('should return default fields for airline detail', async () => {
       const defaultAirlineFields = [
-        'id',
         'name',
         'contacts',
         'code',
-        'dataFormatVersion',
         'defaultCancellationAmount',
       ];
       await request(server)
@@ -471,7 +469,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(defaultAirlineFields);
+          expect(res.body).to.have.all.keys(['id', 'dataFormatVersion', ...defaultAirlineFields]);
           expect(res.body).to.not.have.property('flights');
         })
         .expect(200);
@@ -579,7 +577,6 @@ describe('Airlines', function () {
       // defaultCancellationAmount was problematic when set to 0
       const fields = [
         'name',
-        'dataFormatVersion',
         'managerAddress',
         'defaultCancellationAmount',
         'notificationsUri',
@@ -592,7 +589,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id']);
+          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
         })
         .expect(200);
       const query2 = (fields.map((f) => `fields=${f}`)).join('&');
@@ -601,7 +598,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id']);
+          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
         })
         .expect(200);
     });

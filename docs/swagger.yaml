@@ -82,7 +82,6 @@ paths:
               - id
               - name
               - location
-              - dataFormatVersion
             type: array
             items:
               type: string
@@ -103,7 +102,6 @@ paths:
                 - cancellationPolicies
                 - notificationsUri
                 - bookingUri
-                - dataFormatVersion
       responses:
         '200':
           description: >-
@@ -174,7 +172,6 @@ paths:
                 - images
                 - amenities
                 - updatedAt
-                - dataFormatVersion
               enum:
                 - id
                 - name
@@ -194,7 +191,6 @@ paths:
                 - availability
                 - notificationsUri
                 - bookingUri
-                - dataFormatVersion
       responses:
         '200':
           description: Hotel object
@@ -315,15 +311,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/RoomTypeResponse'
-                  - type: object
-                    properties:
-                      dataFormatVersion:
-                        description: Version number indicating the data format specification version.
-                        type: string
-                        format: semver
-                        maxLength: 20
+                $ref: '#/components/schemas/RoomTypeResponse'
           headers:
             X-Data-Validation-Warning:
               schema:
@@ -470,15 +458,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
-                  - type: object
-                    properties:
-                      dataFormatVersion:
-                        description: Version number indicating the data format specification version.
-                        type: string
-                        format: semver
-                        maxLength: 20
+                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
           headers:
             X-Data-Validation-Warning:
               schema:
@@ -690,11 +670,6 @@ paths:
                         description: Array of Flights
                         items:
                           $ref: '#/components/schemas/AirlineListError'
-                      dataFormatVersion:
-                        description: Version number indicating the data format specification version.
-                        type: string
-                        format: semver
-                        maxLength: 20
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -735,15 +710,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
-                  - type: object
-                    properties:
-                      dataFormatVersion:
-                        description: Version number indicating the data format specification version.
-                        type: string
-                        format: semver
-                        maxLength: 20
+                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
           headers:
             X-Data-Validation-Warning:
               schema:
@@ -832,11 +799,6 @@ paths:
                     description: Array of Flights
                     items:
                       $ref: '#/components/schemas/AirlineListError'
-                  dataFormatVersion:
-                    description: Version number indicating the data format specification version.
-                    type: string
-                    format: semver
-                    maxLength: 20
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -964,7 +926,6 @@ components:
         - type: object
           required:
           - id
-          - dataFormatVersion
           properties:
             id:
               $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/shared-resources.yaml#/components/schemas/EthereumAddressType'
@@ -973,18 +934,12 @@ components:
             roomTypes:
               description: Room types in the hotel
               $ref: '#/components/schemas/RoomTypesResponse'
-            dataFormatVersion:
-              description: Version number indicating the data format specification version.
-              type: string
-              format: semver
-              maxLength: 20
     HotelDetail:
       allOf:
       - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/HotelDescription'
       - type: object
         required:
           - id
-          - dataFormatVersion
         properties:
           id:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/shared-resources.yaml#/components/schemas/EthereumAddressType'
@@ -995,11 +950,6 @@ components:
           roomTypes:
             description: Room types in the hotel
             $ref: '#/components/schemas/RoomTypesResponse'
-          dataFormatVersion:
-            description: Version number indicating the data format specification version.
-            type: string
-            format: semver
-            maxLength: 20
 
     RoomTypesResponse:
       description: Array of room types
@@ -1019,11 +969,6 @@ components:
           description: Array of Flights
           items:
             $ref: '#/components/schemas/HotelListError'
-        dataFormatVersion:
-          description: Version number indicating the data format specification version.
-          type: string
-          format: semver
-          maxLength: 20
 
     RoomTypeResponse:
       allOf:
@@ -1050,12 +995,7 @@ components:
           description: Array of Flights
           items:
             $ref: '#/components/schemas/AirlineListError'
-        dataFormatVersion:
-          description: Version number indicating the data format specification version.
-          type: string
-          format: semver
-          maxLength: 20
-        
+
     AvailabilityResponse:
       type: object
       properties:
@@ -1077,11 +1017,6 @@ components:
           type: string
           description: Date-time when the data was last changed. Used by consumers to handle incremental updates and caching.
           format: date-time
-        dataFormatVersion:
-          description: Version number indicating the data format specification version.
-          type: string
-          format: semver
-          maxLength: 20
 
     AirlineListItem:
       allOf:
