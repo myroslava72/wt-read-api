@@ -231,7 +231,7 @@ describe('Hotels', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
-            expect(hotel).to.have.all.keys(['dataFormatVersion', ...fields]);
+            expect(hotel).to.have.all.keys(fields);
             for (let roomType of hotel.roomTypes) {
               expect(roomType).to.have.property('id');
             }
@@ -247,7 +247,7 @@ describe('Hotels', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(hotel => {
-            expect(hotel).to.have.all.keys(['dataFormatVersion', ...fields]);
+            expect(hotel).to.have.all.keys(fields);
             for (let roomType of hotel.roomTypes) {
               expect(roomType).to.have.property('id');
             }
@@ -396,7 +396,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['dataFormatVersion', ...defaultHotelFields]);
+          expect(res.body).to.have.all.keys(defaultHotelFields);
         });
     });
 
@@ -517,7 +517,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
         })
         .expect(200);
       const query2 = (fields.map((f) => `fields=${f}`)).join('&');
@@ -526,7 +526,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
         })
         .expect(200);
     });
@@ -562,7 +562,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.roomTypes.length).to.be.gt(0);
           for (let roomType of res.body.roomTypes) {
@@ -585,7 +585,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'ratePlans', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'ratePlans', 'id']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.roomTypes.length).to.be.gt(0);
           for (let roomType of res.body.roomTypes) {
@@ -612,7 +612,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'availability', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'timezone', 'roomTypes', 'id', 'availability']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.roomTypes.length).to.be.gt(0);
           for (let roomType of res.body.roomTypes) {
@@ -682,7 +682,7 @@ describe('Hotels', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
           expect(res.body).to.not.have.all.keys(invalidFields);
         })
         .expect(200);

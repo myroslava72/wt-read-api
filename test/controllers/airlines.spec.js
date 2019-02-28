@@ -305,7 +305,7 @@ describe('Airlines', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(airline => {
-            expect(airline).to.have.all.keys(fields.concat(['dataFormatVersion', 'id']));
+            expect(airline).to.have.all.keys(fields.concat(['id']));
             for (let flight of airline.flights.items) {
               expect(flight).to.have.property('flightInstances');
               for (let instance of flight.flightInstances) {
@@ -324,7 +324,7 @@ describe('Airlines', function () {
           const { items } = res.body;
           expect(items.length).to.be.eql(2);
           items.forEach(airline => {
-            expect(airline).to.have.all.keys(fields.concat(['dataFormatVersion', 'id']));
+            expect(airline).to.have.all.keys(fields.concat(['id']));
             for (let flight of airline.flights.items) {
               expect(flight).to.have.property('flightInstances');
               for (let instance of flight.flightInstances) {
@@ -469,7 +469,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['id', 'dataFormatVersion', ...defaultAirlineFields]);
+          expect(res.body).to.have.all.keys(['id', ...defaultAirlineFields]);
           expect(res.body).to.not.have.property('flights');
         })
         .expect(200);
@@ -589,7 +589,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
         })
         .expect(200);
       const query2 = (fields.map((f) => `fields=${f}`)).join('&');
@@ -598,7 +598,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
         })
         .expect(200);
     });
@@ -633,7 +633,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'code', 'flights', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'code', 'flights', 'id']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
@@ -656,7 +656,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'code', 'flights', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'code', 'flights', 'id']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
@@ -679,7 +679,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'flights', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'flights', 'id']);
           expect(res.body.address).to.be.undefined;
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
@@ -700,7 +700,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys(['name', 'flights', 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys(['name', 'flights', 'id']);
           expect(res.body.code).to.be.undefined;
           expect(res.body.flights.items.length).to.be.gt(0);
           for (let flight of res.body.flights.items) {
@@ -759,7 +759,7 @@ describe('Airlines', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.all.keys([...fields, 'id', 'dataFormatVersion']);
+          expect(res.body).to.have.all.keys([...fields, 'id']);
           expect(res.body).to.not.have.all.keys(invalidFields);
         })
         .expect(200);

@@ -88,7 +88,6 @@ const findAll = async (req, res, next) => {
       items,
       warnings,
       errors,
-      dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);
@@ -168,7 +167,6 @@ const findRatePlans = async (req, res, next) => {
       items,
       warnings,
       errors,
-      dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);
@@ -214,7 +212,6 @@ const findAvailability = async (req, res, next) => {
       warnings,
       errors,
       updatedAt: availability.updatedAt,
-      dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);

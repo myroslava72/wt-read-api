@@ -82,7 +82,6 @@ const findAll = async (req, res, next) => {
       items: instances,
       warnings: warnings,
       errors: errors,
-      dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);

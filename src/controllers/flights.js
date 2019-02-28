@@ -93,7 +93,6 @@ const findAll = async (req, res, next) => {
       warnings: warnings,
       errors: errors,
       updatedAt: plainAirline.dataUri.contents.flightsUri.contents.updatedAt,
-      dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);

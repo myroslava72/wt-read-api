@@ -38,7 +38,6 @@ const findAll = async (req, res, next) => {
       items,
       warnings,
       errors,
-      dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
     });
   } catch (e) {
     next(e);
