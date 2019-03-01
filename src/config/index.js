@@ -1,5 +1,5 @@
 const winston = require('winston');
-const { 'wt-js-libs': WtJsLibs } = require('@windingtree/wt-js-libs');
+const { WtJsLibs } = require('@windingtree/wt-js-libs');
 
 const { ACCEPTED_SEGMENTS } = require('../constants');
 
