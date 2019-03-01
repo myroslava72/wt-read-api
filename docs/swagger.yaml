@@ -521,7 +521,6 @@ paths:
                 - defaultCancellationAmount
                 - currency
                 - managerAddress
-                - updatedAt
                 - cancellationPolicies
                 - notificationsUri
                 - bookingUri
@@ -604,7 +603,6 @@ paths:
                 - defaultCancellationAmount
                 - currency
                 - managerAddress
-                - updatedAt
                 - cancellationPolicies
                 - notificationsUri
                 - bookingUri
