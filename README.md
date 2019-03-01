@@ -57,7 +57,7 @@ to WT_CONFIG variable at runtime.
 
 ```sh
 $ docker build -t windingtree/wt-read-api .
-$ docker run -p 8080:3000 -e WT_CONFIG=playground windingtree/wt-read-api
+$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground windingtree/wt-read-api
 ```
 After that you can access the wt-read-api on local port `8080`. This deployment
 is using a Ropsten configuration that can be found in `src/config/playground.js`.
@@ -68,8 +68,11 @@ You can install and run this from NPM as well:
 
 ```sh
 $ npm install -g @windingtree/wt-read-api
-$ WT_CONFIG=playground wt-read-api
+$ ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground wt-read-api
 ```
+
+Probably the easiest way of getting an Ethereum Node API is to register with
+[Infura](https://infura.io/).
 
 ### Running in production
 
@@ -89,7 +92,7 @@ These are:
 - `PORT` - HTTP Port where the API will listen, defaults to 3000.
 - `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
-- `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/`
+- `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
 
 For example the playground configuration can be emulated with the following command:
 
@@ -99,11 +102,12 @@ docker run -p 8080:3000 \
   -e WT_SEGMENTS=hotels,airlines \
   -e WT_HOTEL_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
   -e WT_AIRLINE_INDEX_ADDRESS=0xai562057d613175c850df65e435bb0824b65d333 \
-  -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ \
   -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com \
   -e ADAPTER_SWARM=1 \
   -e ADAPTER_HTTPS=1 \
-  -e ETH_NETWORK_NAME=ropsten windingtree/wt-read-api
+  -e ETH_NETWORK_NAME=ropsten \
+  -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/v3/my-project-id \
+  windingtree/wt-read-api
 ```
 
 ## Examples
