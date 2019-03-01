@@ -140,7 +140,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   for (let airline of items) {
     try {
       resolvedAirlineObject = await resolveAirlineObject(airline, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(resolvedAirlineObject, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedAirlineObject, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
       delete resolvedAirlineObject.dataFormatVersion;
       realItems.push(resolvedAirlineObject);
     } catch (e) {
@@ -214,7 +214,7 @@ const find = async (req, res, next) => {
       if (resolvedAirline.error) {
         return next(new HttpBadGatewayError('airlineNotAccessible', resolvedAirline.error, 'Airline data is not accessible.'));
       }
-      DataFormatValidator.validate(resolvedAirline, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedAirline, 'airline', AIRLINE_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
       delete resolvedAirline.dataFormatVersion;
     } catch (e) {
       if (e instanceof HttpValidationError) {

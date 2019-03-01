@@ -168,6 +168,22 @@ describe('Airlines', function () {
         });
     });
 
+    it('should return just id when asked for', async () => {
+      await request(server)
+        .get('/airlines?fields=id')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, warnings, errors } = res.body;
+          expect(items.length).to.be.eql(2);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(0);
+          expect(items[0]).to.eql({ id: airline0address });
+          expect(items[1]).to.eql({ id: airline1address });
+        });
+    });
+
     it('should return errors if they happen to individual airlines', async () => {
       sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
         getAllAirlines: sinon.stub().resolves([new FakeNiceAirline(), new FakeAirlineWithBadOnChainData()]),
@@ -717,6 +733,17 @@ describe('Airlines', function () {
           expect(res.body.flights).to.have.property('updatedAt');
         })
         .expect(200);
+    });
+
+    it('should return just id when asked for', async () => {
+      await request(server)
+        .get(`/airlines/${address}?fields=id`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).to.eql({ id: address });
+        });
     });
 
     it('should return 502 when on-chain data is inaccessible', async () => {

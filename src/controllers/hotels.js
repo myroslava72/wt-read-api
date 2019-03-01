@@ -121,7 +121,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
       delete resolvedHotelObject.dataFormatVersion;
       realItems.push(resolvedHotelObject);
     } catch (e) {
@@ -195,7 +195,7 @@ const find = async (req, res, next) => {
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
-      DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
       delete resolvedHotel.dataFormatVersion;
     } catch (e) {
       if (e instanceof HttpValidationError) {

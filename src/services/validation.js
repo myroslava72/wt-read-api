@@ -23,14 +23,18 @@ class DataFormatValidator {
    * @param modelName
    * @param schemas The components.schemas part of swagger definition
    * @param dataFormatVersion If the data doesn't contain `dataFormatVersion` field, you may provide a value here.
+   * @param fields Fields to resolve
    */
-  static validate (data, type, modelName, schemas, dataFormatVersion) {
-    dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
-    if (!dataFormatVersion) {
-      throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
-    }
-    if (DATA_FORMAT_VERSION !== dataFormatVersion) {
-      throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
+  static validate (data, type, modelName, schemas, dataFormatVersion, fields) {
+    // don't validate dataFormatVersion when only fetching on-chain data
+    if (!fields || !(fields.length === 1 && fields[0] === 'id')) {
+      dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
+      if (!dataFormatVersion) {
+        throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
+      }
+      if (DATA_FORMAT_VERSION !== dataFormatVersion) {
+        throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
+      }
     }
     if (!schemas.hasOwnProperty(modelName)) {
       throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
