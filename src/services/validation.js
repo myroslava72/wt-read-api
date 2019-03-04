@@ -149,7 +149,9 @@ class DataFormatValidator {
               let refName = this._getReferenceBaseName(data[modelName].properties[nestedField].items.$ref);
               data = this._intersectRequiredFields(data, refName, nestedBaseFields[nestedField], reversedFieldMapping);
             } else {
-              data[modelName] = this._intersectRequiredFields(data[modelName], nestedField, nestedBaseFields[nestedField], reversedFieldMapping);
+              let refName = `${modelName}.${nestedField}`;
+              data[refName] = data[modelName].properties[nestedField].items;
+              data = this._intersectRequiredFields(data, refName, nestedBaseFields[nestedField], reversedFieldMapping);
             }
           } else {
             data[modelName] = this._intersectRequiredFields(data[modelName], nestedField, nestedBaseFields[nestedField], reversedFieldMapping);
@@ -162,8 +164,14 @@ class DataFormatValidator {
       data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
     }
     if (data[modelName] && data[modelName].type === 'array') {
-      let refName = this._getReferenceBaseName(data[modelName].items.$ref);
-      data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
+      if (data[modelName] && data[modelName].items.hasOwnProperty('$ref')) {
+        let refName = this._getReferenceBaseName(data[modelName].items.$ref);
+        data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
+      } else {
+        let refName = `${modelName}.0`;
+        data[refName] = data[modelName].items;
+        data = this._intersectRequiredFields(data, refName, fields, reversedFieldMapping);
+      }
     }
     if (data[modelName] && data[modelName].hasOwnProperty('allOf')) {
       let i = 0;
