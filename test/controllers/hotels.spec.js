@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 /* eslint-disable no-unused-expressions */
 const { expect } = require('chai');
+const _ = require('lodash');
 const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
@@ -16,11 +17,14 @@ const {
 } = require('../utils/test-data');
 const {
   DEFAULT_PAGE_SIZE,
+  VALIDATION_WARNING_HEADER,
 } = require('../../src/constants');
 const {
   FakeNiceHotel,
   FakeHotelWithBadOnChainData,
   FakeHotelWithBadOffChainData,
+  FakeOldFormatHotel,
+  FakeWrongFormatHotel,
 } = require('../utils/fake-hotels');
 
 describe('Hotels', function () {
@@ -60,6 +64,26 @@ describe('Hotels', function () {
           expect(items[1]).to.have.property('id', hotel1address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('location');
+        });
+    });
+
+    it('should return validation errors if they happen to individual hotels', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+        getAllHotels: sinon.stub().resolves([new FakeOldFormatHotel(), new FakeWrongFormatHotel()]),
+      });
+      await request(server)
+        .get('/hotels?fields=description,name,contacts,address,timezone,currency,updatedAt,defaultCancellationAmount')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, warnings, errors } = res.body;
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(1);
+          expect(errors.length).to.be.eql(1);
+          expect(warnings[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
+          expect(errors[0].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
@@ -306,6 +330,22 @@ describe('Hotels', function () {
         });
     });
 
+    it('should return just id when asked for', async () => {
+      await request(server)
+        .get('/hotels?fields=id')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, warnings, errors } = res.body;
+          expect(items.length).to.be.eql(2);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(0);
+          expect(items[0]).to.eql({ id: hotel0address });
+          expect(items[1]).to.eql({ id: hotel1address });
+        });
+    });
+
     it('should return 422 #paginationLimitError on negative limit', async () => {
       const pagination = 'limit=-500';
       await request(server)
@@ -353,7 +393,7 @@ describe('Hotels', function () {
       address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
     });
 
-    it('should return default fields', async () => {
+    it('should return default fields for hotel detail', async () => {
       const defaultHotelFields = [
         'id',
         'location',
@@ -370,10 +410,108 @@ describe('Hotels', function () {
         .get(`/hotels/${address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
+        .expect(200)
         .expect((res) => {
           expect(res.body).to.have.all.keys(defaultHotelFields);
-        })
-        .expect(200);
+        });
+    });
+
+    it('should return validation warning for unsupported version', async () => {
+      let dataFormatVersion = '0.1.0';
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, dataFormatVersion);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
+        });
+    });
+
+    it('should return validation errors for default field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      hotelDescription.description = 23;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^Unable to validate a model with a type: number, expected: string/);
+        });
+    });
+
+    it('should return validation errors for missing default field', async () => {
+      let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
+      delete hotelDescription.description;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^description is a required field/);
+        });
+    });
+
+    it('should return validation errors for non-default field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      hotelDescription.timezone = false;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=timezone`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^Unable to validate a model with a type: boolean, expected: string/);
+        });
+    });
+
+    it('should return validation errors for missing non-default field', async () => {
+      let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
+      delete hotelDescription.defaultCancellationAmount;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=defaultCancellationAmount`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^defaultCancellationAmount is a required field/);
+        });
+    });
+
+    it('should return validation errors for missing value in nested field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.location.latitude;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^latitude is a required field/);
+        });
+    });
+
+    it('should return validation errors for missing nested exact field', async () => {
+      let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
+      delete hotelDescription.location.latitude;
+      address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      await request(server)
+        .get(`/hotels/${address}?fields=location.latitude`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(422)
+        .expect((res) => {
+          expect(res.body.long).to.match(/^latitude is a required field/);
+        });
     });
 
     it('should return all fields that a client asks for in hotel detail', async () => {
@@ -426,6 +564,7 @@ describe('Hotels', function () {
           expect(res.body.address).to.have.property('postcode');
           expect(res.body.address).to.have.property('road');
           expect(res.body.address.country).to.be.undefined;
+          expect(res.body.address.city).to.be.undefined;
         })
         .expect(200);
     });
@@ -443,6 +582,7 @@ describe('Hotels', function () {
           expect(res.body.address).to.be.undefined;
           expect(res.body.roomTypes.length).to.be.gt(0);
           for (let roomType of res.body.roomTypes) {
+            expect(roomType).to.have.all.keys(['name', 'description', 'id']);
             expect(roomType).to.have.property('id');
             expect(roomType).to.have.property('name');
             expect(roomType).to.have.property('description');
@@ -501,6 +641,17 @@ describe('Hotels', function () {
         .expect(200);
     });
 
+    it('should return just id when asked for', async () => {
+      await request(server)
+        .get(`/hotels/${address}?fields=id`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).to.eql({ id: address });
+        });
+    });
+
     it('should return 502 when on-chain data is inaccessible', async () => {
       sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
@@ -512,6 +663,23 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
+          wtJsLibsWrapper.getWTHotelIndex.restore();
+        });
+    });
+
+    it('should return a warning when on-chain data is outdated', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+        getHotel: sinon.stub().resolves(new FakeOldFormatHotel()),
+      });
+
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
           wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });

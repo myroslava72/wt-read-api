@@ -71,7 +71,7 @@ const HOTEL_DESCRIPTION = {
   'contacts': {
     'general': {
       'email': 'joseph.urban@example.com',
-      'phone': 44123456789,
+      'phone': '44123456789',
       'url': 'string',
       'ethereum': 'string',
       'additionalContacts': [
@@ -84,12 +84,13 @@ const HOTEL_DESCRIPTION = {
   },
   'address': {
     'road': 'string',
+    'houseNumber': '1',
     'postcode': 'string',
     'city': 'string',
     'countryCode': 'CZ',
   },
   'timezone': 'string',
-  'currency': 'string',
+  'currency': 'usd',
   'images': [
     'string',
   ],
@@ -322,7 +323,6 @@ const AIRLINE_DESCRIPTION = {
     },
   },
   id: '0xD8b8aF90986174d5c5558aAC0905AA1DB2Ee41ce',
-  currency: 'EUR',
   updatedAt: '2019-02-01 10:00:00',
   defaultCancellationAmount: 0,
 };
@@ -367,9 +367,10 @@ const AIRLINE_FLIGHTS = {
 const FLIGHT_INSTANCES = [{
   id: 'IeKeix6G-1',
   departureDateTime: '2018-12-10 12:00:00',
+  updatedAt: '2019-02-01 10:00:00',
   bookingClasses: [
-    { id: 'economy', availabilityCount: 100 },
-    { id: 'business', availabilityCount: 20 },
+    { id: 'economy', availabilityCount: 100, fare: [{ amount: 50, currency: 'CZK' }], name: 'Economy' },
+    { id: 'business', availabilityCount: 20, fare: [{ amount: 150, currency: 'CZK' }], name: 'Business' },
   ],
   segments: {
     'segment1': { departureDateTime: '2018-12-10 12:00:00', arrivalDateTime: '2018-12-10 15:00:00' },
@@ -378,9 +379,14 @@ const FLIGHT_INSTANCES = [{
 }, {
   id: 'IeKeix6G-2',
   departureDateTime: '2018-12-24 12:00:00',
+  updatedAt: '2019-02-01 10:00:00',
   bookingClasses: [
-    { id: 'economy', availabilityCount: 150 },
+    { id: 'economy', availabilityCount: 100, fare: [{ amount: 50, currency: 'CZK' }], name: 'Economy' },
   ],
+  segments: {
+    'segment1': { departureDateTime: '2018-12-24 12:00:00', arrivalDateTime: '2018-12-24 15:00:00' },
+    'segment2': { departureDateTime: '2018-12-24 20:00:00', arrivalDateTime: '2018-12-25 02:00:00' },
+  },
 }];
 
 module.exports = {

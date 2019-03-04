@@ -23,7 +23,7 @@ const deployHotelIndex = async () => {
   });
 };
 
-const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, ratePlans, availability) => {
+const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, ratePlans, availability, dataFormatVersion) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -38,7 +38,7 @@ const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, rat
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = dataFormatVersion || DATA_FORMAT_VERSION;
   indexFile.defaultLocale = 'en';
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
@@ -58,7 +58,7 @@ const deployAirlineIndex = async () => {
   });
 };
 
-const deployFullAirline = async (offChainDataAdapter, index, airlineDescription, flights, flightInstances) => {
+const deployFullAirline = async (offChainDataAdapter, index, airlineDescription, flights, flightInstances, dataFormatVersion) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -75,7 +75,7 @@ const deployFullAirline = async (offChainDataAdapter, index, airlineDescription,
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = dataFormatVersion || DATA_FORMAT_VERSION;
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerAirline(dataUri, {

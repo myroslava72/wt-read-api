@@ -117,11 +117,16 @@ paths:
                     description: List of resolved hotels.
                     items:
                       $ref: '#/components/schemas/HotelListItem'
+                  warnings:
+                    type: array
+                    description: List of resolved hotels passing validation with unsupported declared data format version.
+                    items:
+                      $ref: '#/components/schemas/HotelListError'
                   errors:
                     type: array
                     description: >-
                       List of checked hotels whose requested data cannot be
-                      accessed (i. e. off-chain data cannot be reached).
+                      accessed (i. e. off-chain data cannot be reached) or fail validation.
                     items:
                       $ref: '#/components/schemas/HotelListError'
                   next:
@@ -193,6 +198,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HotelDetail'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -257,9 +267,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  $ref: '#/components/schemas/RoomTypeResponse'
+                $ref: '#/components/schemas/RoomTypesResponse'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -304,6 +312,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoomTypeResponse'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -446,6 +459,11 @@ paths:
             application/json:
               schema:
                 $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -503,7 +521,6 @@ paths:
                 - defaultCancellationAmount
                 - currency
                 - managerAddress
-                - updatedAt
                 - cancellationPolicies
                 - notificationsUri
                 - bookingUri
@@ -522,11 +539,16 @@ paths:
                     description: List of resolved airlines.
                     items:
                       $ref: '#/components/schemas/AirlineListItem'
+                  warnings:
+                    type: array
+                    description: List of resolved airlines passing validation with unsupported declared data format version.
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
                   errors:
                     type: array
                     description: >-
                       List of checked airlines whose requested data cannot be
-                      accessed (i. e. off-chain data cannot be reached).
+                      accessed (i. e. off-chain data cannot be reached) or fail validation.
                     items:
                       $ref: '#/components/schemas/AirlineListError'
                   next:
@@ -581,7 +603,6 @@ paths:
                 - defaultCancellationAmount
                 - currency
                 - managerAddress
-                - updatedAt
                 - cancellationPolicies
                 - notificationsUri
                 - bookingUri
@@ -592,6 +613,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AirlineDetail'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '404':
@@ -627,7 +653,21 @@ paths:
           description: Flight data
           content:
             application/json:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flights'
+              schema:
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flights'
+                  - type: object
+                    properties:
+                      warnings:
+                        type: array
+                        description: Array of Flights
+                        items:
+                          $ref: '#/components/schemas/AirlineListError'
+                      errors:
+                        type: array
+                        description: Array of Flights
+                        items:
+                          $ref: '#/components/schemas/AirlineListError'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -667,7 +707,13 @@ paths:
           description: Flight data
           content:
             application/json:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
+              schema:
+                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/Flight'
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -698,13 +744,14 @@ paths:
           description: Flight instances
           content:
             application/json:
-              type: object
-              required:
-                - flightInstancesUri
-              properties:
-                flightInstancesUri:
-                  description:
-                  $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/shared-resources.yaml#/components/schemas/UriType'
+              schema:
+                type: object
+                required:
+                  - flightInstancesUri
+                properties:
+                  flightInstancesUri:
+                    description:
+                    $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/shared-resources.yaml#/components/schemas/UriType'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -736,7 +783,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+                type: object
+                properties:
+                  items:
+                    $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+                  warnings:
+                    type: array
+                    description: Array of Flights
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
+                  errors:
+                    type: array
+                    description: Array of Flights
+                    items:
+                      $ref: '#/components/schemas/AirlineListError'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -774,7 +834,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+                allOf:
+                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+                  - type: object
+                    properties:
+                      dataFormatVersion:
+                        description: Version number indicating the data format specification version.
+                        type: string
+                        format: semver
+                        maxLength: 20
+          headers:
+            X-Data-Validation-Warning:
+              schema:
+                type: string
+              description: Warning in case of a soft validation fail.
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -816,6 +889,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Upstream data validation error (HTTP code 422)
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Error'
+              - type: object
+                properties:
+                  data:
+                    description: 'Upstream data that failed validation against api spec or is invalid dataFormatVersion.'
+                    type: object
   schemas:
     HotelListError:
       type: object
@@ -863,12 +948,26 @@ components:
           roomTypes:
             description: Room types in the hotel
             $ref: '#/components/schemas/RoomTypesResponse'
-    
+
     RoomTypesResponse:
       description: Array of room types
-      type: array
-      items:
-        $ref: '#/components/schemas/RoomTypeResponse'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomTypeResponse'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/HotelListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/HotelListError'
+
     RoomTypeResponse:
       allOf:
       - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RoomType'
@@ -876,14 +975,46 @@ components:
         properties:
           availability:
             $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/Availability'
-              
+
     RatePlansResponse:
-      type: array
-      items:
-        $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
-        
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+
     AvailabilityResponse:
-      $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/Availability'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/868b5d2685b1cd70647020978141be820ddccd30/hotel-data-swagger.yaml#/components/schemas/AvailabilityForDay'
+        warnings:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        errors:
+          type: array
+          description: Array of Flights
+          items:
+            $ref: '#/components/schemas/AirlineListError'
+        updatedAt:
+          type: string
+          description: Date-time when the data was last changed. Used by consumers to handle incremental updates and caching.
+          format: date-time
 
     AirlineListItem:
       allOf:

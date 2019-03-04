@@ -1,6 +1,12 @@
 const { mapAirlineFieldsFromQuery } = require('../services/property-mapping');
-const { flattenObject } = require('../services/utils');
-const { Http404Error, HttpBadGatewayError } = require('../errors');
+const { flattenObject, formatError } = require('../services/utils');
+const { Http404Error, HttpBadGatewayError, HttpValidationError } = require('../errors');
+const { DataFormatValidator } = require('../services/validation');
+const {
+  VALIDATION_WARNING_HEADER,
+  SCHEMA_PATH,
+  FLIGHT_MODEL,
+} = require('../constants');
 
 const find = async (req, res, next) => {
   let fieldsQuery = req.query.fields || [];
@@ -24,6 +30,23 @@ const find = async (req, res, next) => {
     flight.flightInstances = flattenedFlight.flightInstancesUri;
     delete flight.flightInstancesUri;
 
+    flight.dataFormatVersion = plainAirline.dataUri.contents.dataFormatVersion;
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_MODEL, undefined, {});
+    try {
+      DataFormatValidator.validate(flight, 'flight', FLIGHT_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = formatError(e);
+        err.data = flight;
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
+      } else {
+        next(e);
+      }
+    }
     res.status(200).json(flight);
   } catch (e) {
     next(e);
@@ -42,15 +65,33 @@ const findAll = async (req, res, next) => {
     if (!plainAirline.dataUri.contents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
-    const flights = [];
+    const flights = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_MODEL, undefined, {});
     for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
       let flattenedFlight = flattenObject(flight, fieldsArray);
       flight.flightInstances = flattenedFlight.flightInstancesUri;
       delete flight.flightInstancesUri;
-      flights.push(flight);
+      try {
+        DataFormatValidator.validate(flight, 'flight', FLIGHT_MODEL, swaggerDocument.components.schemas, plainAirline.dataUri.contents.dataFormatVersion);
+        flights.push(flight);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = flight;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
     }
     res.status(200).json({
       items: flights,
+      warnings: warnings,
+      errors: errors,
       updatedAt: plainAirline.dataUri.contents.flightsUri.contents.updatedAt,
     });
   } catch (e) {

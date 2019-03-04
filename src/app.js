@@ -7,7 +7,13 @@ const cors = require('cors');
 const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
-const { DATA_FORMAT_VERSION, AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ACCEPTED_SEGMENTS } = require('./constants');
+const {
+  DATA_FORMAT_VERSION,
+  AIRLINE_SEGMENT_ID,
+  HOTEL_SEGMENT_ID,
+  ACCEPTED_SEGMENTS,
+  VALIDATION_WARNING_HEADER,
+} = require('./constants');
 const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = require('./errors');
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
@@ -37,7 +43,7 @@ for (let segment of ACCEPTED_SEGMENTS) {
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Generic middlewares
-app.use(cors());
+app.use(cors({ exposedHeaders: [ VALIDATION_WARNING_HEADER ] }));
 app.use(bodyParser.json());
 app.use((err, req, res, next) => {
   // Catch and handle bodyParser errors.

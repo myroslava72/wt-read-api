@@ -143,6 +143,7 @@ items: [
     name: 'WT Hotel'
   }
 ],
+warnings: [],
 errors: [
   {
     error: 'Unsupported data storage type: ipfs',
@@ -162,6 +163,7 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
 id: "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
 location: { "latitude": 35.89421911, "longitude": 139.94637467 },
 name: "Winding Tree Hotel",
+dataFormatVersion: "0.2.0",
 description: "string",
 contacts:
  {
@@ -231,7 +233,7 @@ items: [
     id: '0x972422ce30AAC491Fa24a5287C40eAf85b0b9dC4'
   },
 ],
-errors: [],
+...
 ```
 
 Or in case an error occurs while fetching upstream data:
@@ -243,6 +245,7 @@ items: [
     id: '0xa8c4cbB500da540D9fEd05BE7Bef0f0f5df3e2cc'
   }
 ],
+warnings: [],
 errors: [
   {
     error: 'Cannot access on-chain data, maybe the deployed smart contract is broken',
@@ -262,6 +265,7 @@ Request to `/airlines/:address` can fetch off-chain data in a single request. By
 ```javascript
 name: 'Mazurka Airlines',
 description: 'Small but flexible',
+dataFormatVersion: "0.2.0",
 contacts: {
   general: {
     email: 'info@airline-mazurka.com',
@@ -320,3 +324,13 @@ segments: {
 
 For currently available public instances of wt-read-api, please see [this
 page](https://github.com/windingtree/wiki/blob/master/developer-resources.md#publicly-available-wt-deployments).
+
+
+## Data validation
+This API serves upstream data and has no control over the content. To ensure basic semantic compatibility,
+data is validated against [model definition](docs/swagger.yaml) and returned as an error when validation fails.
+(Detail endpoints will return 422 HTTP code, lists will contain the data in [`errors` array](docs/swagger.yaml#L127).)
+
+In case the validation succeeds but the declared data format version is different than the version supported by the API,
+it is returned with a warning. This usually means there was a non-breaking change in the data format but may have consequences
+in case of a semantic change. (Warnings are returned in `x-data-validation-warning` header for detail endpoints, [`warnings` array](docs/swagger.yaml#L122) for a list.)

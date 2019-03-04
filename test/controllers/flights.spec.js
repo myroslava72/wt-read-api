@@ -1,8 +1,9 @@
 /* eslint-env mocha */
+const _ = require('lodash');
 const { expect } = require('chai');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { AIRLINE_SEGMENT_ID } = require('../../src/constants');
+const { AIRLINE_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
   deployAirlineIndex,
   deployFullAirline,
@@ -69,6 +70,41 @@ describe('Flights', function () {
             expect(flight).to.have.property('flightInstances');
             expect(flight.flightInstances.length).to.eql(2);
           }
+        });
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
+      await request(server)
+        .get(`/airlines/${airline}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(items.length).to.be.eql(0);
+          expect(warnings.length).to.be.eql(2);
+          expect(errors.length).to.be.eql(0);
+          expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
+      delete airlineFlights.items[0].origin;
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      await request(server)
+        .get(`/airlines/${airline}/flights`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          const { items, warnings, errors } = res.body;
+          expect(items.length).to.be.eql(1);
+          expect(warnings.length).to.be.eql(0);
+          expect(errors.length).to.be.eql(1);
+          expect(errors[0].msgLong).to.match(/^origin is a required field/);
         });
     });
 
@@ -173,6 +209,34 @@ describe('Flights', function () {
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
+    });
+
+    it('should return warning for old data format version', async () => {
+      let dataFormatVersion = '0.1.0';
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
+      await request(server)
+        .get(`/airlines/${airline}/flights/IeKeix6G`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(200);
+          expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
+          expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
+        });
+    });
+
+    it('should return error for invalid data', async () => {
+      let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
+      delete airlineFlights.items[0].segments;
+      const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      await request(server)
+        .get(`/airlines/${airline}/flights/IeKeix6G`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect((res) => {
+          expect(res.status).to.be.eql(422);
+          expect(res.body.long).to.match(/^segments is a required field/);
+        });
     });
   });
 });

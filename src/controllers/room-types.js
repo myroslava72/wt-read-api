@@ -1,4 +1,13 @@
-const { Http404Error } = require('../errors');
+const { Http404Error, HttpValidationError } = require('../errors');
+const { DataFormatValidator } = require('../services/validation');
+const { formatError } = require('../services/utils');
+const {
+  VALIDATION_WARNING_HEADER,
+  SCHEMA_PATH,
+  ROOM_TYPE_MODEL,
+  RATE_PLAN_MODEL,
+  AVAILABILITY_MODEL,
+} = require('../constants');
 
 const detectRatePlans = (roomTypeId, ratePlansArray) => {
   return ratePlansArray.filter((rp) => rp.roomTypeIds && rp.roomTypeIds.indexOf(roomTypeId) > -1);
@@ -14,9 +23,7 @@ const detectAvailability = (roomTypeId, availabilityObject) => {
   };
 };
 
-const getPlainHotel = async (hotel, fieldsQuery) => {
-  let fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  fieldsArray = fieldsArray.filter((x) => !!x);
+const getPlainHotel = async (hotel, fieldsArray) => {
   const resolvedFields = ['descriptionUri.roomTypes'];
   if (fieldsArray.indexOf('ratePlans') > -1) {
     resolvedFields.push('ratePlansUri');
@@ -45,15 +52,43 @@ const setAdditionalFields = (roomType, plainHotel, fieldsQuery) => {
   return roomType;
 };
 
+const _normalizeQuery = (fieldsQuery) => {
+  let fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
+  return fieldsArray.filter((x) => !!x);
+};
+
 const findAll = async (req, res, next) => {
   const fieldsQuery = req.query.fields || [];
+  const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
-    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsQuery);
+    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
-    roomTypes = roomTypes.map((roomType) => {
-      return setAdditionalFields(roomType, plainHotel, fieldsQuery);
+    const items = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, undefined, {});
+    for (let roomType of roomTypes) {
+      roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
+      try {
+        DataFormatValidator.validate(roomType, 'room type', ROOM_TYPE_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        items.push(roomType);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = roomType;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
+    }
+    res.status(200).json({
+      items,
+      warnings,
+      errors,
     });
-    res.status(200).json(roomTypes);
   } catch (e) {
     next(e);
   }
@@ -62,14 +97,32 @@ const findAll = async (req, res, next) => {
 const find = async (req, res, next) => {
   let { roomTypeId } = req.params;
   const fieldsQuery = req.query.fields || [];
+  const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
-    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsQuery);
+    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
     roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
+    roomType.dataFormatVersion = plainHotel.dataUri.contents.dataFormatVersion;
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, fieldsArray.length === 0 ? undefined : fieldsArray, {});
+    try {
+      DataFormatValidator.validate(roomType, 'room type', ROOM_TYPE_MODEL, swaggerDocument.components.schemas);
+    } catch (e) {
+      if (e instanceof HttpValidationError) {
+        let err = formatError(e);
+        err.data = roomType;
+        if (e.code && e.code.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        } else {
+          return res.status(err.status).json(err.toPlainObject());
+        }
+      } else {
+        next(e);
+      }
+    }
     res.status(200).json(roomType);
   } catch (e) {
     next(e);
@@ -90,7 +143,31 @@ const findRatePlans = async (req, res, next) => {
       return next(new Http404Error('noRatePlans', 'No ratePlansUri specified.'));
     }
     const ratePlans = detectRatePlans(roomTypeId, plainHotel.dataUri.contents.ratePlansUri.contents);
-    res.status(200).json(ratePlans);
+    const items = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    for (let plan of ratePlans) {
+      try {
+        DataFormatValidator.validate(plan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        items.push(plan);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = plan;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
+    }
+    res.status(200).json({
+      items,
+      warnings,
+      errors,
+    });
   } catch (e) {
     next(e);
   }
@@ -109,7 +186,33 @@ const findAvailability = async (req, res, next) => {
     if (!plainHotel.dataUri.contents.availabilityUri) {
       return next(new Http404Error('noAvailability', 'No availabilityUri specified.'));
     }
-    res.status(200).json(detectAvailability(roomTypeId, plainHotel.dataUri.contents.availabilityUri.contents));
+    const availability = detectAvailability(roomTypeId, plainHotel.dataUri.contents.availabilityUri.contents);
+    let items = [], warnings = [], errors = [];
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL, undefined, {});
+    for (let roomType of availability.roomTypes) {
+      try {
+        DataFormatValidator.validate(roomType, 'availability', AVAILABILITY_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        items.push(roomType);
+      } catch (e) {
+        if (e instanceof HttpValidationError) {
+          let err = formatError(e);
+          err.data = roomType;
+          if (e.code && e.code.valid) {
+            warnings.push(err);
+          } else {
+            errors.push(err);
+          }
+        } else {
+          next(e);
+        }
+      }
+    }
+    res.status(200).json({
+      items,
+      warnings,
+      errors,
+      updatedAt: availability.updatedAt,
+    });
   } catch (e) {
     next(e);
   }
