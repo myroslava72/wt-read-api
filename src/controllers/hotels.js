@@ -1,4 +1,4 @@
-const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
+const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { baseUrl } = require('../config').config;
 const { DataFormatValidator } = require('../services/validation');
@@ -62,10 +62,10 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
     hotelData.id = hotel.address;
   } catch (e) {
     let message = 'Cannot get hotel data';
-    if (e instanceof wtJsLibs.errors.RemoteDataReadError) {
+    if (e instanceof wtJsLibsErrors.RemoteDataReadError) {
       message = 'Cannot access on-chain data, maybe the deployed smart contract is broken';
     }
-    if (e instanceof wtJsLibs.errors.StoragePointerError) {
+    if (e instanceof wtJsLibsErrors.StoragePointerError) {
       message = 'Cannot access off-chain data';
     }
     return {

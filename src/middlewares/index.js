@@ -1,4 +1,4 @@
-const { 'wt-js-libs': WTLibs } = require('@windingtree/wt-js-libs');
+const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const wtJsLibs = require('../services/wt-js-libs');
 const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
@@ -50,13 +50,13 @@ const handleOnChainErrors = (err, req, res, next) => {
   if (!err) {
     return next();
   }
-  if (err instanceof WTLibs.errors.WalletSigningError) {
+  if (err instanceof wtJsLibsErrors.WalletSigningError) {
     return next(new HttpForbiddenError());
   }
-  if (err instanceof WTLibs.errors.InsufficientFundsError) {
+  if (err instanceof wtJsLibsErrors.InsufficientFundsError) {
     return next(new HttpPaymentRequiredError());
   }
-  if (err instanceof WTLibs.errors.InaccessibleEthereumNodeError) {
+  if (err instanceof wtJsLibsErrors.InaccessibleEthereumNodeError) {
     let msg = 'Ethereum node not reachable. Please try again later.';
     return next(new HttpBadGatewayError(msg));
   }
@@ -67,10 +67,10 @@ const handleDataFetchingErrors = (err, req, res, next) => {
   if (!err) {
     return next();
   }
-  if (err instanceof WTLibs.errors.RemoteDataReadError) {
+  if (err instanceof wtJsLibsErrors.RemoteDataReadError) {
     return next(new HttpBadGatewayError('dataNotAccessible', err.message, 'Cannot access on-chain data, maybe the deployed smart contract is broken'));
   }
-  if (err instanceof WTLibs.errors.StoragePointerError) {
+  if (err instanceof wtJsLibsErrors.StoragePointerError) {
     return next(new HttpBadGatewayError('dataNotAccessible', err.message, 'Cannot access off-chain data'));
   }
   

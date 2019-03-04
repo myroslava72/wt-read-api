@@ -1,4 +1,4 @@
-const { 'wt-js-libs': wtJsLibs } = require('@windingtree/wt-js-libs');
+const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 
 /**
  * Usage:
@@ -94,10 +94,10 @@ class FakeHotelWithBadOnChainData {
     this.address = `fake-hotel-on-chain-${fakeHotelCounter++}`;
   }
   get dataIndex () {
-    throw new wtJsLibs.errors.RemoteDataReadError('something');
+    throw new wtJsLibsErrors.RemoteDataReadError('something');
   }
   toPlainObject () {
-    throw new wtJsLibs.errors.RemoteDataReadError('something');
+    throw new wtJsLibsErrors.RemoteDataReadError('something');
   }
 }
 
@@ -106,10 +106,10 @@ class FakeHotelWithBadOffChainData {
     this.address = `fake-hotel-off-chain-${fakeHotelCounter++}`;
   }
   get dataIndex () {
-    throw new wtJsLibs.errors.StoragePointerError('something');
+    throw new wtJsLibsErrors.StoragePointerError('something');
   }
   toPlainObject () {
-    throw new wtJsLibs.errors.StoragePointerError('something');
+    throw new wtJsLibsErrors.StoragePointerError('something');
   }
 }
 

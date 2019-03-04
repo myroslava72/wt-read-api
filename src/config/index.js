@@ -1,5 +1,5 @@
 const winston = require('winston');
-const { 'wt-js-libs': WtJsLibs } = require('@windingtree/wt-js-libs');
+const { WtJsLibs } = require('@windingtree/wt-js-libs');
 
 const { ACCEPTED_SEGMENTS } = require('../constants');
 
@@ -24,6 +24,9 @@ process.env.WT_SEGMENTS = process.env.WT_SEGMENTS ? process.env.WT_SEGMENTS : 'h
 for (let segment of process.env.WT_SEGMENTS.split(',')) {
   if (ACCEPTED_SEGMENTS.indexOf(segment) === -1) {
     throw new Error(`Unknown segment ${segment}.`);
+  }
+  if (!config.wtLibsOptions.dataModelOptions.provider) {
+    throw new Error('ETH_NETWORK_PROVIDER not set');
   }
   config.wtLibs[segment] = WtJsLibs.createInstance({
     segment: segment,

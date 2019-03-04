@@ -9,7 +9,7 @@ module.exports = {
   ethNetwork: 'ropsten',
   wtLibsOptions: {
     dataModelOptions: {
-      provider: process.env.ETH_NETWORK_PROVIDER || 'https://ropsten.infura.io/v3/',
+      provider: process.env.ETH_NETWORK_PROVIDER,
     },
     offChainDataOptions: {
       adapters: {
