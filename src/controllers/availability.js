@@ -26,6 +26,7 @@ const findAll = async (req, res, next) => {
           if (e.code && e.code.valid) {
             warnings.push(err);
           } else {
+            err.data = { id: err.data.id };
             errors.push(err);
           }
         } else {

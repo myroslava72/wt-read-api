@@ -153,6 +153,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
         if (e.code && e.code.valid) {
           warningItems.push(airline);
         } else {
+          airline.data = { id: airline.data.id };
           realErrors.push(airline);
         }
       } else {

@@ -134,6 +134,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
         if (e.code && e.code.valid) {
           warningItems.push(hotel);
         } else {
+          hotel.data = { id: hotel.data.id };
           realErrors.push(hotel);
         }
       } else {
