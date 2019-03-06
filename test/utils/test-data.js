@@ -17,7 +17,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -37,7 +37,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -57,7 +57,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -95,7 +95,7 @@ const HOTEL_DESCRIPTION = {
     'string',
   ],
   'amenities': [
-    'WiFi',
+    'free wi-fi',
   ],
   'updatedAt': '2018-06-19T13:19:58.190Z',
   'defaultCancellationAmount': 0,
