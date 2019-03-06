@@ -37,6 +37,7 @@ const HOTEL_DESCRIPTION_FIELDS = [
   'updatedAt',
   'defaultCancellationAmount',
   'cancellationPolicies',
+  'tags',
 ];
 const DEFAULT_AIRLINE_FIELDS = [
   'id',
