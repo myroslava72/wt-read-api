@@ -73,7 +73,7 @@ const AIRLINE_DESCRIPTION_FIELDS = [
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 300;
 
-const DATA_FORMAT_VERSION = '0.2.0';
+const DATA_FORMAT_VERSION = '0.6.0';
 const SCHEMA_PATH = 'docs/swagger.yaml';
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
