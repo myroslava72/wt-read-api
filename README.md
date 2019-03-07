@@ -163,7 +163,7 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
 id: "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
 location: { "latitude": 35.89421911, "longitude": 139.94637467 },
 name: "Winding Tree Hotel",
-dataFormatVersion: "0.2.0",
+dataFormatVersion: "0.6.0",
 description: "string",
 contacts:
  {
@@ -187,29 +187,25 @@ roomTypes: [
       max: 3
     },
     amenities: [
-      "TV"
+      "tv"
     ],
     images: [
       "https://example.com/room-image.jpg"
     ],
-    updatedAt: "2018-06-19T13:19:58.190Z",
-    properties: {
-      nonSmoking: "some"
-    }
+    updatedAt: "2018-06-19T13:19:58.190Z"
   }
 ],
 address:
  {
-   line1: "string",
-   line2: "string",
-   postalCode: "string",
+   road: "string",
+   houseNumber: "string",
+   postcode: "string",
    city: "string",
-   state: "string",
-   country: "string"
+   countryCode: "US"
  },
 currency: "string",
 images: [ "string" ],
-amenities: [ "WiFi" ],
+amenities: [ "free wi-fi" ],
 updatedAt: "2018-06-19T13:19:58.190Z"
 ```
 
@@ -265,7 +261,7 @@ Request to `/airlines/:address` can fetch off-chain data in a single request. By
 ```javascript
 name: 'Mazurka Airlines',
 description: 'Small but flexible',
-dataFormatVersion: "0.2.0",
+dataFormatVersion: "0.6.0",
 contacts: {
   general: {
     email: 'info@airline-mazurka.com',
