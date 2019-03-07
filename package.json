@@ -1,6 +1,6 @@
 {
   "name": "@windingtree/wt-read-api",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": " API to interact with the Winding Tree platform",
   "main": "index.js",
   "scripts": {
@@ -36,21 +36,23 @@
   },
   "homepage": "https://github.com/windingtree/wt-read-api#readme",
   "dependencies": {
-    "@windingtree/off-chain-adapter-http": "^2.0.1",
-    "@windingtree/off-chain-adapter-in-memory": "^4.0.0",
-    "@windingtree/off-chain-adapter-swarm": "^3.3.0",
-    "@windingtree/wt-js-libs": "^0.7.0",
+    "@windingtree/off-chain-adapter-http": "^3.0.0",
+    "@windingtree/off-chain-adapter-in-memory": "^5.0.1",
+    "@windingtree/off-chain-adapter-swarm": "^4.0.0",
+    "@windingtree/wt-js-libs": "^0.9.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
     "lodash": "^4.17.10",
     "morgan": "^1.9.1",
+    "node-fetch": "^2.3.0",
+    "swagger-model-validator": "^3.0.5",
     "swagger-ui-express": "^4.0.0",
     "winston": "^3.0.0",
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "@windingtree/wt-contracts": "^0.2.4",
+    "@windingtree/wt-contracts": "^0.3.0",
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
     "eslint": "^5.2.0",
@@ -60,12 +62,12 @@
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-standard": "^4.0.0",
     "ganache-cli": "^6.1.6",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.0",
     "nyc": "^13.0.1",
-    "sinon": "^6.1.4",
+    "sinon": "^7.2.4",
     "supertest": "^3.4.1",
-    "truffle-contract": "^4.0.0",
-    "web3": "^1.0.0-beta.35"
+    "truffle-contract": "^4.0.5",
+    "web3": "1.0.0-beta.36"
   },
   "engines": {
     "node": ">=10.0.0"

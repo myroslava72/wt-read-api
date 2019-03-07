@@ -1,13 +1,15 @@
 const winston = require('winston');
-const WtJsLibs = require('@windingtree/wt-js-libs');
 const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 
 module.exports = {
   port: 8100,
   baseUrl: 'http://example.com',
-  wtIndexAddress: 'will-be-set-during-init',
+  wtIndexAddresses: {
+    hotels: 'will-be-set-during-init',
+    airlines: 'will-be-set-during-init',
+  },
   ethNetwork: 'test',
-  wtLibs: WtJsLibs.createInstance({
+  wtLibsOptions: {
     dataModelOptions: {
       provider: 'http://localhost:8545',
     },
@@ -21,7 +23,7 @@ module.exports = {
         },
       },
     },
-  }),
+  },
   logger: winston.createLogger({
     level: 'warn',
     transports: [
