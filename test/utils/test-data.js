@@ -5,6 +5,7 @@ const HOTEL_DESCRIPTION = {
   },
   'name': 'string',
   'description': 'string',
+  'category': 'hotel',
   'roomTypes': [
     {
       'id': 'room-type-1111',
@@ -16,7 +17,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -36,7 +37,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -56,7 +57,7 @@ const HOTEL_DESCRIPTION = {
         'max': 3,
       },
       'amenities': [
-        'TV',
+        'tv',
       ],
       'images': [
         'string',
@@ -70,7 +71,7 @@ const HOTEL_DESCRIPTION = {
   'contacts': {
     'general': {
       'email': 'joseph.urban@example.com',
-      'phone': 44123456789,
+      'phone': '44123456789',
       'url': 'string',
       'ethereum': 'string',
       'additionalContacts': [
@@ -82,20 +83,19 @@ const HOTEL_DESCRIPTION = {
     },
   },
   'address': {
-    'line1': 'string',
-    'line2': 'string',
-    'postalCode': 'string',
+    'road': 'string',
+    'houseNumber': '1',
+    'postcode': 'string',
     'city': 'string',
-    'state': 'string',
-    'country': 'string',
+    'countryCode': 'CZ',
   },
   'timezone': 'string',
-  'currency': 'string',
+  'currency': 'usd',
   'images': [
     'string',
   ],
   'amenities': [
-    'WiFi',
+    'free wi-fi',
   ],
   'updatedAt': '2018-06-19T13:19:58.190Z',
   'defaultCancellationAmount': 0,
@@ -128,6 +128,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
+        'unit': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
@@ -168,6 +169,7 @@ const RATE_PLANS = [
     'modifiers': [
       {
         'adjustment': -3.1,
+        'unit': 'percentage',
         'conditions': {
           'from': '2018-01-30',
           'to': '2018-02-20',
@@ -310,8 +312,88 @@ const AVAILABILITY = {
     ],
 };
 
+const AIRLINE_DESCRIPTION = {
+  name: 'Mazurka Airlines',
+  code: 'MA',
+  contacts: {
+    general: {
+      email: 'info@airline-mazurka.com',
+      phone: '004078965423',
+      url: 'https://www.airline-mazurka.com',
+    },
+  },
+  id: '0xD8b8aF90986174d5c5558aAC0905AA1DB2Ee41ce',
+  updatedAt: '2019-02-01 10:00:00',
+  defaultCancellationAmount: 0,
+};
+
+const AIRLINE_FLIGHTS = {
+  updatedAt: '2019-01-01 12:00:00',
+  items: [
+    {
+      id: 'IeKeix6G',
+      origin: 'PRG',
+      destination: 'LAX',
+      segments: [
+        {
+          id: 'segment1',
+          departureAirport: 'PRG',
+          arrivalAirport: 'CDG',
+        },
+        {
+          id: 'segment2',
+          departureAirport: 'CDG',
+          arrivalAirport: 'LAX',
+        },
+      ],
+      flightInstancesUri: 'in-memory://airline.com/flightinstancesone',
+    },
+    {
+      id: 'IeKeix7H',
+      origin: 'LON',
+      destination: 'CAP',
+      segments: [
+        {
+          id: 'segment1',
+          departureAirport: 'LON',
+          arrivalAirport: 'CAP',
+        },
+      ],
+      flightInstancesUri: 'in-memory://airline.com/flightinstancestwo',
+    },
+  ],
+};
+
+const FLIGHT_INSTANCES = [{
+  id: 'IeKeix6G-1',
+  departureDateTime: '2018-12-10 12:00:00',
+  updatedAt: '2019-02-01 10:00:00',
+  bookingClasses: [
+    { id: 'economy', availabilityCount: 100, fare: [{ amount: 50, currency: 'CZK' }], name: 'Economy' },
+    { id: 'business', availabilityCount: 20, fare: [{ amount: 150, currency: 'CZK' }], name: 'Business' },
+  ],
+  segments: {
+    'segment1': { departureDateTime: '2018-12-10 12:00:00', arrivalDateTime: '2018-12-10 15:00:00' },
+    'segment2': { departureDateTime: '2018-12-10 20:00:00', arrivalDateTime: '2018-12-11 02:00:00' },
+  },
+}, {
+  id: 'IeKeix6G-2',
+  departureDateTime: '2018-12-24 12:00:00',
+  updatedAt: '2019-02-01 10:00:00',
+  bookingClasses: [
+    { id: 'economy', availabilityCount: 100, fare: [{ amount: 50, currency: 'CZK' }], name: 'Economy' },
+  ],
+  segments: {
+    'segment1': { departureDateTime: '2018-12-24 12:00:00', arrivalDateTime: '2018-12-24 15:00:00' },
+    'segment2': { departureDateTime: '2018-12-24 20:00:00', arrivalDateTime: '2018-12-25 02:00:00' },
+  },
+}];
+
 module.exports = {
   HOTEL_DESCRIPTION,
   RATE_PLANS,
   AVAILABILITY,
+  AIRLINE_DESCRIPTION,
+  AIRLINE_FLIGHTS,
+  FLIGHT_INSTANCES,
 };
