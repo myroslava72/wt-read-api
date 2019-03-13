@@ -47,7 +47,17 @@ Http404Error.defaultCode = 'notFound';
 Http404Error.defaultMsgShort = 'Page not found.';
 Http404Error.defaultMsgLong = 'This endpoint does not exist.';
 
-class HttpValidationError extends HttpError {};
+class HttpValidationError extends HttpError {
+  toPlainObject () {
+    return {
+      status: this.status,
+      code: `#${this.code}`,
+      short: this.msgShort,
+      long: this.msgLong,
+      data: this.data,
+    };
+  }
+};
 HttpValidationError.status = 422;
 HttpValidationError.defaultCode = 'validationFailed';
 HttpValidationError.defaultMsgShort = 'Validation did not pass.';
@@ -64,6 +74,12 @@ HttpBadGatewayError.defaultCode = 'badGatewayError';
 HttpBadGatewayError.defaultMsgShort = 'Bad gateway.';
 HttpBadGatewayError.defaultMsgLong = 'Invalid response from an upstream server.';
 
+class MisconfigurationError extends HttpError {};
+MisconfigurationError.status = 500;
+MisconfigurationError.defaultCode = 'misconfigurationError';
+MisconfigurationError.defaultMsgShort = 'Misconfiguration Error.';
+MisconfigurationError.defaultMsgLong = 'Invalid configuration.';
+
 module.exports = {
   HttpError,
   HttpUnauthorizedError,
@@ -74,4 +90,5 @@ module.exports = {
   HttpValidationError,
   HttpInternalError,
   HttpBadGatewayError,
+  MisconfigurationError,
 };

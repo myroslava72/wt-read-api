@@ -57,7 +57,7 @@ to WT_CONFIG variable at runtime.
 
 ```sh
 $ docker build -t windingtree/wt-read-api .
-$ docker run -p 8080:3000 -e WT_CONFIG=playground windingtree/wt-read-api
+$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground windingtree/wt-read-api
 ```
 After that you can access the wt-read-api on local port `8080`. This deployment
 is using a Ropsten configuration that can be found in `src/config/playground.js`.
@@ -68,8 +68,11 @@ You can install and run this from NPM as well:
 
 ```sh
 $ npm install -g @windingtree/wt-read-api
-$ WT_CONFIG=playground wt-read-api
+$ ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground wt-read-api
 ```
+
+Probably the easiest way of getting an Ethereum Node API is to register with
+[Infura](https://infura.io/).
 
 ### Running in production
 
@@ -78,32 +81,41 @@ variables which get applied if you run the API with `WT_CONFIG=envvar`.
 These are:
 
 - `WT_CONFIG` - Which config will be used. Defaults to `dev`.
+- `WT_SEGMENTS` - Which segments will be enabled. Defaults to `hotels,airlines`.
 - `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
 - `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
 - `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
 - `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
 - `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
-- `WT_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTIndex.sol)
+- `WT_HOTEL_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTHotelIndex.sol)
+- `WT_AIRLINE_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTAirlineIndex.sol)
 - `PORT` - HTTP Port where the API will listen, defaults to 3000.
 - `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
-- `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/`
+- `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
 
 For example the playground configuration can be emulated with the following command:
 
 ```sh
 docker run -p 8080:3000 \
   -e WT_CONFIG=envvar \
-  -e WT_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
-  -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/ \
+  -e WT_SEGMENTS=hotels,airlines \
+  -e WT_HOTEL_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
+  -e WT_AIRLINE_INDEX_ADDRESS=0xai562057d613175c850df65e435bb0824b65d333 \
   -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com \
   -e ADAPTER_SWARM=1 \
   -e ADAPTER_HTTPS=1 \
-  -e ETH_NETWORK_NAME=ropsten windingtree/wt-read-api
+  -e ETH_NETWORK_NAME=ropsten \
+  -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/v3/my-project-id \
+  windingtree/wt-read-api
 ```
 
 ## Examples
-### Get list of hotels
+
+See [API definition](docs/swagger.yaml) for full details.
+
+### Hotels
+#### Get list of hotels
 
 Calling `GET /hotels` will retrieve an array of hotels. By default fields are `id`, `name` and `location`, which
 means that at least some off-chain stored data is retrieved.
@@ -114,86 +126,193 @@ only ids (e. g. `GET /hotels?fields=id`) which will *not* fetch any off-chain da
 
 ```javascript
 items: [
-    ...
-    { 
-      id: '0x585c0771Fe960f99aBdba8dc77e5d31Be2Ada74d',
-      name: 'WT Hotel'
-    },
-    ...
+  ...
+  {
+    id: '0x585c0771Fe960f99aBdba8dc77e5d31Be2Ada74d',
+    name: 'WT Hotel'
+  },
+  ...
 ]
 ```
 
 If an error is produced for a hotel, the response will look like this
 ```javascript
 items: [
-    ...
-    { 
-      id: '0x585c0771Fe960f99aBdba8dc77e5d31Be2Ada74d',
-      error: 'Unsupported data storage type: ipfs' 
-    },
-    ...
+  {
+    id: '0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a',
+    name: 'WT Hotel'
+  }
+],
+warnings: [],
+errors: [
+  {
+    error: 'Unsupported data storage type: ipfs',
+    originalError: 'Unsupported data storage type: ipfs',
+    data: { id: '0x585c0771Fe960f99aBdba8dc77e5d31Be2Ada74d' }
+  }
 ]
 ```
 
-
-### Get a hotel
+#### Get a hotel
 
 Request to `/hotels/:address` can fetch off-chain data in a single request. By default, included fields are `id`, `location`, 
 `name`, `description`, `contacts`, `address`, `currency`, `images`, `amenities`, `updatedAt`.
 
 
 ```javascript
-{
-  "id": "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
-  "location": { "latitude": 35.89421911, "longitude": 139.94637467 },
-  "name": "Winding Tree Hotel",
-  "description": "string",
-  "contacts": 
-   { 
-    "general": 
-      { 
-        "email": "joseph.urban@example.com",
-        "phone": 44123456789,
-        "url": "string",
-        "ethereum": "string",
-        "additionalContacts": [] 
-      } 
-    },
-  "roomTypes": [
+id: "0x417C3DDae54aB2f5BCd8d5A1750487a1f765a94a",
+location: { "latitude": 35.89421911, "longitude": 139.94637467 },
+name: "Winding Tree Hotel",
+dataFormatVersion: "0.6.0",
+description: "string",
+contacts:
+ {
+  general:
     {
-      "id": "room-type-1111",
-      "name": "Room with windows",
-      "description": "some fancy room type description",
-      "totalQuantity": 0,
-      "occupancy": {
-        "min": 1,
-        "max": 3
-      },
-      "amenities": [
-        "TV"
-      ],
-      "images": [
-        "https://example.com/room-image.jpg"
-      ],
-      "updatedAt": "2018-06-19T13:19:58.190Z",
-      "properties": {
-        "nonSmoking": "some"
-      }
+      email: "joseph.urban@example.com",
+      phone: 44123456789,
+      url: "string",
+      ethereum: "string",
+      additionalContacts: []
     }
-  ],
-  "address": 
-   { 
-     "line1": "string",
-     "line2": "string",
-     "postalCode": "string",
-     "city": "string",
-     "state": "string",
-     "country": "string" 
-   },
-  "currency": "string",
-  "images": [ "string" ],
-  "amenities": [ "WiFi" ],
-  "updatedAt": "2018-06-19T13:19:58.190Z"
+  },
+roomTypes: [
+  {
+    id: "room-type-1111",
+    name: "Room with windows",
+    description: "some fancy room type description",
+    totalQuantity: 0,
+    occupancy: {
+      min: 1,
+      max: 3
+    },
+    amenities: [
+      "tv"
+    ],
+    images: [
+      "https://example.com/room-image.jpg"
+    ],
+    updatedAt: "2018-06-19T13:19:58.190Z"
+  }
+],
+address:
+ {
+   road: "string",
+   houseNumber: "string",
+   postcode: "string",
+   city: "string",
+   countryCode: "US"
+ },
+currency: "string",
+images: [ "string" ],
+amenities: [ "free wi-fi" ],
+updatedAt: "2018-06-19T13:19:58.190Z"
+```
+
+### Airlines
+
+The airline endpoints work basically the same way as hotels. The default fields for airline list (`/airlines`) are `id`, `name` and `code`.
+You can use a query parameter `fields` to specify fields to be included in the response. See the [airline data specification](https://github.com/windingtree/wiki/blob/a85cef934adee0bd816fea180bb02e6d39b27360/airline-data-swagger.yaml#L35) and [endpoint specification](https://github.com/windingtree/wt-read-api/blob/feat/airline-platform/docs/swagger.yaml#L437) for full list.
+
+#### Get a list of airlines
+
+A simple `GET /airlines` may return:
+```javascript
+items: [
+  {
+    name: 'Mazurka Airlines',
+    code: 'MA',
+    id: '0xa8c4cbB500da540D9fEd05BE7Bef0f0f5df3e2cc'
+  }, {
+    name: 'Falco Airlines',
+    code: 'FA',
+    id: '0x972422ce30AAC491Fa24a5287C40eAf85b0b9dC4'
+  },
+],
+...
+```
+
+Or in case an error occurs while fetching upstream data:
+```javascript
+items: [
+  {
+    name: 'Mazurka Airlines',
+    code: 'MA',
+    id: '0xa8c4cbB500da540D9fEd05BE7Bef0f0f5df3e2cc'
+  }
+],
+warnings: [],
+errors: [
+  {
+    error: 'Cannot access on-chain data, maybe the deployed smart contract is broken',
+    originalError: 'VM Exception while processing transaction: revert',
+    data: {
+        id: '0x972422ce30AAC491Fa24a5287C40eAf85b0b9dC4'
+    }
+  }
+]
+```
+
+#### Get an airline
+
+Request to `/airlines/:address` can fetch off-chain data in a single request. By default, included fields are `id`,
+`name`, `description`, `contacts`, `currency`, `updatedAt`.
+
+```javascript
+name: 'Mazurka Airlines',
+description: 'Small but flexible',
+dataFormatVersion: "0.6.0",
+contacts: {
+  general: {
+    email: 'info@airline-mazurka.com',
+    phone: '004078965423',
+    url: 'https://www.airline-mazurka.com'
+  }
+},
+currency: 'EUR',
+updatedAt: '2019-02-01 10:00:00',
+id: '0x0f7aDd75c09E2F8F5e4444fcde917267257471bD'
+```
+
+#### Get a flight
+Use GET at `/airlines/:address/flights/:id`. Use `fields` query param to get instances data as well.
+
+```javascript
+id: "IeKeix6G",
+origin: "PRG",
+destination: "LAX",
+segments: [
+  {
+    id: "segment1",
+    departureAirport: "PRG",
+    arrivalAirport: "CDG"
+  },
+  {
+    id: "segment2",
+    departureAirport: "CDG",
+    arrivalAirport: "LAX"
+  }
+]
+```
+#### Get a flight instance
+Use GET at `/airlines/:address/flights/:flightId/instances/:instanceId`.
+
+```javascript
+id: 'IeKeix6G-1',
+departureDateTime: '2018-12-10 12:00:00',
+bookingClasses: [
+  { id: 'economy', availabilityCount: 100 },
+  { id: 'business', availabilityCount: 20 }
+]
+segments: {
+  segment1: {
+    departureDateTime: "2018-12-10 12:00:00",
+    arrivalDateTime: "2018-12-10 15:00:00"
+  },
+  segment2: {
+    departureDateTime: "2018-12-10 20:00:00",
+    arrivalDateTime: "2018-12-11 02:00:00"
+  }
 }
 ```
 
@@ -201,3 +320,13 @@ Request to `/hotels/:address` can fetch off-chain data in a single request. By d
 
 For currently available public instances of wt-read-api, please see [this
 page](https://github.com/windingtree/wiki/blob/master/developer-resources.md#publicly-available-wt-deployments).
+
+
+## Data validation
+This API serves upstream data and has no control over the content. To ensure basic semantic compatibility,
+data is validated against [model definition](docs/swagger.yaml) and returned as an error when validation fails.
+(Detail endpoints will return 422 HTTP code, lists will contain the data in [`errors` array](docs/swagger.yaml#L127).)
+
+In case the validation succeeds but the declared data format version is different than the version supported by the API,
+it is returned with a warning. This usually means there was a non-breaking change in the data format but may have consequences
+in case of a semantic change. (Warnings are returned in `x-data-validation-warning` header for detail endpoints, [`warnings` array](docs/swagger.yaml#L122) for a list.)

@@ -3,20 +3,20 @@ const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 /**
  * Usage:
  * const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
- * sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
- *   getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
- *   getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
+ * sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
+ *   getAirline: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
+ *   getAllAirlines: sinon.stub().resolves([new FakeNiceAirline(), new FakeAirlineWithBadOnChainData()]),
  * });
- * wtJsLibsWrapper.getWTHotelIndex.restore();
+ * wtJsLibsWrapper.getWTAirlineIndex.restore();
  */
 
-let fakeHotelCounter = 1;
+let fakeAirlineCounter = 1;
 
-class FakeNiceHotel {
+class FakeNiceAirline {
   constructor () {
-    this.address = `nice-hotel-${fakeHotelCounter}`;
+    this.address = `nice-airline-${fakeAirlineCounter++}`;
     this.dataFormatVersion = '0.6.0';
-    this.descriptionUri = `nice-hotel-uri-${fakeHotelCounter++}`;
+    this.descriptionUri = `nice-airline-uri-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     return Promise.resolve({
@@ -25,8 +25,8 @@ class FakeNiceHotel {
         get descriptionUri () {
           return Promise.resolve({
             contents: {
-              name: 'nice hotel',
-              description: 'nice hotel desc',
+              name: 'nice airline',
+              description: 'nice airline desc',
             },
           });
         },
@@ -41,13 +41,11 @@ class FakeNiceHotel {
           descriptionUri: {
             ref: this.descriptionUri,
             contents: {
-              name: 'nice hotel name',
-              description: 'nice hotel desc',
-              contacts: [],
-              address: { line1: '', city: '', country: '' },
-              timezone: '',
+              name: 'nice airline name',
+              code: 'ai',
+              contacts: { general: { email: 'email1' } },
               currency: '',
-              updatedAt: '',
+              updatedAt: '2018-12-12 12:00:00',
               defaultCancellationAmount: 20,
             },
           },
@@ -57,14 +55,14 @@ class FakeNiceHotel {
   }
 }
 
-class FakeOldFormatHotel extends FakeNiceHotel {
+class FakeOldFormatAirline extends FakeNiceAirline {
   constructor () {
     super();
     this.dataFormatVersion = '0.1.0';
   }
 }
 
-class FakeWrongFormatHotel extends FakeNiceHotel {
+class FakeWrongFormatAirline extends FakeNiceAirline {
   toPlainObject () {
     return {
       dataUri: {
@@ -73,11 +71,9 @@ class FakeWrongFormatHotel extends FakeNiceHotel {
           descriptionUri: {
             ref: this.descriptionUri,
             contents: {
-              name: 'hotel name',
-              description: 23,
+              name: 'airline name',
+              code: 23,
               contacts: { general: { email: 'email1' } },
-              address: { line1: 'brick lane', city: 'london', country: 'uk' },
-              timezone: 'cet',
               currency: 'czk',
               updatedAt: '2018-12-12 12:00:00',
               defaultCancellationAmount: 20,
@@ -89,9 +85,9 @@ class FakeWrongFormatHotel extends FakeNiceHotel {
   }
 }
 
-class FakeHotelWithBadOnChainData {
+class FakeAirlineWithBadOnChainData {
   constructor () {
-    this.address = `fake-hotel-on-chain-${fakeHotelCounter++}`;
+    this.address = `fake-airline-on-chain-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     throw new wtJsLibsErrors.RemoteDataReadError('something');
@@ -101,9 +97,9 @@ class FakeHotelWithBadOnChainData {
   }
 }
 
-class FakeHotelWithBadOffChainData {
+class FakeAirlineWithBadOffChainData {
   constructor () {
-    this.address = `fake-hotel-off-chain-${fakeHotelCounter++}`;
+    this.address = `fake-airline-off-chain-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
     throw new wtJsLibsErrors.StoragePointerError('something');
@@ -114,9 +110,9 @@ class FakeHotelWithBadOffChainData {
 }
 
 module.exports = {
-  FakeNiceHotel,
-  FakeHotelWithBadOnChainData,
-  FakeHotelWithBadOffChainData,
-  FakeOldFormatHotel,
-  FakeWrongFormatHotel,
+  FakeNiceAirline,
+  FakeAirlineWithBadOnChainData,
+  FakeAirlineWithBadOffChainData,
+  FakeOldFormatAirline,
+  FakeWrongFormatAirline,
 };
