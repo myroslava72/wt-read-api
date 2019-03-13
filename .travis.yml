@@ -13,6 +13,7 @@ jobs:
     - npm test
     - npm run coverage
   - stage: NPM develop release
+    if: branch = develop
     script:
     - npm version preminor --preid="$TRAVIS_COMMIT"
     deploy:
@@ -22,7 +23,6 @@ jobs:
       api_key: "$NPM_TOKEN"
       on:
         repo: windingtree/wt-read-api
-        branch: develop
   - stage: Build and publish docker image
     sudo: true
     services:
