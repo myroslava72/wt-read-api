@@ -40,7 +40,7 @@ jobs:
     script: echo 'Deploying to NPM...'
     deploy:
       provider: npm
-      email: chadima.jiri@gmail.com
+      email: decops@windingtree.com
       skip_cleanup: true
       api_key: "$NPM_TOKEN"
       on:
