@@ -30,7 +30,7 @@ class DataFormatValidator {
     if (!fields || !(fields.length === 1 && fields[0] === 'id')) {
       dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
       if (!dataFormatVersion) {
-        throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
+        throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id || data.data.id}`] });
       }
       if (DATA_FORMAT_VERSION !== dataFormatVersion) {
         throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
