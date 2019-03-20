@@ -18,10 +18,13 @@ const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = requ
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
+const { resolveRefs, addDefinitions } = require('./services/ref-resolver');
 
-const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
+let swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
 swaggerDocument.servers = [{ url: config.baseUrl }];
 swaggerDocument.info.version = version;
+resolveRefs(swaggerDocument);
+swaggerDocument = addDefinitions(swaggerDocument);
 
 // No need to leak information and waste bandwith with this
 // header.
