@@ -1,4 +1,8 @@
+const path = require('path');
 const YAML = require('yamljs');
+const { SCHEMA_PATH } = require('../constants');
+const { config } = require('../config');
+const { version } = require('../../package.json');
 
 const MODEL_DEFINITIONS = [
   '@windingtree/wt-shared-schemas',
@@ -36,7 +40,16 @@ const addDefinitions = (model) => {
   return model;
 };
 
+const getSchema = (schemaPath = SCHEMA_PATH) => {
+  let swaggerDocument = YAML.load(path.resolve(schemaPath));
+  swaggerDocument.servers = [{ url: config.baseUrl }];
+  swaggerDocument.info.version = version;
+  resolveRefs(swaggerDocument);
+  return addDefinitions(swaggerDocument);
+};
+
 module.exports = {
   resolveRefs,
   addDefinitions,
+  getSchema,
 };

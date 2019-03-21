@@ -1,10 +1,8 @@
-const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
 const cors = require('cors');
-const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
 const {
@@ -18,13 +16,9 @@ const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = requ
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
-const { resolveRefs, addDefinitions } = require('./services/ref-resolver');
+const { getSchema } = require('./services/api-schema');
 
-let swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
-swaggerDocument.servers = [{ url: config.baseUrl }];
-swaggerDocument.info.version = version;
-resolveRefs(swaggerDocument);
-swaggerDocument = addDefinitions(swaggerDocument);
+const swaggerDocument = getSchema();
 
 // No need to leak information and waste bandwith with this
 // header.
