@@ -10,21 +10,39 @@ const MODEL_DEFINITIONS = [
   '@windingtree/wt-airline-schemas',
 ];
 
+const normalizePath = (path) => {
+  return path.replace('@', '').replace('/', '-');
+};
+
+const replaceReferences = (model, from, to) => {
+  if (model.$ref) {
+    model.$ref = model.$ref.replace(from, to);
+  }
+  if (typeof model === 'object') {
+    for (let property in model) {
+      replaceReferences(model[property], from, to);
+    }
+  }
+  return model;
+};
+
 /**
  * Update $refs in model definition to local references.
  * @param model
  */
-const resolveRefs = (model) => {
+const resolveReferences = (model) => {
   if (model.$ref && model.$ref.startsWith('@windingtree/')) {
     for (let path of MODEL_DEFINITIONS) {
-      model.$ref = model.$ref.replace(`${path}/swagger.yaml`, '');
+      // We cannot use nested schemas, because the swagger-model-validator does not support that
+      model.$ref = model.$ref.replace(`${path}/swagger.yaml#/components/schemas/`, `#/components/schemas/${normalizePath(path)}-`);
     }
   }
   if (typeof model === 'object') {
     for (let property in model) {
-      resolveRefs(model[property]);
+      resolveReferences(model[property]);
     }
   }
+  return model;
 };
 
 /**
@@ -33,23 +51,33 @@ const resolveRefs = (model) => {
  */
 const addDefinitions = (model) => {
   for (let path of MODEL_DEFINITIONS) {
-    const refDef = YAML.load(`node_modules/${path}/dist/swagger.yaml`);
-    resolveRefs(refDef);
-    model.components.schemas = Object.assign(model.components.schemas, refDef.components.schemas);
+    let refDef = YAML.load(`node_modules/${path}/dist/swagger.yaml`);
+    // We cannot use nested schemas, because the swagger-model-validator does not support that
+    refDef = replaceReferences(refDef, '#/components/schemas/', `#/components/schemas/${normalizePath(path)}-`);
+    model.components.schemas = Object.assign({},
+      model.components.schemas,
+      Object.keys(refDef.components.schemas).reduce((agg, curr) => {
+        agg[`${normalizePath(path)}-${curr}`] = refDef.components.schemas[curr];
+        return agg;
+      }, {})
+    );
   }
   return model;
 };
 
 const getSchema = (schemaPath = SCHEMA_PATH) => {
+  // TODO caching
   let swaggerDocument = YAML.load(path.resolve(schemaPath));
-  swaggerDocument.servers = [{ url: config.baseUrl }];
-  swaggerDocument.info.version = version;
-  resolveRefs(swaggerDocument);
+  if (schemaPath === SCHEMA_PATH) {
+    swaggerDocument.servers = [{ url: config.baseUrl }];
+    swaggerDocument.info.version = version;
+  }
+  swaggerDocument = resolveReferences(swaggerDocument);
   return addDefinitions(swaggerDocument);
 };
 
 module.exports = {
-  resolveRefs,
+  resolveReferences,
   addDefinitions,
   getSchema,
 };

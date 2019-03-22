@@ -132,8 +132,7 @@ paths:
                     description: >-
                       Uri to next page of records. When there's no next page,
                       this is not set.
-                    $ref: >-
-                      @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType
+                    $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '422':
@@ -151,8 +150,7 @@ paths:
           in: path
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           required: false
           in: query
@@ -221,8 +219,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
       responses:
         '200':
           description: Hotel data uris.
@@ -249,8 +246,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           required: false
@@ -286,15 +282,13 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: roomTypeId
           in: path
           required: true
           description: Id of room type
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
         - name: fields
           in: query
           required: false
@@ -491,8 +485,7 @@ paths:
           description: The `id` of the first record that will be included in the result
           required: false
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           description: >
@@ -554,8 +547,7 @@ paths:
                     description: >-
                       Uri to next page of records. When there's no next page,
                       this is not set.
-                    $ref: >-
-                      @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType
+                    $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '422':
@@ -574,8 +566,7 @@ paths:
           in: path
           description: Airline id as returned by `GET /airline`
           schema:
-            $ref: >-
-              @windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           required: false
           in: query

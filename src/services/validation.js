@@ -41,7 +41,6 @@ class DataFormatValidator {
     if (!schemas.hasOwnProperty(modelName)) {
       throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
     }
-
     let validation = (new Validator()).validate(data, schemas[modelName], schemas, true, false);
     if (!validation.valid) {
       throw new HttpValidationError(validation);

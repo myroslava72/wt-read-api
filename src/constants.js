@@ -78,11 +78,11 @@ const DATA_FORMAT_VERSION = '0.6.0';
 const SCHEMA_PATH = 'docs/swagger.yaml';
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
-const ROOM_TYPE_MODEL = 'RoomType';
-const RATE_PLAN_MODEL = 'RatePlan';
-const AVAILABILITY_MODEL = 'AvailabilityForDay';
-const FLIGHT_MODEL = 'Flight';
-const FLIGHT_INSTANCE_MODEL = 'FlightInstance';
+const ROOM_TYPE_MODEL = 'windingtree-wt-hotel-schemas-RoomType';
+const RATE_PLAN_MODEL = 'windingtree-wt-hotel-schemas-RatePlan';
+const AVAILABILITY_MODEL = 'windingtree-wt-hotel-schemas-AvailabilityForDay';
+const FLIGHT_MODEL = 'windingtree-wt-airline-schemas-Flight';
+const FLIGHT_INSTANCE_MODEL = 'windingtree-wt-airline-schemas-FlightInstance';
 const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
 
 const HOTEL_SEGMENT_ID = 'hotels';
