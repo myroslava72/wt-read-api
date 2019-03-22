@@ -65,15 +65,21 @@ const addDefinitions = (model) => {
   return model;
 };
 
+const SCHEMA_CACHE = {};
+
 const getSchema = (schemaPath = SCHEMA_PATH) => {
-  // TODO caching
+  if (SCHEMA_CACHE[schemaPath]) {
+    return SCHEMA_CACHE[schemaPath];
+  }
   let swaggerDocument = YAML.load(path.resolve(schemaPath));
   if (schemaPath === SCHEMA_PATH) {
     swaggerDocument.servers = [{ url: config.baseUrl }];
     swaggerDocument.info.version = version;
   }
   swaggerDocument = resolveReferences(swaggerDocument);
-  return addDefinitions(swaggerDocument);
+  const processed = addDefinitions(swaggerDocument);
+  SCHEMA_CACHE[schemaPath] = processed;
+  return SCHEMA_CACHE[schemaPath];
 };
 
 module.exports = {
