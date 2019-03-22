@@ -83,8 +83,8 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(0);
           expect(warnings.length).to.be.eql(1);
           expect(errors.length).to.be.eql(1);
-          expect(warnings[0].originalError.errors[0].toString()).to.match(/^Unsupported data format version/);
-          expect(errors[0].originalError.errors[0].toString()).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
+          expect(warnings[0].originalError).to.match(/^Unsupported data format version/);
+          expect(errors[0].originalError).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
           wtJsLibsWrapper.getWTAirlineIndex.restore();
         });
     });

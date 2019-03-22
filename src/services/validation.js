@@ -30,19 +30,39 @@ class DataFormatValidator {
     if (!fields || !(fields.length === 1 && fields[0] === 'id')) {
       dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
       if (!dataFormatVersion) {
-        throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id || data.data.id}`] });
+        const error = new HttpValidationError();
+        error.data = {
+          valid: false,
+          errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id || data.data.id}`],
+          data: {
+            id: data.id || (data.data && data.data.id),
+          },
+        };
+        throw error;
       }
       if (DATA_FORMAT_VERSION !== dataFormatVersion) {
-        throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
+        const error = new HttpValidationError();
+        error.data = {
+          valid: true,
+          errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`],
+          data: {
+            id: data.id || (data.data && data.data.id),
+          },
+        };
+        throw error;
       }
     }
     if (!schemas.hasOwnProperty(modelName)) {
-      throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
+      const error = new HttpValidationError();
+      error.data = { valid: false, errors: [`Model ${modelName} not found in schemas.`] };
+      throw error;
     }
 
     let validation = (new Validator()).validate(data, schemas[modelName], schemas, true, false);
     if (!validation.valid) {
-      throw new HttpValidationError(validation);
+      const error = new HttpValidationError();
+      error.data = validation;
+      throw error;
     }
   }
 

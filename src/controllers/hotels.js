@@ -128,13 +128,13 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
       if (e instanceof HttpValidationError) {
         hotel = {
           error: 'Upstream hotel data format validation failed: ' + e.toString(),
-          originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
+          originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
           data: resolvedHotelObject,
         };
-        if (e.code && e.code.valid) {
+        if (e.data && e.data.valid) {
           warningItems.push(hotel);
         } else {
-          hotel.data = { id: hotel.data.id };
+          hotel.data = e.data && e.data.data;
           realErrors.push(hotel);
         }
       } else {
@@ -202,8 +202,8 @@ const find = async (req, res, next) => {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = resolvedHotel;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }

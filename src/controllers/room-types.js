@@ -74,7 +74,7 @@ const findAll = async (req, res, next) => {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = roomType;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
@@ -115,8 +115,8 @@ const find = async (req, res, next) => {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = roomType;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }
@@ -154,7 +154,7 @@ const findRatePlans = async (req, res, next) => {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = plan;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
@@ -199,7 +199,7 @@ const findAvailability = async (req, res, next) => {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = roomType;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };

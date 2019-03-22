@@ -23,7 +23,7 @@ const findAll = async (req, res, next) => {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = roomType;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };

@@ -147,13 +147,13 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
       if (e instanceof HttpValidationError) {
         airline = {
           error: 'Upstream airline data format validation failed: ' + e.toString(),
-          originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
+          originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
           data: resolvedAirlineObject,
         };
-        if (e.code && e.code.valid) {
+        if (e.data && e.data.valid) {
           warningItems.push(airline);
         } else {
-          airline.data = { id: airline.data.id };
+          airline.data = e.data && e.data.data;
           realErrors.push(airline);
         }
       } else {
@@ -221,8 +221,8 @@ const find = async (req, res, next) => {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = resolvedAirline;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }
