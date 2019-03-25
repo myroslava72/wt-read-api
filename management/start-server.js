@@ -1,3 +1,5 @@
 #! /usr/bin/env node
 
-const server = require('../src/index.js');
+const swagger = require('./resolve-swagger-references');
+swagger.convertSchema();
+require('../src/index.js');

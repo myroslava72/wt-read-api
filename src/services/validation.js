@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const path = require('path');
 const YAML = require('yamljs');
 const _ = require('lodash');
 const Validator = require('swagger-model-validator');
@@ -10,9 +11,6 @@ const {
 const {
   DATA_FORMAT_VERSION,
 } = require('../constants');
-const {
-  getSchema,
-} = require('./api-schema');
 
 /**
  * Utility class for data format validation.
@@ -63,7 +61,7 @@ class DataFormatValidator {
     if (DataFormatValidator.CACHE.hasOwnProperty(schemaPath)) {
       mainSchemaDocument = _.cloneDeep(DataFormatValidator.CACHE[schemaPath]);
     } else {
-      mainSchemaDocument = getSchema(schemaPath);
+      mainSchemaDocument = YAML.load(path.resolve(schemaPath));
       mainSchemaDocument = await this._loadSchema(mainSchemaDocument);
       DataFormatValidator.CACHE[schemaPath] = _.cloneDeep(mainSchemaDocument);
     }

@@ -8,7 +8,8 @@
     "test": "rimraf .nyc_output && NODE_ENV=test WT_CONFIG=test ./test/utils/management/localtestnet.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start": "node ./src/index.js",
-    "dev": "WT_CONFIG=dev npm start",
+    "dev": "npm run resolve-swagger-references && WT_CONFIG=dev npm start",
+    "resolve-swagger-references": "node management/resolve-swagger-references.js",
     "deploy-aws-playground": "./management/deploy-aws.sh playground",
     "deploy-aws-demo": "./management/deploy-aws.sh demo",
     "dev-net": "./management/dev-net.sh"

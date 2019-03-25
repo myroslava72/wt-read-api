@@ -1,3 +1,5 @@
+const path = require('path');
+const YAML = require('yamljs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
@@ -16,15 +18,16 @@ const { HttpError, HttpInternalError, Http404Error, HttpBadRequestError } = requ
 const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
-const { getSchema } = require('./services/api-schema');
-
-const swaggerDocument = getSchema();
 
 // No need to leak information and waste bandwith with this
 // header.
 app.disable('x-powered-by');
  
 // Swagger docs
+const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
+swaggerDocument.servers = [{ url: config.baseUrl }];
+swaggerDocument.info.version = version;
+
 // remove unused endpoint definitions
 const segmentsToStart = process.env.WT_SEGMENTS.split(',');
 for (let segment of ACCEPTED_SEGMENTS) {
@@ -36,7 +39,6 @@ for (let segment of ACCEPTED_SEGMENTS) {
     }
   }
 }
-
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Generic middlewares
