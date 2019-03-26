@@ -68,8 +68,7 @@ paths:
           description: The `id` of the first record that will be included in the result
           required: false
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           description: >
@@ -133,8 +132,7 @@ paths:
                     description: >-
                       Uri to next page of records. When there's no next page,
                       this is not set.
-                    $ref: >-
-                      https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType
+                    $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '422':
@@ -152,8 +150,7 @@ paths:
           in: path
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           required: false
           in: query
@@ -222,8 +219,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
       responses:
         '200':
           description: Hotel data uris.
@@ -250,8 +246,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           required: false
@@ -287,15 +282,13 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: roomTypeId
           in: path
           required: true
           description: Id of room type
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
         - name: fields
           in: query
           required: false
@@ -336,13 +329,13 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: roomTypeId
           in: path
           required: true
           description: Id of room type
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Rate plans for the room type
@@ -367,13 +360,13 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: roomTypeId
           in: path
           required: true
           description: Id of room type
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Availability for the room type
@@ -397,7 +390,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
       responses:
         '200':
           description: Availability data for the hotel
@@ -421,7 +414,7 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
       responses:
         '200':
           description: Rate plans for the hotel
@@ -445,20 +438,20 @@ paths:
           required: true
           description: Hotel Id as returned by `GET /hotel`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: ratePlanId
           in: path
           required: true
           description: Id of rate plan
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Rate plan details
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+                $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RatePlan'
           headers:
             X-Data-Validation-Warning:
               schema:
@@ -492,8 +485,7 @@ paths:
           description: The `id` of the first record that will be included in the result
           required: false
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           description: >
@@ -555,8 +547,7 @@ paths:
                     description: >-
                       Uri to next page of records. When there's no next page,
                       this is not set.
-                    $ref: >-
-                      https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType
+                    $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         '400':
           $ref: '#/components/responses/InvalidRequestError'
         '422':
@@ -575,8 +566,7 @@ paths:
           in: path
           description: Airline id as returned by `GET /airline`
           schema:
-            $ref: >-
-              https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           required: false
           in: query
@@ -638,7 +628,7 @@ paths:
           required: true
           description: Airline Id as returned by `GET /airline`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: fields
           in: query
           required: false
@@ -655,7 +645,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/Flights'
+                  - $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/Flights'
                   - type: object
                     properties:
                       warnings:
@@ -686,13 +676,13 @@ paths:
           required: true
           description: Airline Id as returned by `GET /airline`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: flightId
           in: path
           required: true
           description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
         - name: fields
           in: query
           required: false
@@ -708,7 +698,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/Flight'
+                $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/Flight'
           headers:
             X-Data-Validation-Warning:
               schema:
@@ -732,13 +722,13 @@ paths:
           required: true
           description: Airline Id as returned by `GET /airline`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: flightId
           in: path
           required: true
           description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Flight instances
@@ -750,8 +740,7 @@ paths:
                   - flightInstancesUri
                 properties:
                   flightInstancesUri:
-                    description:
-                    $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType'
+                    $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         '404':
           $ref: '#/components/responses/NotFoundError'
         '422':
@@ -770,13 +759,13 @@ paths:
           required: true
           description: Airline Id as returned by `GET /airline`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: flightId
           in: path
           required: true
           description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Flight instances
@@ -786,7 +775,7 @@ paths:
                 type: object
                 properties:
                   items:
-                    $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/FlightInstances'
+                    $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/FlightInstances'
                   warnings:
                     type: array
                     description: Array of Flights
@@ -815,19 +804,19 @@ paths:
           required: true
           description: Airline Id as returned by `GET /airline`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         - name: flightId
           in: path
           required: true
           description: Flight Id as returned by `GET /airline` or `GET /airline/:id/flights`
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
         - name: flightInstanceId
           in: path
           required: true
           description: Id of flight instance
           schema:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/ObjectIdType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/ObjectIdType'
       responses:
         '200':
           description: Flight instance details
@@ -835,7 +824,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/FlightInstance'
+                  - $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/FlightInstance'
                   - type: object
                     properties:
                       dataFormatVersion:
@@ -920,31 +909,31 @@ components:
             identifies the erroring record.
     HotelListItem:
       allOf:
-        - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/HotelDescriptionBase'
+        - $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/HotelDescriptionBase'
         - type: object
           required:
           - id
           properties:
             id:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+              $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
             managerAddress:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+              $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
             roomTypes:
               description: Room types in the hotel
               $ref: '#/components/schemas/RoomTypesResponse'
     HotelDetail:
       allOf:
-      - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/HotelDescription'
+      - $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/HotelDescription'
       - type: object
         required:
           - id
         properties:
           id:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
           ratePlans:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/RatePlans'
-          availability: 
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/Availability'
+            $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RatePlans'
+          availability:
+            $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/Availability'
           roomTypes:
             description: Room types in the hotel
             $ref: '#/components/schemas/RoomTypesResponse'
@@ -970,11 +959,11 @@ components:
 
     RoomTypeResponse:
       allOf:
-      - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/RoomType'
+      - $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RoomType'
       - type: object
         properties:
           availability:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/Availability'
+            $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/Availability'
 
     RatePlansResponse:
       type: object
@@ -982,7 +971,7 @@ components:
         items:
           type: array
           items:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/RatePlan'
+              $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RatePlan'
         warnings:
           type: array
           description: Array of Flights
@@ -1000,7 +989,7 @@ components:
         items:
           type: array
           items:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/hotel-data-swagger.yaml#/components/schemas/AvailabilityForDay'
+            $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/AvailabilityForDay'
         warnings:
           type: array
           description: Array of Flights
@@ -1018,15 +1007,15 @@ components:
 
     AirlineListItem:
       allOf:
-        - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/AirlineDescriptionBase'
+        - $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/AirlineDescriptionBase'
         - type: object
           required:
           - id
           properties:
             id:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+              $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
             managerAddress:
-              $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+              $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
             flights:
               description: Flights operated by the airline
               $ref: '#/components/schemas/FlightsResponse'
@@ -1050,21 +1039,21 @@ components:
 
     AirlineDetail:
       allOf:
-      - $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/AirlineDescription'
+      - $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/AirlineDescription'
       - type: object
         required:
           - id
         properties:
           id:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
           flights:
-            $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/Flights'
+            $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/Flights'
 
     FlightsResponse:
       description: Array of flight instances
       type: array
       items:
-        $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/airline-data-swagger.yaml#/components/schemas/Flight'
+        $ref: '@windingtree/wt-airline-schemas/swagger.yaml#/components/schemas/Flight'
 
     MetaResponse:
       type: object
@@ -1075,19 +1064,19 @@ components:
       properties:
         address:
           description: Ethereum address of the hotel
-          $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/EthereumAddressType'
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
         dataUri:
           description: URI of the Hotel data index (pointing off-chain)
-          $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType'
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         descriptionUri:
           description: URI of the Hotel data index (pointing off-chain)
-          $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType'
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         ratePlansUri:
           description: URI of the Hotel data index (pointing off-chain)
-          $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType'
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         availabilityUri:
           description: URI of the Hotel data index (pointing off-chain)
-          $ref: 'https://raw.githubusercontent.com/windingtree/wiki/e02e675c1b94c6c3a2866a5a6d523c6bbed039c1/shared-resources.yaml#/components/schemas/UriType'
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         dataFormatVersion:
           description: Version number indicating the data format specification version.
           type: string

@@ -1,11 +1,12 @@
 const path = require('path');
+const YAML = require('yamljs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
 const cors = require('cors');
 const slash = require('express-slash');
-const YAML = require('yamljs');
+
 const app = express();
 const { config } = require('./config');
 const {
@@ -20,16 +21,16 @@ const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
 
-const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
-swaggerDocument.servers = [{ url: config.baseUrl }];
-swaggerDocument.info.version = version;
-
 // No need to leak information and waste bandwith with this
 // header.
 app.disable('x-powered-by');
 app.enable('strict routing');
  
 // Swagger docs
+const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
+swaggerDocument.servers = [{ url: config.baseUrl }];
+swaggerDocument.info.version = version;
+
 // remove unused endpoint definitions
 const segmentsToStart = process.env.WT_SEGMENTS.split(',');
 for (let segment of ACCEPTED_SEGMENTS) {
@@ -41,7 +42,6 @@ for (let segment of ACCEPTED_SEGMENTS) {
     }
   }
 }
-
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Generic middlewares

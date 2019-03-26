@@ -63,3 +63,6 @@ test/utils/temp-keys/*
 
 # IDE
 .idea/
+
+# Build artifacts
+docs/swagger.yaml

@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
-const YAML = require('yamljs');
 const path = require('path');
+const YAML = require('yamljs');
 const _ = require('lodash');
 const Validator = require('swagger-model-validator');
 
@@ -57,7 +57,6 @@ class DataFormatValidator {
       error.data = { valid: false, errors: [`Model ${modelName} not found in schemas.`] };
       throw error;
     }
-
     let validation = (new Validator()).validate(data, schemas[modelName], schemas, true, false);
     if (!validation.valid) {
       const error = new HttpValidationError();
