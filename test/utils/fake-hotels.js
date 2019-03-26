@@ -15,7 +15,7 @@ let fakeHotelCounter = 1;
 class FakeNiceHotel {
   constructor () {
     this.address = `nice-hotel-${fakeHotelCounter}`;
-    this.dataFormatVersion = '0.6.0';
+    this.dataFormatVersion = '0.6.6';
     this.descriptionUri = `nice-hotel-uri-${fakeHotelCounter++}`;
   }
   get dataIndex () {

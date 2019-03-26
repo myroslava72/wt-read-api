@@ -6,8 +6,6 @@ const WTAirlineIndexContract = require('@windingtree/wt-contracts/build/contract
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
 
-const { DATA_FORMAT_VERSION } = require('../src/constants');
-
 const getContractWithProvider = (metadata, provider) => {
   let contract = new TruffleContract(metadata);
   contract.setProvider(provider);
@@ -23,7 +21,7 @@ const deployHotelIndex = async () => {
   });
 };
 
-const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, ratePlans, availability, dataFormatVersion) => {
+const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -38,7 +36,7 @@ const deployFullHotel = async (offChainDataAdapter, index, hotelDescription, rat
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = dataFormatVersion || DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = dataFormatVersion;
   indexFile.defaultLocale = 'en';
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
@@ -58,7 +56,7 @@ const deployAirlineIndex = async () => {
   });
 };
 
-const deployFullAirline = async (offChainDataAdapter, index, airlineDescription, flights, flightInstances, dataFormatVersion) => {
+const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, index, airlineDescription, flights, flightInstances) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -75,7 +73,7 @@ const deployFullAirline = async (offChainDataAdapter, index, airlineDescription,
   }
   indexFile.notificationsUri = 'https://notifications.example';
   indexFile.bookingUri = 'https://booking.example';
-  indexFile.dataFormatVersion = dataFormatVersion || DATA_FORMAT_VERSION;
+  indexFile.dataFormatVersion = dataFormatVersion;
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerAirline(dataUri, {

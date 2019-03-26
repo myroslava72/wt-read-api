@@ -15,7 +15,7 @@ let fakeAirlineCounter = 1;
 class FakeNiceAirline {
   constructor () {
     this.address = `nice-airline-${fakeAirlineCounter++}`;
-    this.dataFormatVersion = '0.6.0';
+    this.dataFormatVersion = '0.6.6';
     this.descriptionUri = `nice-airline-uri-${fakeAirlineCounter++}`;
   }
   get dataIndex () {
