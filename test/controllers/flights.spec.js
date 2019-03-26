@@ -37,7 +37,7 @@ describe('Flights', function () {
         .get(`/airlines/${address}/flights/`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
-        .expect(404);
+        .expect(301);
     });
 
     it('should return flight list', async () => {

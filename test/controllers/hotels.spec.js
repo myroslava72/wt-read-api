@@ -53,7 +53,7 @@ describe('Hotels', function () {
         .get('/hotels/')
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
-        .expect(404);
+        .expect(301);
     });
 
     it('should return default fields for hotels', async () => {

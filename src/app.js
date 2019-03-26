@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
 const cors = require('cors');
+const slash = require('express-slash');
 const YAML = require('yamljs');
 const app = express();
 const { config } = require('./config');
@@ -82,6 +83,7 @@ if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
 if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
   app.use(airlinesRouter);
 }
+app.use(slash());
 
 // 404 handler
 app.use('*', (req, res, next) => {
