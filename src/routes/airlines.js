@@ -10,7 +10,9 @@ const airlinesController = require('../controllers/airlines');
 const flightsController = require('../controllers/flights');
 const flightInstancesController = require('../controllers/flight-instances');
 
-const airlinesRouter = express.Router();
+const airlinesRouter = express.Router({
+  strict: true,
+});
 
 airlinesRouter.get('/airlines', injectWtLibs, airlinesController.findAll, handleOnChainErrors);
 airlinesRouter.get('/airlines/:airlineAddress', injectWtLibs, validateAirlineAddress, resolveAirline, airlinesController.find, handleOnChainErrors);

@@ -26,6 +26,7 @@ swaggerDocument.info.version = version;
 // No need to leak information and waste bandwith with this
 // header.
 app.disable('x-powered-by');
+app.enable('strict routing');
  
 // Swagger docs
 // remove unused endpoint definitions

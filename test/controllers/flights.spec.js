@@ -32,6 +32,14 @@ describe('Flights', function () {
   });
 
   describe('GET /airlines/:airlineAddress/flights', () => {
+    it('should enforce strict routing', async () => {
+      await request(server)
+        .get(`/airlines/${address}/flights/`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
     it('should return flight list', async () => {
       await request(server)
         .get(`/airlines/${address}/flights`)
@@ -131,7 +139,7 @@ describe('Flights', function () {
     it('should return flight instances', async () => {
       const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/meta/`)
+        .get(`/airlines/${address}/flights/${flightId}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -143,7 +151,7 @@ describe('Flights', function () {
     it('should return 404 for unknown flight id', async () => {
       const flightId = 'flight-000';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/meta/`)
+        .get(`/airlines/${address}/flights/${flightId}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404)

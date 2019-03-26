@@ -48,6 +48,14 @@ describe('Hotels', function () {
       hotel1address = await deployFullHotel(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS);
     });
 
+    it('should enforce strict routing', async () => {
+      await request(server)
+        .get('/hotels/')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
     it('should return default fields for hotels', async () => {
       await request(server)
         .get('/hotels')

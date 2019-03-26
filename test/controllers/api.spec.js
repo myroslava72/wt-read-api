@@ -40,6 +40,10 @@ describe('API', function () {
 
   it('GET /docs', async () => {
     await request(server)
+      .get('/docs')
+      .expect(301);
+
+    await request(server)
       .get('/docs/')
       .expect('content-type', /html/i)
       .expect((res) => {

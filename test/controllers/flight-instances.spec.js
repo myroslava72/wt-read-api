@@ -40,7 +40,7 @@ describe('Flight instances', function () {
 
     it('should return flight instances', async () => {
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/instances/`)
+        .get(`/airlines/${address}/flights/${flightId}/instances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -61,7 +61,7 @@ describe('Flight instances', function () {
       let dataFormatVersion = '0.1.0';
       const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES, dataFormatVersion);
       await request(server)
-        .get(`/airlines/${airline}/flights/${flightId}/instances/`)
+        .get(`/airlines/${airline}/flights/${flightId}/instances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -79,7 +79,7 @@ describe('Flight instances', function () {
       delete flightInstances[0].bookingClasses;
       const airline = await deployFullAirline(await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, flightInstances);
       await request(server)
-        .get(`/airlines/${airline}/flights/${flightId}/instances/`)
+        .get(`/airlines/${airline}/flights/${flightId}/instances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -95,7 +95,7 @@ describe('Flight instances', function () {
     it('should return 404 for unknown flight id', async () => {
       const flightId = 'flight-000';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/instances/`)
+        .get(`/airlines/${address}/flights/${flightId}/instances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404)
