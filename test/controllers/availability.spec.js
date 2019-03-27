@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
-const { config } = require('../../src/config');
+const { getSchemaVersion } = require('../utils/schemas');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { HOTEL_SEGMENT_ID } = require('../../src/constants');
 const {
@@ -29,7 +29,7 @@ describe('Availability', function () {
     wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
     indexContract = await deployHotelIndex();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
-    address = await deployFullHotel(config.dataFormatVersions.hotels, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+    address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
   });
 
   afterEach(() => {
@@ -87,7 +87,7 @@ describe('Availability', function () {
     it('should return error for invalid data', async () => {
       let availability = _.cloneDeep(AVAILABILITY);
       delete availability.roomTypes[0].date;
-      const hotel = await deployFullHotel(config.dataFormatVersions.hotels, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, availability);
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, availability);
       await request(server)
         .get(`/hotels/${hotel}/availability`)
         .set('content-type', 'application/json')
@@ -103,7 +103,7 @@ describe('Availability', function () {
     });
 
     it('should return 404 if hotel has no availability', async () => {
-      let hotel = await deployFullHotel(config.dataFormatVersions.hotels, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS);
+      let hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS);
       await request(server)
         .get(`/hotels/${hotel}/availability`)
         .set('content-type', 'application/json')

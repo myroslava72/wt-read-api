@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { expect } = require('chai');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
-const { config } = require('../../src/config');
+const { getSchemaVersion } = require('../utils/schemas');
 const { AIRLINE_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
   deployAirlineIndex,
@@ -25,7 +25,7 @@ describe('Flights', function () {
     wtLibsInstance = wtJsLibsWrapper.getInstance(AIRLINE_SEGMENT_ID);
     indexContract = await deployAirlineIndex();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
-    address = await deployFullAirline(config.dataFormatVersions.airlines, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+    address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
   });
 
   afterEach(() => {
@@ -102,7 +102,7 @@ describe('Flights', function () {
     it('should return error for invalid data', async () => {
       let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
       delete airlineFlights.items[0].origin;
-      const airline = await deployFullAirline(config.dataFormatVersions.airlines, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline}/flights`)
         .set('content-type', 'application/json')
@@ -127,7 +127,7 @@ describe('Flights', function () {
     });
 
     it('should return 404 if airline has no flights', async () => {
-      const airline = await deployFullAirline(config.dataFormatVersions.airlines, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
       await request(server)
         .get(`/airlines/${airline}/flights`)
         .set('content-type', 'application/json')
@@ -211,7 +211,7 @@ describe('Flights', function () {
     });
 
     it('should return 404 if airline has no flights', async () => {
-      const airline = await deployFullAirline(config.dataFormatVersions.airlines, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
       const flightId = 'IeKeix6G';
       await request(server)
         .get(`/airlines/${airline}/flights/${flightId}`)
@@ -237,7 +237,7 @@ describe('Flights', function () {
     it('should return error for invalid data', async () => {
       let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
       delete airlineFlights.items[0].segments;
-      const airline = await deployFullAirline(config.dataFormatVersions.airlines, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline}/flights/IeKeix6G`)
         .set('content-type', 'application/json')

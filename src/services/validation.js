@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const path = require('path');
 const YAML = require('yamljs');
+const semver = require('semver');
 const _ = require('lodash');
 const Validator = require('swagger-model-validator');
 
@@ -42,8 +43,7 @@ class DataFormatValidator {
         };
         throw error;
       }
-      // TODO desired should be a semverrange
-      if (desiredDataFormatVersion !== dataFormatVersion) {
+      if (!semver.satisfies(dataFormatVersion, desiredDataFormatVersion)) {
         const error = new HttpValidationError();
         error.data = {
           valid: true,
