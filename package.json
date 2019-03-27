@@ -51,6 +51,7 @@
     "lodash": "^4.17.10",
     "morgan": "^1.9.1",
     "node-fetch": "^2.3.0",
+    "semver": "^6.0.0",
     "swagger-model-validator": "^3.0.5",
     "swagger-ui-express": "^4.0.0",
     "winston": "^3.0.0",

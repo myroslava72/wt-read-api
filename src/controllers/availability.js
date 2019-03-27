@@ -1,6 +1,7 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
 const { formatError } = require('../services/utils');
+const { config } = require('../config');
 const {
   SCHEMA_PATH,
   AVAILABILITY_MODEL,
@@ -14,10 +15,17 @@ const findAll = async (req, res, next) => {
     }
     let availability = plainHotel.dataUri.contents.availabilityUri.contents;
     const items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL);
     for (let roomType of availability.roomTypes) {
       try {
-        DataFormatValidator.validate(roomType, 'availability', AVAILABILITY_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          roomType,
+          AVAILABILITY_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'availability'
+        );
         items.push(roomType);
       } catch (e) {
         if (e instanceof HttpValidationError) {

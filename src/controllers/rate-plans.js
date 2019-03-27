@@ -1,6 +1,7 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
 const { formatError } = require('../services/utils');
+const { config } = require('../config');
 const {
   VALIDATION_WARNING_HEADER,
   SCHEMA_PATH,
@@ -15,10 +16,17 @@ const findAll = async (req, res, next) => {
     }
     let ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
     const items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     for (let plan of ratePlans) {
       try {
-        DataFormatValidator.validate(plan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          plan,
+          RATE_PLAN_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'rate plan'
+        );
         items.push(plan);
       } catch (e) {
         if (e instanceof HttpValidationError) {
@@ -57,10 +65,16 @@ const find = async (req, res, next) => {
     if (!ratePlan) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    ratePlan.dataFormatVersion = plainHotel.dataUri.contents.dataFormatVersion;
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     try {
-      DataFormatValidator.validate(ratePlan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(
+        ratePlan,
+        RATE_PLAN_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        plainHotel.dataUri.contents.dataFormatVersion,
+        'rate plan'
+      );
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);

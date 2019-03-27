@@ -1,6 +1,6 @@
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
-const { baseUrl } = require('../config').config;
+const { config } = require('../config');
 const { DataFormatValidator } = require('../services/validation');
 const {
   HttpValidationError,
@@ -121,7 +121,15 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
+      DataFormatValidator.validate(
+        resolvedHotelObject,
+        HOTEL_SCHEMA_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        undefined,
+        'hotel',
+        fields.mapped
+      );
       delete resolvedHotelObject.dataFormatVersion;
       realItems.push(resolvedHotelObject);
     } catch (e) {
@@ -142,7 +150,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
       }
     }
   }
-  let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
@@ -150,7 +158,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -196,7 +204,15 @@ const find = async (req, res, next) => {
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
-      DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
+      DataFormatValidator.validate(
+        resolvedHotel,
+        HOTEL_SCHEMA_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        undefined,
+        'hotel',
+        fields.mapped
+      );
       delete resolvedHotel.dataFormatVersion;
     } catch (e) {
       if (e instanceof HttpValidationError) {

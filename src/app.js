@@ -10,7 +10,6 @@ const slash = require('express-slash');
 const app = express();
 const { config } = require('./config');
 const {
-  DATA_FORMAT_VERSION,
   AIRLINE_SEGMENT_ID,
   HOTEL_SEGMENT_ID,
   ACCEPTED_SEGMENTS,
@@ -71,7 +70,7 @@ app.get('/', (req, res) => {
     config: process.env.WT_CONFIG,
     wtIndexAddresses: config.wtIndexAddresses,
     ethNetwork: config.ethNetwork,
-    dataFormatVersion: DATA_FORMAT_VERSION,
+    dataFormatVersions: config.dataFormatVersions,
   };
   res.status(200).json(response);
 });

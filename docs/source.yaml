@@ -44,11 +44,18 @@ paths:
                   ethNetwork:
                     type: string
                     description: Name of the ethereum network against which this instance runs.
-                  dataFormatVersion:
+                  dataFormatVersions:
                     description: Version number indicating the data format specification version the server expects from hotels.
-                    type: string
-                    format: semver
-                    maxLength: 20
+                    type: object
+                      properties:
+                        airlines:
+                          type: string
+                          format: semver
+                          maxLength: 20
+                        hotels:
+                          type: string
+                          format: semver
+                          maxLength: 20
   /hotels:
     get:
       summary: Lists hotels

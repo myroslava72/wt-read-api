@@ -74,8 +74,9 @@ const AIRLINE_DESCRIPTION_FIELDS = [
 const DEFAULT_PAGE_SIZE = 30;
 const MAX_PAGE_SIZE = 300;
 
-const DATA_FORMAT_VERSION = '0.6.0';
 const SCHEMA_PATH = 'docs/swagger.yaml';
+const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
+
 const HOTEL_SCHEMA_MODEL = 'HotelDetail';
 const AIRLINE_SCHEMA_MODEL = 'AirlineDetail';
 const ROOM_TYPE_MODEL = 'windingtree-wt-hotel-schemas-RoomType';
@@ -83,7 +84,6 @@ const RATE_PLAN_MODEL = 'windingtree-wt-hotel-schemas-RatePlan';
 const AVAILABILITY_MODEL = 'windingtree-wt-hotel-schemas-AvailabilityForDay';
 const FLIGHT_MODEL = 'windingtree-wt-airline-schemas-Flight';
 const FLIGHT_INSTANCE_MODEL = 'windingtree-wt-airline-schemas-FlightInstance';
-const VALIDATION_WARNING_HEADER = 'x-data-validation-warning';
 
 const HOTEL_SEGMENT_ID = 'hotels';
 const AIRLINE_SEGMENT_ID = 'airlines';
@@ -100,7 +100,6 @@ module.exports = {
   DEFAULT_AIRLINE_FIELDS,
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
-  DATA_FORMAT_VERSION,
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
   AIRLINE_SCHEMA_MODEL,

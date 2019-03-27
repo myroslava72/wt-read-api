@@ -1,4 +1,5 @@
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const { getSchemaVersion } = require('./schemas');
 
 /**
  * Usage:
@@ -15,7 +16,8 @@ let fakeAirlineCounter = 1;
 class FakeNiceAirline {
   constructor () {
     this.address = `nice-airline-${fakeAirlineCounter++}`;
-    this.dataFormatVersion = '0.6.0';
+    this.dataFormatVersion = getSchemaVersion('@windingtree/wt-airline-schemas');
+    this.dataFormatVersion = getSchemaVersion('@windingtree/wt-airline-schemas');
     this.descriptionUri = `nice-airline-uri-${fakeAirlineCounter++}`;
   }
   get dataIndex () {

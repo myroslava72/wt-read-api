@@ -1,6 +1,7 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
 const { formatError } = require('../services/utils');
+const { config } = require('../config');
 const {
   VALIDATION_WARNING_HEADER,
   SCHEMA_PATH,
@@ -23,10 +24,16 @@ const find = async (req, res, next) => {
     if (!flightInstance) {
       return next(new Http404Error('flightInstanceNotFound', 'Flight instance not found'));
     }
-    flightInstance.dataFormatVersion = plainAirline.dataUri.contents.dataFormatVersion;
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL);
     try {
-      DataFormatValidator.validate(flightInstance, 'flight instance', FLIGHT_INSTANCE_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(
+        flightInstance,
+        FLIGHT_INSTANCE_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.airlines,
+        plainAirline.dataUri.contents.dataFormatVersion,
+        'flight instance',
+      );
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
@@ -59,10 +66,17 @@ const findAll = async (req, res, next) => {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
     }
     const instances = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_INSTANCE_MODEL);
     for (let instance of flight.flightInstancesUri.contents) {
       try {
-        DataFormatValidator.validate(instance, 'flight instance', FLIGHT_INSTANCE_MODEL, swaggerDocument.components.schemas, plainAirline.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          instance,
+          FLIGHT_INSTANCE_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.airlines,
+          plainAirline.dataUri.contents.dataFormatVersion,
+          'flight instance',
+        );
         instances.push(instance);
       } catch (e) {
         if (e instanceof HttpValidationError) {
