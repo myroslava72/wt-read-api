@@ -1,7 +1,6 @@
 const TruffleContract = require('truffle-contract');
 const Web3 = require('web3');
-const WTHotelIndexContract = require('@windingtree/wt-contracts/build/contracts/WTHotelIndex');
-const WTAirlineIndexContract = require('@windingtree/wt-contracts/build/contracts/WTAirlineIndex');
+const { WTHotelIndexContract, WTAirlineIndexContract } = require('@windingtree/wt-contracts');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
@@ -15,10 +14,16 @@ const getContractWithProvider = (metadata, provider) => {
 const deployHotelIndex = async () => {
   const indexContract = getContractWithProvider(WTHotelIndexContract, provider);
   const accounts = await web3.eth.getAccounts();
-  return indexContract.new({
+  const hotelIndex = await indexContract.new({
     from: accounts[0],
     gas: 6000000,
   });
+  // we have to call initialize as it's not automatically called by zos proxies
+  // because we don't use them for dev env
+  await hotelIndex.initialize(accounts[0], accounts[1], {
+    from: accounts[0]
+  });
+  return hotelIndex;
 };
 
 const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability) => {
@@ -50,10 +55,16 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
 const deployAirlineIndex = async () => {
   const indexContract = getContractWithProvider(WTAirlineIndexContract, provider);
   const accounts = await web3.eth.getAccounts();
-  return indexContract.new({
+  const airlineIndex = await indexContract.new({
     from: accounts[0],
     gas: 6000000,
   });
+  // we have to call initialize as it's not automatically called by zos proxies
+  // because we don't use them for dev env
+  await airlineIndex.initialize(accounts[0], accounts[1], {
+    from: accounts[0]
+  });
+  return airlineIndex;
 };
 
 const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, index, airlineDescription, flights, flightInstances) => {
