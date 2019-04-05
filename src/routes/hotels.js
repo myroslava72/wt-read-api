@@ -11,7 +11,9 @@ const roomTypesController = require('../controllers/room-types');
 const ratePlansController = require('../controllers/rate-plans');
 const availabilityController = require('../controllers/availability');
 
-const hotelsRouter = express.Router();
+const hotelsRouter = express.Router({
+  strict: true,
+});
 
 hotelsRouter.get('/hotels', injectWtLibs, hotelsController.findAll, handleOnChainErrors);
 hotelsRouter.get('/hotels/:hotelAddress', injectWtLibs, validateHotelAddress, resolveHotel, hotelsController.find, handleOnChainErrors);

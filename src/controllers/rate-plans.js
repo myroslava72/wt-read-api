@@ -1,6 +1,7 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
 const { formatError } = require('../services/utils');
+const { config } = require('../config');
 const {
   VALIDATION_WARNING_HEADER,
   SCHEMA_PATH,
@@ -15,16 +16,23 @@ const findAll = async (req, res, next) => {
     }
     let ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
     const items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     for (let plan of ratePlans) {
       try {
-        DataFormatValidator.validate(plan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          plan,
+          RATE_PLAN_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'rate plan'
+        );
         items.push(plan);
       } catch (e) {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = plan;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
@@ -57,16 +65,22 @@ const find = async (req, res, next) => {
     if (!ratePlan) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    ratePlan.dataFormatVersion = plainHotel.dataUri.contents.dataFormatVersion;
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     try {
-      DataFormatValidator.validate(ratePlan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(
+        ratePlan,
+        RATE_PLAN_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        plainHotel.dataUri.contents.dataFormatVersion,
+        'rate plan'
+      );
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = ratePlan;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }

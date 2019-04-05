@@ -10,26 +10,30 @@ jobs:
   - stage: test
     script:
     - npm run lint
+    - npm run resolve-swagger-references
     - npm test
     - npm run coverage
   - stage: NPM develop release
     if: branch = develop
     script:
-    - npm version preminor --preid="$TRAVIS_COMMIT"
+    - npm run resolve-swagger-references
+    - npm version preminor --preid="$TRAVIS_COMMIT" --force
     deploy:
       provider: npm
       email: devops@windingtree.com
       skip_cleanup: true
+      tag: develop
       api_key: "$NPM_TOKEN"
       on:
         repo: windingtree/wt-read-api
+        branch: develop
   - stage: Build and publish docker image
     sudo: true
     services:
     - docker
-    install: true
     if: tag IS present
     script:
+    - npm run resolve-swagger-references
     - docker build -t windingtree/wt-read-api:$TRAVIS_BRANCH .
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker push windingtree/wt-read-api:$TRAVIS_BRANCH
@@ -37,7 +41,9 @@ jobs:
     - docker push windingtree/wt-read-api:latest
   - stage: NPM release
     if: tag IS present
-    script: echo 'Deploying to NPM...'
+    script:
+    - npm run resolve-swagger-references
+    - echo 'Deploying to NPM...'
     deploy:
       provider: npm
       email: devops@windingtree.com

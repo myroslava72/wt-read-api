@@ -1,6 +1,6 @@
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
-const { baseUrl } = require('../config').config;
+const { config } = require('../config');
 const { DataFormatValidator } = require('../services/validation');
 const {
   HttpValidationError,
@@ -121,20 +121,28 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   for (let hotel of items) {
     try {
       resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(resolvedHotelObject, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
+      DataFormatValidator.validate(
+        resolvedHotelObject,
+        HOTEL_SCHEMA_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        undefined,
+        'hotel',
+        fields.mapped
+      );
       delete resolvedHotelObject.dataFormatVersion;
       realItems.push(resolvedHotelObject);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         hotel = {
           error: 'Upstream hotel data format validation failed: ' + e.toString(),
-          originalError: { valid: e.code.valid, errors: e.code.errors.map((err) => { return err.toString(); }) },
+          originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
           data: resolvedHotelObject,
         };
-        if (e.code && e.code.valid) {
+        if (e.data && e.data.valid) {
           warningItems.push(hotel);
         } else {
-          hotel.data = { id: hotel.data.id };
+          hotel.data = e.data && e.data.data;
           realErrors.push(hotel);
         }
       } else {
@@ -142,7 +150,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
       }
     }
   }
-  let next = nextStart ? `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
@@ -150,7 +158,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -196,14 +204,22 @@ const find = async (req, res, next) => {
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
-      DataFormatValidator.validate(resolvedHotel, 'hotel', HOTEL_SCHEMA_MODEL, swaggerDocument.components.schemas, undefined, fields.mapped);
+      DataFormatValidator.validate(
+        resolvedHotel,
+        HOTEL_SCHEMA_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        undefined,
+        'hotel',
+        fields.mapped
+      );
       delete resolvedHotel.dataFormatVersion;
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = resolvedHotel;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }

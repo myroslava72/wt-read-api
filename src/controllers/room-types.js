@@ -1,6 +1,7 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
 const { formatError } = require('../services/utils');
+const { config } = require('../config');
 const {
   VALIDATION_WARNING_HEADER,
   SCHEMA_PATH,
@@ -64,17 +65,24 @@ const findAll = async (req, res, next) => {
     const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     const items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL);
     for (let roomType of roomTypes) {
       roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
       try {
-        DataFormatValidator.validate(roomType, 'room type', ROOM_TYPE_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          roomType,
+          ROOM_TYPE_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'room type'
+        );
         items.push(roomType);
       } catch (e) {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = roomType;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
@@ -107,16 +115,22 @@ const find = async (req, res, next) => {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
     roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
-    roomType.dataFormatVersion = plainHotel.dataUri.contents.dataFormatVersion;
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, fieldsArray.length === 0 ? undefined : fieldsArray, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, fieldsArray.length === 0 ? undefined : fieldsArray);
     try {
-      DataFormatValidator.validate(roomType, 'room type', ROOM_TYPE_MODEL, swaggerDocument.components.schemas);
+      DataFormatValidator.validate(
+        roomType,
+        ROOM_TYPE_MODEL,
+        swaggerDocument.components.schemas,
+        config.dataFormatVersions.hotels,
+        plainHotel.dataUri.contents.dataFormatVersion,
+        'room type'
+      );
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
         err.data = roomType;
-        if (e.code && e.code.valid) {
-          return res.set(VALIDATION_WARNING_HEADER, e.code.errors).status(200).json(err.toPlainObject());
+        if (e.data && e.data.valid) {
+          return res.set(VALIDATION_WARNING_HEADER, e.data.errors).status(200).json(err.toPlainObject());
         } else {
           return res.status(err.status).json(err.toPlainObject());
         }
@@ -145,16 +159,23 @@ const findRatePlans = async (req, res, next) => {
     }
     const ratePlans = detectRatePlans(roomTypeId, plainHotel.dataUri.contents.ratePlansUri.contents);
     const items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     for (let plan of ratePlans) {
       try {
-        DataFormatValidator.validate(plan, 'rate plan', RATE_PLAN_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          plan,
+          RATE_PLAN_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'rate plan',
+        );
         items.push(plan);
       } catch (e) {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = plan;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
@@ -190,16 +211,23 @@ const findAvailability = async (req, res, next) => {
     }
     const availability = detectAvailability(roomTypeId, plainHotel.dataUri.contents.availabilityUri.contents);
     let items = [], warnings = [], errors = [];
-    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL, undefined, {});
+    const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL);
     for (let roomType of availability.roomTypes) {
       try {
-        DataFormatValidator.validate(roomType, 'availability', AVAILABILITY_MODEL, swaggerDocument.components.schemas, plainHotel.dataUri.contents.dataFormatVersion);
+        DataFormatValidator.validate(
+          roomType,
+          AVAILABILITY_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          plainHotel.dataUri.contents.dataFormatVersion,
+          'availability',
+        );
         items.push(roomType);
       } catch (e) {
         if (e instanceof HttpValidationError) {
           let err = formatError(e);
           err.data = roomType;
-          if (e.code && e.code.valid) {
+          if (e.data && e.data.valid) {
             warnings.push(err);
           } else {
             err.data = { id: err.data.id };
