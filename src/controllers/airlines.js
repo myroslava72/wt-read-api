@@ -135,40 +135,46 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
   let realItems = [], warningItems = [], realErrors = [];
-  let resolvedAirlineObject;
   const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields.mapped, REVERSED_AIRLINE_FIELD_MAPPING);
+  const promises = [];
   for (let airline of items) {
-    try {
-      resolvedAirlineObject = await resolveAirlineObject(airline, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(
-        resolvedAirlineObject,
-        AIRLINE_SCHEMA_MODEL,
-        swaggerDocument.components.schemas,
-        config.dataFormatVersions.airlines,
-        undefined,
-        'airline',
-        fields.mapped,
-      );
-      delete resolvedAirlineObject.dataFormatVersion;
-      realItems.push(resolvedAirlineObject);
-    } catch (e) {
-      if (e instanceof HttpValidationError) {
-        airline = {
-          error: 'Upstream airline data format validation failed: ' + e.toString(),
-          originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
-          data: resolvedAirlineObject,
-        };
-        if (e.data && e.data.valid) {
-          warningItems.push(airline);
-        } else {
-          airline.data = e.data && e.data.data;
-          realErrors.push(airline);
-        }
-      } else {
-        throw e;
-      }
-    }
+    promises.push((() => {
+      let resolvedAirlineObject;
+      return resolveAirlineObject(airline, fields.toFlatten, fields.onChain)
+        .then((resolved) => {
+          resolvedAirlineObject = resolved;
+          DataFormatValidator.validate(
+            resolvedAirlineObject,
+            AIRLINE_SCHEMA_MODEL,
+            swaggerDocument.components.schemas,
+            config.dataFormatVersions.airlines,
+            undefined,
+            'airline',
+            fields.mapped,
+          );
+          delete resolvedAirlineObject.dataFormatVersion;
+          realItems.push(resolvedAirlineObject);
+        })
+        .catch((e) => {
+          if (e instanceof HttpValidationError) {
+            airline = {
+              error: 'Upstream airline data format validation failed: ' + e.toString(),
+              originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
+              data: resolvedAirlineObject,
+            };
+            if (e.data && e.data.valid) {
+              warningItems.push(airline);
+            } else {
+              airline.data = e.data && e.data.data;
+              realErrors.push(airline);
+            }
+          } else {
+            throw e;
+          }
+        });
+    })());
   }
+  await Promise.all(promises);
   let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
