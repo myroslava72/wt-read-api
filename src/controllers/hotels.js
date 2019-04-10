@@ -118,38 +118,41 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   let realItems = [], warningItems = [], realErrors = [];
   let resolvedHotelObject;
   const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields.mapped, REVERSED_HOTEL_FIELD_MAPPING);
+  const promises = [];
   for (let hotel of items) {
-    try {
-      resolvedHotelObject = await resolveHotelObject(hotel, fields.toFlatten, fields.onChain);
-      DataFormatValidator.validate(
-        resolvedHotelObject,
-        HOTEL_SCHEMA_MODEL,
-        swaggerDocument.components.schemas,
-        config.dataFormatVersions.hotels,
-        undefined,
-        'hotel',
-        fields.mapped
-      );
-      delete resolvedHotelObject.dataFormatVersion;
-      realItems.push(resolvedHotelObject);
-    } catch (e) {
-      if (e instanceof HttpValidationError) {
-        hotel = {
-          error: 'Upstream hotel data format validation failed: ' + e.toString(),
-          originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
-          data: resolvedHotelObject,
-        };
-        if (e.data && e.data.valid) {
-          warningItems.push(hotel);
+    promises.push(resolveHotelObject(hotel, fields.toFlatten, fields.onChain)
+      .then((resolvedHotelObject) => {
+        DataFormatValidator.validate(
+          resolvedHotelObject,
+          HOTEL_SCHEMA_MODEL,
+          swaggerDocument.components.schemas,
+          config.dataFormatVersions.hotels,
+          undefined,
+          'hotel',
+          fields.mapped
+        );
+        delete resolvedHotelObject.dataFormatVersion;
+        realItems.push(resolvedHotelObject);
+      }).catch((e) => {
+        if (e instanceof HttpValidationError) {
+          hotel = {
+            error: 'Upstream hotel data format validation failed: ' + e.toString(),
+            originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
+            data: resolvedHotelObject,
+          };
+          if (e.data && e.data.valid) {
+            warningItems.push(hotel);
+          } else {
+            hotel.data = e.data && e.data.data;
+            realErrors.push(hotel);
+          }
         } else {
-          hotel.data = e.data && e.data.data;
-          realErrors.push(hotel);
+          throw e;
         }
-      } else {
-        throw e;
-      }
-    }
+      }));
   }
+  await Promise.all(promises);
+
   let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
