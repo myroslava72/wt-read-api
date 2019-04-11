@@ -1,10 +1,15 @@
 const winston = require('winston');
+const YAML = require('yamljs');
+const semver = require('semver');
 const { WtJsLibs } = require('@windingtree/wt-js-libs');
 
 const { ACCEPTED_SEGMENTS } = require('../constants');
+const getPatchForgivingSchemaVersion = (packageName) => {
+  let refDef = YAML.load(`node_modules/${packageName}/dist/swagger.yaml`);
+  return `${semver.major(refDef.info.version)}.${semver.minor(refDef.info.version)}.x`;
+};
 
 const env = process.env.WT_CONFIG || 'dev';
-
 let config = Object.assign({
   port: process.env.PORT || 3000,
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
@@ -17,6 +22,10 @@ let config = Object.assign({
       }),
     ],
   }),
+  dataFormatVersions: {
+    airlines: getPatchForgivingSchemaVersion('@windingtree/wt-airline-schemas'),
+    hotels: getPatchForgivingSchemaVersion('@windingtree/wt-hotel-schemas'),
+  },
 }, require(`./${env}`));
 
 // setup js-libs instances

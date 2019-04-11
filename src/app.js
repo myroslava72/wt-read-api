@@ -1,14 +1,15 @@
 const path = require('path');
+const YAML = require('yamljs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
 const cors = require('cors');
-const YAML = require('yamljs');
+const slash = require('express-slash');
+
 const app = express();
 const { config } = require('./config');
 const {
-  DATA_FORMAT_VERSION,
   AIRLINE_SEGMENT_ID,
   HOTEL_SEGMENT_ID,
   ACCEPTED_SEGMENTS,
@@ -19,15 +20,16 @@ const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
 
+// No need to leak information and waste bandwith with this
+// header.
+app.disable('x-powered-by');
+app.enable('strict routing');
+ 
+// Swagger docs
 const swaggerDocument = YAML.load(path.resolve(__dirname, '../docs/swagger.yaml'));
 swaggerDocument.servers = [{ url: config.baseUrl }];
 swaggerDocument.info.version = version;
 
-// No need to leak information and waste bandwith with this
-// header.
-app.disable('x-powered-by');
- 
-// Swagger docs
 // remove unused endpoint definitions
 const segmentsToStart = process.env.WT_SEGMENTS.split(',');
 for (let segment of ACCEPTED_SEGMENTS) {
@@ -39,7 +41,6 @@ for (let segment of ACCEPTED_SEGMENTS) {
     }
   }
 }
-
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Generic middlewares
@@ -69,7 +70,7 @@ app.get('/', (req, res) => {
     config: process.env.WT_CONFIG,
     wtIndexAddresses: config.wtIndexAddresses,
     ethNetwork: config.ethNetwork,
-    dataFormatVersion: DATA_FORMAT_VERSION,
+    dataFormatVersions: config.dataFormatVersions,
   };
   res.status(200).json(response);
 });
@@ -81,6 +82,7 @@ if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
 if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
   app.use(airlinesRouter);
 }
+app.use(slash());
 
 // 404 handler
 app.use('*', (req, res, next) => {

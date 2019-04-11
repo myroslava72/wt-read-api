@@ -20,10 +20,10 @@ function _sortFields (fields) {
  */
 function formatError (e) {
   let err = new HttpValidationError();
-  if (e.code.hasOwnProperty('GetFormattedErrors')) {
-    err.msgLong = e.code.GetFormattedErrors().map((err) => { return err.message; }).toString();
+  if (e.data && e.data.hasOwnProperty('GetFormattedErrors')) {
+    err.msgLong = e.data.GetFormattedErrors().map((err) => { return err.message; }).toString();
   } else {
-    err.msgLong = e.code.errors.toString();
+    err.msgLong = e.data.errors.toString();
   }
   return err;
 }

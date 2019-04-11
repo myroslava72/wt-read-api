@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
-const YAML = require('yamljs');
 const path = require('path');
+const YAML = require('yamljs');
+const semver = require('semver');
 const _ = require('lodash');
 const Validator = require('swagger-model-validator');
 
@@ -9,8 +10,8 @@ const {
   MisconfigurationError,
 } = require('../errors');
 const {
-  DATA_FORMAT_VERSION,
-} = require('../constants');
+  config,
+} = require('../config');
 
 /**
  * Utility class for data format validation.
@@ -19,30 +20,51 @@ class DataFormatValidator {
   /**
    * Static method to validate data against specific model in schema.
    * @param data
-   * @param type
    * @param modelName
    * @param schemas The components.schemas part of swagger definition
-   * @param dataFormatVersion If the data doesn't contain `dataFormatVersion` field, you may provide a value here.
+   * @param desiredDataFormatVersion Version range that the declared data format version is checked
+   * @param declaredDataFormatVersion If the data doesn't contain `dataFormatVersion` field, you may provide an overriding value here.
+   * @param type human-readable name that is used in error messages
    * @param fields Fields to resolve
    */
-  static validate (data, type, modelName, schemas, dataFormatVersion, fields) {
+  static validate (data, modelName, schemas, desiredDataFormatVersion, declaredDataFormatVersion = undefined, type = 'model', fields = []) {
+    let dataFormatVersion = declaredDataFormatVersion;
     // don't validate dataFormatVersion when only fetching on-chain data
-    if (!fields || !(fields.length === 1 && fields[0] === 'id')) {
-      dataFormatVersion = data.dataFormatVersion || dataFormatVersion;
+    if (!fields || !fields.length || !(fields.length === 1 && fields[0] === 'id')) {
+      dataFormatVersion = data.dataFormatVersion || declaredDataFormatVersion;
       if (!dataFormatVersion) {
-        throw new HttpValidationError({ valid: false, errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id}`] });
+        const error = new HttpValidationError();
+        error.data = {
+          valid: false,
+          errors: [`Missing property \`dataFormatVersion\` in ${type} data for id ${data.id || data.data.id}`],
+          data: {
+            id: data.id || (data.data && data.data.id),
+          },
+        };
+        throw error;
       }
-      if (DATA_FORMAT_VERSION !== dataFormatVersion) {
-        throw new HttpValidationError({ valid: true, errors: [`Unsupported data format version ${data.dataFormatVersion}. Supported versions: ${DATA_FORMAT_VERSION}`] });
+      if (!semver.satisfies(dataFormatVersion, desiredDataFormatVersion)) {
+        const error = new HttpValidationError();
+        error.data = {
+          valid: true,
+          errors: [`Unsupported data format version ${dataFormatVersion}. Supported versions: ${desiredDataFormatVersion}`],
+          data: {
+            id: data.id || (data.data && data.data.id),
+          },
+        };
+        throw error;
       }
     }
     if (!schemas.hasOwnProperty(modelName)) {
-      throw new HttpValidationError({ valid: false, errors: [`Model ${modelName} not found in schemas.`] });
+      const error = new HttpValidationError();
+      error.data = { valid: false, errors: [`Model ${modelName} not found in schemas.`] };
+      throw error;
     }
-
     let validation = (new Validator()).validate(data, schemas[modelName], schemas, true, false);
     if (!validation.valid) {
-      throw new HttpValidationError(validation);
+      const error = new HttpValidationError();
+      error.data = validation;
+      throw error;
     }
   }
 
@@ -54,9 +76,9 @@ class DataFormatValidator {
    * @param fieldsMapping
    * @returns {Promise<String>}
    */
-  static async loadSchemaFromPath (schemaPath, schemaModel, fields, fieldsMapping) {
-    if (!DATA_FORMAT_VERSION) {
-      throw new MisconfigurationError('Constant DATA_FORMAT_VERSION is not configured, check API deployment.');
+  static async loadSchemaFromPath (schemaPath, schemaModel, fields = undefined, fieldsMapping = {}) {
+    if (!config.dataFormatVersions) {
+      throw new MisconfigurationError('config.dataFormatVersions is not configured, check API deployment.');
     }
     let mainSchemaDocument;
     if (DataFormatValidator.CACHE.hasOwnProperty(schemaPath)) {
@@ -117,7 +139,7 @@ class DataFormatValidator {
    * @returns {*} Updated schemas definition
    * @private
    */
-  static _intersectRequiredFields (data, modelName, fields, reversedFieldMapping) {
+  static _intersectRequiredFields (data, modelName, fields = undefined, reversedFieldMapping = {}) {
     let nestedBaseFields = {};
     if (fields) {
       for (let field of fields) {
