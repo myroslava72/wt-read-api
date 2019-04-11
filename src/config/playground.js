@@ -3,7 +3,8 @@ const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
 module.exports = {
   wtIndexAddresses: {
-    hotels: '0xfb562057d613175c850df65e435bb0824b65d319',
+    hotels: '0xB309875d8b24D522Ea0Ac57903c8A0b0C93C414A',
+    airlines: '0x918154a7b2f37ca03e0D05283B5d0d781812DEB6',
   },
   baseUrl: 'https://playground-api.windingtree.com',
   ethNetwork: 'ropsten',

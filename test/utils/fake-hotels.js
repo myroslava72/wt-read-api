@@ -1,4 +1,5 @@
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const { getSchemaVersion } = require('./schemas');
 
 /**
  * Usage:
@@ -15,7 +16,7 @@ let fakeHotelCounter = 1;
 class FakeNiceHotel {
   constructor () {
     this.address = `nice-hotel-${fakeHotelCounter}`;
-    this.dataFormatVersion = '0.6.0';
+    this.dataFormatVersion = getSchemaVersion('@windingtree/wt-hotel-schemas');
     this.descriptionUri = `nice-hotel-uri-${fakeHotelCounter++}`;
   }
   get dataIndex () {
@@ -44,7 +45,7 @@ class FakeNiceHotel {
               name: 'nice hotel name',
               description: 'nice hotel desc',
               contacts: [],
-              address: { line1: '', city: '', country: '' },
+              address: { road: '', houseNumber: '', city: '', countryCode: '' },
               timezone: '',
               currency: '',
               updatedAt: '',
@@ -76,7 +77,7 @@ class FakeWrongFormatHotel extends FakeNiceHotel {
               name: 'hotel name',
               description: 23,
               contacts: { general: { email: 'email1' } },
-              address: { line1: 'brick lane', city: 'london', country: 'uk' },
+              address: { road: 'brick lane', houseNumber: '123', city: 'london', countryCode: 'uk' },
               timezone: 'cet',
               currency: 'czk',
               updatedAt: '2018-12-12 12:00:00',
