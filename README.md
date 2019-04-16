@@ -113,7 +113,7 @@ docker run -p 8080:3000 \
 
 ## Examples
 
-See [API definition](docs/swagger.yaml) for full details.
+See [API definition](docs/source.yaml) for full details or in a more [readable form here](https://developers.windingtree.com/apis/wt-read-api.html).
 
 ### Hotels
 #### Get list of hotels
