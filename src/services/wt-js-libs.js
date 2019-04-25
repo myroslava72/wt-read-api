@@ -2,8 +2,8 @@ const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 
 const { config } = require('../config');
 
-function getInstance (segment) {
-  return config.wtLibs[segment];
+function getInstance () {
+  return config.wtLibs;
 }
 
 function _setIndexAddress (address, segment) {
@@ -11,13 +11,13 @@ function _setIndexAddress (address, segment) {
 }
 
 async function getWTHotelIndex () {
-  const wtLibsInstance = getInstance(HOTEL_SEGMENT_ID);
-  return wtLibsInstance.getWTIndex(config.wtIndexAddresses[HOTEL_SEGMENT_ID]);
+  const wtLibsInstance = getInstance();
+  return wtLibsInstance.getWTIndex(HOTEL_SEGMENT_ID, config.wtIndexAddresses[HOTEL_SEGMENT_ID]);
 }
 
 async function getWTAirlineIndex () {
-  const wtLibsInstance = getInstance(AIRLINE_SEGMENT_ID);
-  return wtLibsInstance.getWTIndex(config.wtIndexAddresses[AIRLINE_SEGMENT_ID]);
+  const wtLibsInstance = getInstance();
+  return wtLibsInstance.getWTIndex(AIRLINE_SEGMENT_ID, config.wtIndexAddresses[AIRLINE_SEGMENT_ID]);
 }
 
 module.exports = {

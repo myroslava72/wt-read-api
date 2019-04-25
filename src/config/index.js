@@ -34,14 +34,12 @@ for (let segment of process.env.WT_SEGMENTS.split(',')) {
   if (ACCEPTED_SEGMENTS.indexOf(segment) === -1) {
     throw new Error(`Unknown segment ${segment}.`);
   }
-  if (!config.wtLibsOptions.dataModelOptions.provider) {
+  if (!config.wtLibsOptions.onChainDataOptions.provider) {
     throw new Error('ETH_NETWORK_PROVIDER not set');
   }
-  config.wtLibs[segment] = WtJsLibs.createInstance({
-    segment: segment,
-    dataModelOptions: { provider: config.wtLibsOptions.dataModelOptions.provider },
+  config.wtLibs = WtJsLibs.createInstance({
+    onChainDataOptions: { provider: config.wtLibsOptions.onChainDataOptions.provider },
     offChainDataOptions: config.wtLibsOptions.offChainDataOptions,
-    networkSetup: config.wtLibsOptions.networkSetup,
   });
 }
 

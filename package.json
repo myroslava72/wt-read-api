@@ -55,7 +55,8 @@
     "swagger-model-validator": "^3.0.10",
     "swagger-ui-express": "^4.0.0",
     "winston": "^3.0.0",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "web3-utils": "1.0.0-beta.36"
   },
   "devDependencies": {
     "@windingtree/wt-contracts": "^0.6.1",

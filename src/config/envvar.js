@@ -41,7 +41,7 @@ module.exports = {
   baseUrl: process.env.BASE_URL,
   ethNetwork: process.env.ETH_NETWORK_NAME,
   wtLibsOptions: {
-    dataModelOptions: {
+    onChainDataOptions: {
       provider: process.env.ETH_NETWORK_PROVIDER,
     },
     offChainDataOptions: {

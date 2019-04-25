@@ -10,7 +10,7 @@ module.exports = {
   },
   ethNetwork: 'test',
   wtLibsOptions: {
-    dataModelOptions: {
+    onChainDataOptions: {
       provider: 'http://localhost:8545',
     },
     offChainDataOptions: {
