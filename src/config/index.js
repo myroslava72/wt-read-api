@@ -40,6 +40,7 @@ for (let segment of process.env.WT_SEGMENTS.split(',')) {
   config.wtLibs = WtJsLibs.createInstance({
     onChainDataOptions: { provider: config.wtLibsOptions.onChainDataOptions.provider },
     offChainDataOptions: config.wtLibsOptions.offChainDataOptions,
+    trustClueOptions: config.wtLibsOptions.trustClueOptions,
   });
 }
 

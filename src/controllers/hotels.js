@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const wtJsLibs = require('../services/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
 const { DataFormatValidator } = require('../services/validation');
@@ -195,7 +196,12 @@ const find = async (req, res, next) => {
         next(e);
       }
     }
-    return res.status(200).json(resolvedHotel);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.managerAddress);
+    if (passesTrustworthinessTest) {
+      return res.status(200).json(resolvedHotel);
+    } else {
+      return next(new Http404Error('hotelNotFound', 'Hotel not found'));
+    }
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
   }

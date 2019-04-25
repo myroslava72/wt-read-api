@@ -1,6 +1,6 @@
 const Web3Utils = require('web3-utils');
-const wtJsLibs = require('../services/wt-js-libs');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const wtJsLibs = require('../services/wt-js-libs');
 const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
   HttpValidationError, HttpForbiddenError,

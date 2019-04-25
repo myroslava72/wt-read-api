@@ -4,7 +4,12 @@ const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
-const { deployHotelIndex, deployFullHotel, deployAirlineIndex, deployFullAirline } = require('../../management/local-network');
+const CuratedListTrustClue = require('@windingtree/trust-clue-curated-list').default;
+
+const { deployHotelIndex, deployFullHotel,
+  deployAirlineIndex, deployFullAirline,
+  deployCuratedListTrustClue,
+} = require('../../management/local-network');
 const { getSchemaVersion } = require('../../test/utils/schemas');
 const {
   HOTEL_DESCRIPTION,
@@ -16,6 +21,7 @@ const {
 } = require('../../test/utils/test-data');
 
 const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
+const web3ProviderAddress = 'http://localhost:8545';
 
 module.exports = {
   port: 3000,
@@ -27,7 +33,7 @@ module.exports = {
   ethNetwork: 'local',
   wtLibsOptions: {
     onChainDataOptions: {
-      provider: 'http://localhost:8545',
+      provider: web3ProviderAddress,
     },
     offChainDataOptions: {
       adapters: {
@@ -48,6 +54,21 @@ module.exports = {
         https: {
           create: () => {
             return new HttpAdapter();
+          },
+        },
+      },
+    },
+    trustClueOptions: {
+      clues: {
+        'curated-list': {
+          options: {
+            provider: web3ProviderAddress,
+          },
+          create: async (options) => {
+            const curatedList = await deployCuratedListTrustClue();
+            return new CuratedListTrustClue(Object.assign(options, {
+              address: curatedList.address,
+            }));
           },
         },
       },

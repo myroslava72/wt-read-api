@@ -20,9 +20,26 @@ async function getWTAirlineIndex () {
   return wtLibsInstance.getWTIndex(AIRLINE_SEGMENT_ID, config.wtIndexAddresses[AIRLINE_SEGMENT_ID]);
 }
 
+function getTrustClueClient () {
+  const wtLibsInstance = getInstance();
+  return wtLibsInstance.getTrustClueClient();
+}
+
+// 0x87265a62c60247f862b9149423061b36b460f4bb responds with true for dev-net
+async function passesTrustworthinessTest (address) {
+  const wtLibsInstance = getInstance();
+  const trustClueClient = wtLibsInstance.getTrustClueClient();
+  const trustworthinessTestResults = await trustClueClient.interpretAllValues(address);
+  return trustworthinessTestResults
+    .map((v) => v.value === true)
+    .indexOf(false) === -1;
+}
+
 module.exports = {
   getInstance,
   getWTHotelIndex,
   getWTAirlineIndex,
+  getTrustClueClient,
+  passesTrustworthinessTest,
   _setIndexAddress,
 };
