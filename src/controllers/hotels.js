@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
@@ -99,8 +100,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
             'hotel',
             fields.mapped
           );
-          delete resolvedHotelObject.dataFormatVersion;
-          realItems.push(resolvedHotelObject);
+          realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
         }).catch((e) => {
           if (e instanceof HttpValidationError) {
             hotel = {
@@ -121,8 +121,8 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     })());
   }
   await Promise.all(promises);
-
-  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  const clientFields = _.xor(fields.mapped, fields.toDrop).join(',');
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
@@ -130,7 +130,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -181,7 +181,7 @@ const find = async (req, res, next) => {
         'hotel',
         fields.mapped
       );
-      delete resolvedHotel.dataFormatVersion;
+      resolvedHotel = _.omit(resolvedHotel, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);

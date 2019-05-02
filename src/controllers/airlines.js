@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
@@ -120,8 +121,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
             'airline',
             fields.mapped,
           );
-          delete resolvedAirlineObject.dataFormatVersion;
-          realItems.push(resolvedAirlineObject);
+          realItems.push(_.omit(resolvedAirlineObject, fields.toDrop));
         })
         .catch((e) => {
           if (e instanceof HttpValidationError) {
@@ -143,7 +143,8 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
     })());
   }
   await Promise.all(promises);
-  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  const clientFields = _.xor(fields.mapped, fields.toDrop).join(',');
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillAirlineList(path, fields, airlines, limit - realItems.length, nextStart);
@@ -151,7 +152,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -203,7 +204,7 @@ const find = async (req, res, next) => {
         'airline',
         fields.mapped
       );
-      delete resolvedAirline.dataFormatVersion;
+      resolvedAirline = _.omit(resolvedAirline, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);

@@ -100,6 +100,7 @@ paths:
                 - category
                 - contacts
                 - currency
+                - dataFormatVersion
                 - dataUri
                 - defaultCancellationAmount
                 - defaultLocale
@@ -194,6 +195,7 @@ paths:
                 - category
                 - contacts
                 - currency
+                - dataFormatVersion
                 - dataUri
                 - defaultCancellationAmount
                 - defaultLocale

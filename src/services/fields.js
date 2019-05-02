@@ -1,5 +1,6 @@
 const YAML = require('yamljs');
 const path = require('path');
+const _ = require('lodash');
 const {
   mapAirlineFieldsFromQuery,
   mapHotelFieldsFromQuery,
@@ -46,10 +47,8 @@ const AIRLINE_ONCHAIN_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airlin
 const AIRLINE_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDescriptionBase');
 const AIRLINE_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
 
-const _calculateFields = (fields, defaults, mappingSpec, onChainFieldsSpec, descriptionFieldsSpec, dataUriFieldsSpec) => {
-  fields = fields || defaults;
-  const fieldsArray = Array.isArray(fields) ? fields : fields.split(',');
-  const mappedFields = mappingSpec(fieldsArray);
+const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descriptionFieldsSpec = [], dataUriFieldsSpec = [], toDropSpec = []) => {
+  const mappedFields = mappingSpec(fields);
   return {
     mapped: mappedFields,
     onChain: mappedFields.map((f) => onChainFieldsSpec.indexOf(f) > -1 ? f : null).filter((f) => !!f),
@@ -66,28 +65,35 @@ const _calculateFields = (fields, defaults, mappingSpec, onChainFieldsSpec, desc
       }
       return null;
     }).filter((f) => !!f),
+    toDrop: mappedFields.map((f) => toDropSpec.indexOf(f) > -1 ? f : null).filter((f) => !!f),
   };
 };
 
 const _airlineFields = (fields, defaults) => {
+  fields = fields || defaults;
+  const fieldsArray = Array.isArray(fields) ? fields : fields.split(',');
+  const required = ['dataFormatVersion'];
   return _calculateFields(
-    fields,
-    defaults,
+    _.uniq(fieldsArray.concat(required)),
     mapAirlineFieldsFromQuery,
     AIRLINE_ONCHAIN_FIELDS,
     AIRLINE_DESCRIPTION_FIELDS,
-    AIRLINE_DATAURI_FIELDS
+    AIRLINE_DATAURI_FIELDS,
+    required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };
 
 const _hotelFields = (fields, defaults) => {
+  fields = fields || defaults;
+  const fieldsArray = Array.isArray(fields) ? fields : fields.split(',');
+  const required = ['dataFormatVersion'];
   return _calculateFields(
-    fields,
-    defaults,
+    _.uniq(fieldsArray.concat(required)),
     mapHotelFieldsFromQuery,
     HOTEL_ONCHAIN_FIELDS,
     HOTEL_DESCRIPTION_FIELDS,
-    HOTEL_DATAURI_FIELDS
+    HOTEL_DATAURI_FIELDS,
+    required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };
 

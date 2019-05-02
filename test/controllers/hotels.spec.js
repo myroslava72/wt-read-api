@@ -378,22 +378,6 @@ describe('Hotels', function () {
         })
         .expect(404);
     });
-
-    it('should not touch off-chain data if only on-chain data is requested', async () => {
-      const niceHotel = new FakeNiceHotel();
-      const toPlainObjectSpy = sinon.spy(niceHotel, 'toPlainObject');
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getAllHotels: sinon.stub().resolves([niceHotel, new FakeHotelWithBadOnChainData()]),
-      });
-      await request(server)
-        .get('/hotels?limit=1&fields=id')
-        .set('content-type', 'application/json')
-        .set('accept', 'application/json')
-        .expect((res) => {
-          expect(toPlainObjectSpy.callCount).to.be.eql(0);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
-        });
-    });
   });
 
   describe('GET /hotels/:hotelAddress', () => {
@@ -422,6 +406,17 @@ describe('Hotels', function () {
         .expect(200)
         .expect((res) => {
           expect(res.body).to.have.all.keys(defaultHotelFields);
+        });
+    });
+
+    it('should not break down when no off-chain data is requested', async () => {
+      await request(server)
+        .get(`/hotels/${address}?fields=manager`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.not.have.property(VALIDATION_WARNING_HEADER);
         });
     });
 

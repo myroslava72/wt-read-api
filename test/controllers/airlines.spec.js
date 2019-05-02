@@ -450,22 +450,6 @@ describe('Airlines', function () {
         })
         .expect(404);
     });
-
-    it('should not touch off-chain data if only on-chain data is requested', async () => {
-      const niceAirline = new FakeNiceAirline();
-      const toPlainObjectSpy = sinon.spy(niceAirline, 'toPlainObject');
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([niceAirline, new FakeAirlineWithBadOnChainData()]),
-      });
-      await request(server)
-        .get('/airlines?limit=1&fields=id')
-        .set('content-type', 'application/json')
-        .set('accept', 'application/json')
-        .expect((res) => {
-          expect(toPlainObjectSpy.callCount).to.be.eql(0);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
-        });
-    });
   });
 
   describe('GET /airlines/:airlineAddress', () => {
@@ -511,6 +495,17 @@ describe('Airlines', function () {
       address = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          expect(res.headers).to.not.have.property(VALIDATION_WARNING_HEADER);
+        });
+    });
+
+    it('should not break down when no off-chain data is requested', async () => {
+      await request(server)
+        .get(`/airlines/${address}?fields=id`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
