@@ -43,6 +43,7 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
       // Some offChainFields need special treatment
       const fieldModifiers = {
         'defaultLocale': (data, source, key) => { data[key] = source[key]; return data; },
+        'guarantee': (data, source, key) => { data[key] = source[key]; return data; },
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
         'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
@@ -196,12 +197,13 @@ const find = async (req, res, next) => {
         next(e);
       }
     }
-    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.managerAddress);
+    /* const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.managerAddress);
     if (passesTrustworthinessTest) {
       return res.status(200).json(resolvedHotel);
     } else {
       return next(new Http404Error('hotelNotFound', 'Hotel not found'));
-    }
+    } */
+    return res.status(200).json(resolvedHotel);
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
   }
@@ -218,6 +220,7 @@ const meta = async (req, res, next) => {
       availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
       dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
       defaultLocale: resolvedHotel.dataUri.contents.defaultLocale,
+      guarantee: resolvedHotel.dataUri.contents.guarantee,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));

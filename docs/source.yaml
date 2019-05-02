@@ -105,6 +105,7 @@ paths:
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
+                - guarantee
                 - id
                 - images
                 - location
@@ -200,6 +201,7 @@ paths:
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
+                - guarantee
                 - id
                 - images
                 - location
@@ -1113,6 +1115,8 @@ components:
           type: string
           format: semver
           maxLength: 20
+        guarantee:
+          $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/GuarantorMessage'
 
     Error:
       title: Error

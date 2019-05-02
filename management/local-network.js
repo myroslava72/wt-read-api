@@ -1,6 +1,6 @@
 const TruffleContract = require('truffle-contract');
 const Web3 = require('web3');
-const { WTHotelIndexContract, WTAirlineIndexContract } = require('@windingtree/wt-contracts');
+const { WTHotelIndexContract, AbstractHotelContract, WTAirlineIndexContract } = require('@windingtree/wt-contracts');
 const CuratedListContract = require('@windingtree/trust-clue-curated-list/build/contracts/CuratedList.json');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
@@ -28,6 +28,7 @@ const deployHotelIndex = async () => {
 };
 
 const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability) => {
+  const hotelContract = getContractWithProvider(AbstractHotelContract, provider);
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -50,7 +51,30 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
     from: accounts[0],
     gas: 6000000,
   });
-  return web3.utils.toChecksumAddress(registerResult.logs[0].args.hotel);
+  const address = web3.utils.toChecksumAddress(registerResult.logs[0].args.hotel);
+  const monthFromNow = new Date();
+  monthFromNow.setMonth(monthFromNow.getMonth() + 1);
+  const rawMessage = {
+    "sub": address,
+    "azp": accounts[0],
+    "iss": accounts[0],
+    "exp": monthFromNow.toISOString(),
+  };
+  const hexMessage = web3.utils.utf8ToHex(JSON.stringify(rawMessage));
+  const signature = await web3.eth.sign(hexMessage, accounts[0]);
+  indexFile.guarantee = {
+    message: hexMessage,
+    signature: signature,
+    proof: await web3.eth.sign(signature, accounts[0])
+  };
+  const dataUriWithGuarantee = await offChainDataAdapter.upload(indexFile);
+  const hotelContractInstance = await hotelContract.at(address);
+  const txData = hotelContractInstance.contract.methods.editInfo(dataUriWithGuarantee).encodeABI();
+  await index.callHotel(address, txData, {
+    from: accounts[0],
+    gas: 6000000,
+  })
+  return address;
 };
 
 const deployAirlineIndex = async () => {

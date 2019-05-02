@@ -775,6 +775,7 @@ describe('Hotels', function () {
           expect(res.body).to.have.property('availabilityUri');
           expect(res.body).to.have.property('dataFormatVersion', getSchemaVersion('@windingtree/wt-hotel-schemas'));
           expect(res.body).to.have.property('defaultLocale', 'en');
+          expect(res.body).to.have.property('guarantee');
           expect(res.body.dataUri).to.match(/^in-memory:\/\//);
           expect(res.body.descriptionUri).to.match(/^in-memory:\/\//);
           expect(res.body.ratePlansUri).to.match(/^in-memory:\/\//);

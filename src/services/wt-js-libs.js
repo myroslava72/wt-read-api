@@ -30,6 +30,7 @@ async function passesTrustworthinessTest (address) {
   const wtLibsInstance = getInstance();
   const trustClueClient = wtLibsInstance.getTrustClueClient();
   const trustworthinessTestResults = await trustClueClient.interpretAllValues(address);
+  console.log(trustworthinessTestResults);
   return trustworthinessTestResults
     .map((v) => v.value === true)
     .indexOf(false) === -1;

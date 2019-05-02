@@ -40,7 +40,7 @@
     "@windingtree/off-chain-adapter-http": "^3.0.0",
     "@windingtree/off-chain-adapter-in-memory": "^5.0.1",
     "@windingtree/off-chain-adapter-swarm": "^4.0.0",
-    "@windingtree/trust-clue-curated-list": "^0.2.0",
+    "@windingtree/trust-clue-curated-list": "^0.3.0",
     "@windingtree/wt-airline-schemas": "^0.6.6",
     "@windingtree/wt-hotel-schemas": "^0.6.6",
     "@windingtree/wt-js-libs": "^0.10.0",

@@ -4,7 +4,7 @@ const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
-const CuratedListTrustClue = require('@windingtree/trust-clue-curated-list').default;
+const { TrustClueCuratedList } = require('@windingtree/trust-clue-curated-list');
 
 const { deployHotelIndex, deployFullHotel,
   deployAirlineIndex, deployFullAirline,
@@ -66,7 +66,7 @@ module.exports = {
           },
           create: async (options) => {
             const curatedList = await deployCuratedListTrustClue();
-            return new CuratedListTrustClue(Object.assign(options, {
+            return new TrustClueCuratedList(Object.assign(options, {
               address: curatedList.address,
             }));
           },
