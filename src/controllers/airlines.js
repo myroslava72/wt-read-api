@@ -8,10 +8,10 @@ const {
   HttpBadGatewayError,
 } = require('../errors');
 const {
-  AIRLINE_FIELDS,
-  AIRLINE_DESCRIPTION_FIELDS,
-  DEFAULT_AIRLINES_FIELDS,
-  DEFAULT_AIRLINE_FIELDS,
+  calculateAirlineFields,
+  calculateAirlinesFields,
+} = require('../services/fields');
+const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   AIRLINE_SCHEMA_MODEL,
@@ -19,7 +19,6 @@ const {
 } = require('../constants');
 const {
   mapAirlineObjectToResponse,
-  mapAirlineFieldsFromQuery,
   REVERSED_AIRLINE_FIELD_MAPPING,
 } = require('../services/property-mapping');
 const {
@@ -100,37 +99,6 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
   return mapAirlineObjectToResponse(airlineData);
 };
 
-const calculateFields = (fieldsQuery) => {
-  const fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  const mappedFields = mapAirlineFieldsFromQuery(fieldsArray);
-  return {
-    mapped: mappedFields,
-    onChain: mappedFields.map((f) => {
-      if (AIRLINE_FIELDS.indexOf(f) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-    toFlatten: mappedFields.map((f) => {
-      let firstPart = f;
-      if (f.indexOf('.') > -1) {
-        firstPart = f.substring(0, f.indexOf('.'));
-      }
-      if (AIRLINE_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
-        return `descriptionUri.${f}`;
-      }
-      if ([
-        'flightsUri',
-        'notificationsUri',
-        'bookingUri',
-      ].indexOf(firstPart) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-  };
-};
-
 const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
@@ -200,12 +168,10 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
 // Actual controllers
 
 const findAll = async (req, res, next) => {
-  const { limit, startWith } = req.query;
-  const fieldsQuery = req.query.fields || DEFAULT_AIRLINES_FIELDS;
-
+  const { limit, startWith, fields } = req.query;
   try {
     let airlines = await res.locals.wt.airlineIndex.getAllAirlines();
-    const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateFields(fieldsQuery), airlines, limit, startWith);
+    const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateAirlinesFields(fields), airlines, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
@@ -220,8 +186,7 @@ const findAll = async (req, res, next) => {
 
 const find = async (req, res, next) => {
   try {
-    const fieldsQuery = req.query.fields || DEFAULT_AIRLINE_FIELDS;
-    const fields = calculateFields(fieldsQuery);
+    const fields = calculateAirlineFields(req.query.fields);
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields.mapped, REVERSED_AIRLINE_FIELD_MAPPING);
     let resolvedAirline;
     try {

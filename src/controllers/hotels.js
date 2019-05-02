@@ -8,10 +8,10 @@ const {
   HttpBadGatewayError,
 } = require('../errors');
 const {
-  HOTEL_FIELDS,
-  HOTEL_DESCRIPTION_FIELDS,
-  DEFAULT_HOTELS_FIELDS,
-  DEFAULT_HOTEL_FIELDS,
+  calculateHotelsFields,
+  calculateHotelFields,
+} = require('../services/fields');
+const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
@@ -19,7 +19,6 @@ const {
 } = require('../constants');
 const {
   mapHotelObjectToResponse,
-  mapHotelFieldsFromQuery,
   REVERSED_HOTEL_FIELD_MAPPING,
 } = require('../services/property-mapping');
 const {
@@ -77,39 +76,6 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
     };
   }
   return mapHotelObjectToResponse(hotelData);
-};
-
-const calculateFields = (fieldsQuery) => {
-  const fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  const mappedFields = mapHotelFieldsFromQuery(fieldsArray);
-  return {
-    mapped: mappedFields,
-    onChain: mappedFields.map((f) => {
-      if (HOTEL_FIELDS.indexOf(f) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-    toFlatten: mappedFields.map((f) => {
-      let firstPart = f;
-      if (f.indexOf('.') > -1) {
-        firstPart = f.substring(0, f.indexOf('.'));
-      }
-      if (HOTEL_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
-        return `descriptionUri.${f}`;
-      }
-      if ([
-        'ratePlansUri',
-        'availabilityUri',
-        'notificationsUri',
-        'bookingUri',
-        'defaultLocale',
-      ].indexOf(firstPart) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-  };
 };
 
 const fillHotelList = async (path, fields, hotels, limit, startWith) => {
@@ -179,14 +145,11 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
 };
 
 // Actual controllers
-
 const findAll = async (req, res, next) => {
-  const { limit, startWith } = req.query;
-  const fieldsQuery = req.query.fields || DEFAULT_HOTELS_FIELDS;
-
+  const { limit, startWith, fields } = req.query;
   try {
     let hotels = await res.locals.wt.hotelIndex.getAllHotels();
-    const { items, warnings, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
+    const { items, warnings, errors, next } = await fillHotelList(req.path, calculateHotelsFields(fields), hotels, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
@@ -201,8 +164,7 @@ const findAll = async (req, res, next) => {
 
 const find = async (req, res, next) => {
   try {
-    const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
-    const fields = calculateFields(fieldsQuery);
+    const fields = calculateHotelFields(req.query.fields);
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields.mapped, REVERSED_HOTEL_FIELD_MAPPING);
     let resolvedHotel;
     try {
