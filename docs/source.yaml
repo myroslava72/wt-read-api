@@ -527,20 +527,23 @@ paths:
             items:
               type: string
               enum:
-                - id
-                - name
+                - bookingUri
+                - cancellationPolicies
+                - code
+                - contacts
+                - currency
+                - dataFormatVersion
+                - dataUri
+                - defaultCancellationAmount
                 - description
                 - flights
                 - flights.items.flightInstances
-                - code
-                - contacts
-                - updatedAt
-                - defaultCancellationAmount
-                - currency
+                - id
                 - managerAddress
-                - cancellationPolicies
+                - name
                 - notificationsUri
-                - bookingUri
+                - operator
+                - updatedAt
       responses:
         '200':
           description: >-
@@ -607,20 +610,23 @@ paths:
                 - currency
                 - updatedAt
               enum:
-                - id
-                - name
+                - bookingUri
+                - cancellationPolicies
+                - code
+                - contacts
+                - currency
+                - dataFormatVersion
+                - dataUri
+                - defaultCancellationAmount
                 - description
                 - flights
                 - flights.items.flightInstances
-                - code
-                - contacts
-                - updatedAt
-                - defaultCancellationAmount
-                - currency
+                - id
                 - managerAddress
-                - cancellationPolicies
+                - name
                 - notificationsUri
-                - bookingUri
+                - operator
+                - updatedAt
       responses:
         '200':
           description: Airline object
