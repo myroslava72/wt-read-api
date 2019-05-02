@@ -119,13 +119,12 @@ describe('Fields', function () {
         'defaultLocale',
       ], []);
       expect(fields.onChain.length).to.be.eql(0);
-      expect(fields.toFlatten.length).to.be.eql(6);
+      expect(fields.toFlatten.length).to.be.eql(5);
       expect(fields.toFlatten[0]).to.be.eql('ratePlansUri');
       expect(fields.toFlatten[1]).to.be.eql('availabilityUri');
       expect(fields.toFlatten[2]).to.be.eql('notificationsUri');
       expect(fields.toFlatten[3]).to.be.eql('bookingUri');
       expect(fields.toFlatten[4]).to.be.eql('defaultLocale');
-      expect(fields.toFlatten[5]).to.be.eql('guarantee');
     });
 
     it('should drop unknown fields', () => {
