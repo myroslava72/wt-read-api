@@ -117,7 +117,6 @@ describe('Fields', function () {
         'notificationsUri',
         'bookingUri',
         'defaultLocale',
-        'guarantee',
       ], []);
       expect(fields.onChain.length).to.be.eql(0);
       expect(fields.toFlatten.length).to.be.eql(6);
