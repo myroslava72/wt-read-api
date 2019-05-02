@@ -92,22 +92,31 @@ paths:
             items:
               type: string
               enum:
-                - id
-                - name
-                - description
-                - location
-                - contacts
                 - address
-                - roomTypes
-                - timezone
-                - currency
-                - images
                 - amenities
-                - managerAddress
-                - updatedAt
-                - cancellationPolicies
-                - notificationsUri
+                - availability
                 - bookingUri
+                - cancellationPolicies
+                - category
+                - contacts
+                - currency
+                - dataUri
+                - defaultCancellationAmount
+                - defaultLocale
+                - description
+                - id
+                - images
+                - location
+                - managerAddress
+                - name
+                - notificationsUri
+                - operator
+                - ratePlans
+                - roomTypes
+                - spokenLanguages
+                - tags
+                - timezone
+                - updatedAt
       responses:
         '200':
           description: >-
@@ -177,24 +186,31 @@ paths:
                 - amenities
                 - updatedAt
               enum:
-                - id
-                - name
-                - description
-                - location
-                - contacts
                 - address
-                - roomTypes
-                - timezone
-                - currency
-                - images
                 - amenities
-                - managerAddress
-                - updatedAt
-                - cancellationPolicies
-                - ratePlans
                 - availability
-                - notificationsUri
                 - bookingUri
+                - cancellationPolicies
+                - category
+                - contacts
+                - currency
+                - dataUri
+                - defaultCancellationAmount
+                - defaultLocale
+                - description
+                - id
+                - images
+                - location
+                - managerAddress
+                - name
+                - notificationsUri
+                - operator
+                - ratePlans
+                - roomTypes
+                - spokenLanguages
+                - tags
+                - timezone
+                - updatedAt
       responses:
         '200':
           description: Hotel object
