@@ -54,18 +54,16 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
   const address = web3.utils.toChecksumAddress(registerResult.logs[0].args.hotel);
   const monthFromNow = new Date();
   monthFromNow.setMonth(monthFromNow.getMonth() + 1);
-  const rawMessage = {
-    "sub": address,
-    "azp": accounts[0],
-    "iss": accounts[0],
-    "exp": monthFromNow.toISOString(),
+  const rawClaim = {
+    "hotel": address,
+    "guarantor": accounts[0],
+    "expiresAt": monthFromNow.getTime(),
   };
-  const hexMessage = web3.utils.utf8ToHex(JSON.stringify(rawMessage));
-  const signature = await web3.eth.sign(hexMessage, accounts[0]);
+  const hexClaim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
+  const signature = await web3.eth.sign(hexClaim, accounts[0]);
   indexFile.guarantee = {
-    message: hexMessage,
+    claim: hexClaim,
     signature: signature,
-    proof: await web3.eth.sign(signature, accounts[0])
   };
   const dataUriWithGuarantee = await offChainDataAdapter.upload(indexFile);
   const hotelContractInstance = await hotelContract.at(address);

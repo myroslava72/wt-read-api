@@ -59,6 +59,7 @@ module.exports = {
       },
     },
     trustClueOptions: {
+      provider: web3ProviderAddress,
       clues: {
         'curated-list': {
           options: {

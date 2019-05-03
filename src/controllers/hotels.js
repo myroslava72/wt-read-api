@@ -91,7 +91,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     promises.push((() => {
       let resolvedHotelObject;
       return resolveHotelObject(hotel, fields.toFlatten, fields.onChain)
-        .then((resolved) => {
+        .then(async (resolved) => {
           resolvedHotelObject = resolved;
           DataFormatValidator.validate(
             resolvedHotelObject,
@@ -102,7 +102,11 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
             'hotel',
             fields.mapped
           );
-          realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
+          const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotelObject.id, resolvedHotelObject.guarantee);
+          // silently remove all that does not pass the test
+          if (passesTrustworthinessTest) {
+            realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
+          }
         }).catch((e) => {
           if (e instanceof HttpValidationError) {
             hotel = {
@@ -183,6 +187,11 @@ const find = async (req, res, next) => {
         'hotel',
         fields.mapped
       );
+      const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.id, resolvedHotel.guarantee);
+      // If a hotel does not pass the test, it's like it never existed
+      if (!passesTrustworthinessTest) {
+        return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+      }
       resolvedHotel = _.omit(resolvedHotel, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {
@@ -197,14 +206,9 @@ const find = async (req, res, next) => {
         next(e);
       }
     }
-    /* const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.managerAddress);
-    if (passesTrustworthinessTest) {
-      return res.status(200).json(resolvedHotel);
-    } else {
-      return next(new Http404Error('hotelNotFound', 'Hotel not found'));
-    } */
     return res.status(200).json(resolvedHotel);
   } catch (e) {
+    // improve error handling
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
   }
 };

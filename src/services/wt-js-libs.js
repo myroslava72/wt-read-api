@@ -25,15 +25,28 @@ function getTrustClueClient () {
   return wtLibsInstance.getTrustClueClient();
 }
 
-// 0x87265a62c60247f862b9149423061b36b460f4bb responds with true for dev-net
-async function passesTrustworthinessTest (address) {
+async function passesTrustworthinessTest (hotelAddress, guarantee) {
   const wtLibsInstance = getInstance();
   const trustClueClient = wtLibsInstance.getTrustClueClient();
-  const trustworthinessTestResults = await trustClueClient.interpretAllValues(address);
-  console.log(trustworthinessTestResults);
-  return trustworthinessTestResults
-    .map((v) => v.value === true)
-    .indexOf(false) === -1;
+  try {
+    // 1. decode guarantor from guarantee
+    const data = trustClueClient.verifyAndDecodeSignedData(guarantee.claim, guarantee.signature, 'guarantor');
+    if (hotelAddress !== data.hotel) {
+      throw new Error(`Guarantee seems to be for a different hotel at ${data.hotel}.`);
+    }
+    if ((new Date()).getTime() > data.expiresAt) {
+      throw new Error(`Guarantee expired at ${new Date(data.expiresAt)}`);
+    }
+    // 2. check guarantors trust levels
+    const trustworthinessTestResults = await trustClueClient.interpretAllValues(data.guarantor);
+    // 3. return single boolean value - this expects all clues to have interpret function that returns boolean
+    return trustworthinessTestResults
+      .map((v) => v.value === true)
+      .indexOf(false) === -1;
+  } catch (e) {
+    config.logger.warn(`Cannot establish trust level for '${hotelAddress}': ${e.toString()}`);
+    return false;
+  }
 }
 
 module.exports = {
