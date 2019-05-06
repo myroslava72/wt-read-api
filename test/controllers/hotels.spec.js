@@ -22,6 +22,7 @@ const {
 } = require('../../src/constants');
 const {
   FakeNiceHotel,
+  FakeNotTrustworthyHotel,
   FakeHotelWithBadOnChainData,
   FakeHotelWithBadOffChainData,
   FakeOldFormatHotel,
@@ -73,6 +74,23 @@ describe('Hotels', function () {
           expect(items[1]).to.have.property('id', hotel1address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('location');
+        });
+    });
+
+    it('should not return hotels that do not pass the trustworthiness test', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+        getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeNotTrustworthyHotel()]),
+      });
+      await request(server)
+        .get('/hotels')
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(200)
+        .expect((res) => {
+          const { items, errors } = res.body;
+          expect(items.length).to.be.eql(1);
+          expect(errors.length).to.be.eql(0);
+          wtJsLibsWrapper.getWTHotelIndex.restore();
         });
     });
 
@@ -669,6 +687,21 @@ describe('Hotels', function () {
         });
     });
 
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+        getHotel: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
+      });
+
+      await request(server)
+        .get(`/hotels/${address}`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404)
+        .expect((res) => {
+          wtJsLibsWrapper.getWTHotelIndex.restore();
+        });
+    });
+
     it('should return 502 when on-chain data is inaccessible', async () => {
       sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
         getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
@@ -761,14 +794,18 @@ describe('Hotels', function () {
   });
 
   describe('GET /hotels/:hotelAddress/meta', () => {
+    let address;
+    beforeEach(async () => {
+      address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+    });
+
     it('should return all fields', async () => {
-      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
       await request(server)
-        .get(`/hotels/${hotel}/meta`)
+        .get(`/hotels/${address}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.property('address', hotel);
+          expect(res.body).to.have.property('address', address);
           expect(res.body).to.have.property('dataUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('ratePlansUri');
@@ -784,14 +821,29 @@ describe('Hotels', function () {
         .expect(200);
     });
 
-    it('should not return unspecified optional fields', async () => {
-      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION);
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+        getHotel: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
+      });
+
       await request(server)
-        .get(`/hotels/${hotel}/meta`)
+        .get(`/hotels/${address}/meta`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404)
+        .expect((res) => {
+          wtJsLibsWrapper.getWTHotelIndex.restore();
+        });
+    });
+
+    it('should not return unspecified optional fields', async () => {
+      const address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION);
+      await request(server)
+        .get(`/hotels/${address}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.property('address', hotel);
+          expect(res.body).to.have.property('address', address);
           expect(res.body).to.have.property('dataUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('dataFormatVersion', getSchemaVersion('@windingtree/wt-hotel-schemas'));

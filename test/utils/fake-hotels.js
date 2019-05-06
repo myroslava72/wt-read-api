@@ -1,5 +1,23 @@
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const Web3 = require('web3');
 const { getSchemaVersion } = require('./schemas');
+
+const provider = new Web3.providers.HttpProvider('http://localhost:8545');
+const web3 = new Web3(provider);
+
+const getGuarantee = async (address, time, accountIdx = 0) => {
+  const accounts = await web3.eth.getAccounts();
+  const rawClaim = {
+    'hotel': address,
+    'guarantor': accounts[accountIdx],
+    'expiresAt': time.getTime(),
+  };
+  const claim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
+  return {
+    claim: claim,
+    signature: await web3.eth.sign(claim, accounts[accountIdx]),
+  };
+};
 
 /**
  * Usage:
@@ -18,7 +36,10 @@ class FakeNiceHotel {
     this.address = `nice-hotel-${fakeHotelCounter}`;
     this.dataFormatVersion = getSchemaVersion('@windingtree/wt-hotel-schemas');
     this.descriptionUri = `nice-hotel-uri-${fakeHotelCounter++}`;
+    this.monthFromNow = new Date();
+    this.monthFromNow.setMonth(this.monthFromNow.getMonth() + 1);
   }
+
   get dataIndex () {
     return Promise.resolve({
       contents: {
@@ -34,27 +55,42 @@ class FakeNiceHotel {
       },
     });
   }
-  toPlainObject () {
+  
+  async toPlainObject () {
     return {
+      address: this.address,
       dataUri: {
         contents: {
           dataFormatVersion: this.dataFormatVersion,
+          guarantee: await getGuarantee(this.address, this.monthFromNow),
           descriptionUri: {
             ref: this.descriptionUri,
             contents: {
               name: 'nice hotel name',
               description: 'nice hotel desc',
-              contacts: [],
-              address: { road: '', houseNumber: '', city: '', countryCode: '' },
+              contacts: {
+                general: {
+                  email: 'me@home.com',
+                },
+              },
+              address: { road: 'Main', houseNumber: '1', city: 'Asgard', countryCode: 'USA' },
               timezone: '',
-              currency: '',
-              updatedAt: '',
+              currency: 'USD',
+              updatedAt: (new Date()).toISOString(),
               defaultCancellationAmount: 20,
             },
           },
         },
       },
     };
+  }
+}
+
+class FakeNotTrustworthyHotel extends FakeNiceHotel {
+  async toPlainObject () {
+    const data = await super.toPlainObject();
+    data.dataUri.contents.guarantee = await getGuarantee(this.address, this.monthFromNow, 1);
+    return data;
   }
 }
 
@@ -116,6 +152,7 @@ class FakeHotelWithBadOffChainData {
 
 module.exports = {
   FakeNiceHotel,
+  FakeNotTrustworthyHotel,
   FakeHotelWithBadOnChainData,
   FakeHotelWithBadOffChainData,
   FakeOldFormatHotel,

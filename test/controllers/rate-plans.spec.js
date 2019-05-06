@@ -116,6 +116,15 @@ describe('Rate plans', function () {
         .set('accept', 'application/json')
         .expect(404);
     });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/ratePlans`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
   });
 
   describe('GET /hotels/:hotelAddress/ratePlans/:ratePlanId', () => {
@@ -141,6 +150,15 @@ describe('Rate plans', function () {
       const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION);
       await request(server)
         .get(`/hotels/${hotel}/ratePlans/rate-plan-0000`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/ratePlans/rate-plan-1`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);

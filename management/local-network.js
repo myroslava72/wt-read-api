@@ -27,7 +27,7 @@ const deployHotelIndex = async () => {
   return hotelIndex;
 };
 
-const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability) => {
+const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability, ownerAcountIdx = 0) => {
   const hotelContract = getContractWithProvider(AbstractHotelContract, provider);
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
@@ -48,7 +48,7 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
   const registerResult = await index.registerHotel(dataUri, {
-    from: accounts[0],
+    from: accounts[ownerAcountIdx],
     gas: 6000000,
   });
   const address = web3.utils.toChecksumAddress(registerResult.logs[0].args.hotel);
@@ -56,11 +56,11 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
   monthFromNow.setMonth(monthFromNow.getMonth() + 1);
   const rawClaim = {
     "hotel": address,
-    "guarantor": accounts[0],
+    "guarantor": accounts[ownerAcountIdx],
     "expiresAt": monthFromNow.getTime(),
   };
   const hexClaim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
-  const signature = await web3.eth.sign(hexClaim, accounts[0]);
+  const signature = await web3.eth.sign(hexClaim, accounts[ownerAcountIdx]);
   indexFile.guarantee = {
     claim: hexClaim,
     signature: signature,
@@ -69,7 +69,7 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
   const hotelContractInstance = await hotelContract.at(address);
   const txData = hotelContractInstance.contract.methods.editInfo(dataUriWithGuarantee).encodeABI();
   await index.callHotel(address, txData, {
-    from: accounts[0],
+    from: accounts[ownerAcountIdx],
     gas: 6000000,
   })
   return address;

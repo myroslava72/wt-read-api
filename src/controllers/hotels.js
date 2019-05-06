@@ -216,6 +216,10 @@ const find = async (req, res, next) => {
 const meta = async (req, res, next) => {
   try {
     const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.address, resolvedHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     return res.status(200).json({
       address: resolvedHotel.address,
       dataUri: resolvedHotel.dataUri.ref,

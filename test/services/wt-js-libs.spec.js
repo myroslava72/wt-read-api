@@ -33,13 +33,11 @@ describe('WtJsLibs wrapper', () => {
       };
       config.wtLibs.getTrustClueClient = () => (baseTrustClueClient);
       warnLogStub = sinon.stub(config.logger, 'warn');
-      config.checkTrustClues = true;
     });
 
     afterEach(() => {
       config.wtLibs.getTrustClueClient = origGetTrustClueClient;
       config.logger.warn.restore();
-      config.checkTrustClues = false;
     });
 
     it('should always return true if no guarantee is required', async () => {

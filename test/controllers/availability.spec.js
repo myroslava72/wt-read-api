@@ -110,5 +110,14 @@ describe('Availability', function () {
         .set('accept', 'application/json')
         .expect(404);
     });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${address}/availability`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
   });
 });
