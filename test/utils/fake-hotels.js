@@ -102,11 +102,13 @@ class FakeOldFormatHotel extends FakeNiceHotel {
 }
 
 class FakeWrongFormatHotel extends FakeNiceHotel {
-  toPlainObject () {
+  async toPlainObject () {
     return {
       dataUri: {
         contents: {
+          address: this.address,
           dataFormatVersion: this.dataFormatVersion,
+          guarantee: await getGuarantee(this.address, this.monthFromNow),
           descriptionUri: {
             ref: this.descriptionUri,
             contents: {

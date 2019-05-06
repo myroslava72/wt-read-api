@@ -453,7 +453,7 @@ describe('Hotels', function () {
     });
 
     it('should not return validation warning when data differs in patch version', async () => {
-      let dataFormatVersion = '0.6.0';
+      let dataFormatVersion = '0.7.0';
       address = await deployFullHotel(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${address}`)

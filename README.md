@@ -83,11 +83,11 @@ These are:
 
 - `WT_CONFIG` - Which config will be used. Defaults to `dev`.
 - `WT_SEGMENTS` - Which segments will be enabled. Defaults to `hotels,airlines`.
-- `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
-- `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
+- `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory). Defaults to `false`.
+- `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm). Defaults to `true`.
 - `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
 - `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
-- `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
+- `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http). Defaults to `true`.
 - `WT_HOTEL_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTHotelIndex.sol)
 - `WT_AIRLINE_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTAirlineIndex.sol)
 - `PORT` - HTTP Port where the API will listen, defaults to 3000.
@@ -95,6 +95,8 @@ These are:
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
 - `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
 - `TRUST_CLUES_CHECK` - If trust clues should be evaluated for hotels. This may affect which data will be returned by the API. Defaults to `true`.
+- `TRUST_CLUES_CURATED_LIST_ADDRESS` - ETH Address of an instance of [Curated List Trust clue](https://github.com/windingtree/trust-clue-curated-list) if used as a trust clue.
+A local instance is automatically deployed if a `dev` config is used.
 
 For example the playground configuration can be emulated with the following command:
 
@@ -109,6 +111,7 @@ docker run -p 8080:3000 \
   -e ADAPTER_HTTPS=1 \
   -e ETH_NETWORK_NAME=ropsten \
   -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/v3/my-project-id \
+  -e TRUST_CLUES_CHECK=0 \
   windingtree/wt-read-api
 ```
 

@@ -43,7 +43,7 @@
     "@windingtree/trust-clue-curated-list": "^0.3.0",
     "@windingtree/wt-airline-schemas": "^0.6.6",
     "@windingtree/wt-hotel-schemas": "^0.7.0",
-    "@windingtree/wt-js-libs": "^0.10.0",
+    "@windingtree/wt-js-libs": "^0.11.0",
     "@windingtree/wt-shared-schemas": "^0.6.6",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",

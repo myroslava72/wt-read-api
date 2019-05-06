@@ -93,6 +93,14 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
       return resolveHotelObject(hotel, fields.toFlatten, fields.onChain)
         .then(async (resolved) => {
           resolvedHotelObject = resolved;
+          if (resolvedHotelObject.error) {
+            throw new HttpValidationError(resolvedHotelObject.error);
+          }
+          const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotelObject.id, resolvedHotelObject.guarantee);
+          // silently remove all that does not pass the test
+          if (!passesTrustworthinessTest) {
+            return;
+          }
           DataFormatValidator.validate(
             resolvedHotelObject,
             HOTEL_SCHEMA_MODEL,
@@ -102,16 +110,12 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
             'hotel',
             fields.mapped
           );
-          const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotelObject.id, resolvedHotelObject.guarantee);
-          // silently remove all that does not pass the test
-          if (passesTrustworthinessTest) {
-            realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
-          }
+          realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
         }).catch((e) => {
           if (e instanceof HttpValidationError) {
             hotel = {
               error: 'Upstream hotel data format validation failed: ' + e.toString(),
-              originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
+              originalError: e.data && e.data.errors && e.data.errors.length && e.data.errors.map((err) => { return err.toString(); }).join(';'),
               data: resolvedHotelObject,
             };
             if (e.data && e.data.valid) {
@@ -178,6 +182,11 @@ const find = async (req, res, next) => {
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
+      const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.id, resolvedHotel.guarantee);
+      // If a hotel does not pass the test, it's like it never existed
+      if (!passesTrustworthinessTest) {
+        return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+      }
       DataFormatValidator.validate(
         resolvedHotel,
         HOTEL_SCHEMA_MODEL,
@@ -187,11 +196,6 @@ const find = async (req, res, next) => {
         'hotel',
         fields.mapped
       );
-      const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.id, resolvedHotel.guarantee);
-      // If a hotel does not pass the test, it's like it never existed
-      if (!passesTrustworthinessTest) {
-        return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
-      }
       resolvedHotel = _.omit(resolvedHotel, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {

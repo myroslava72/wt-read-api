@@ -43,7 +43,7 @@ module.exports = {
         },
         'bzz-raw': {
           options: {
-            swarmProviderUrl: 'http://localhost:8500',
+            swarmProviderUrl: 'https://swarm.windingtree.com',
             timeoutRead: 500,
           },
           create: (options) => {
@@ -66,6 +66,7 @@ module.exports = {
           },
           create: async (options) => {
             const curatedList = await deployCuratedListTrustClue();
+            console.log(`Curated list deployed to ${curatedList.address}`);
             return new TrustClueCuratedList(Object.assign(options, {
               address: curatedList.address,
             }));

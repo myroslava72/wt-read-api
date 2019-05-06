@@ -1,6 +1,7 @@
 const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
+const { getTrustCluesConfig } = require('../services/trust-clues');
 
 const convertEnvVarToBoolean = (val, defaults) => {
   if (val === undefined) {
@@ -22,7 +23,7 @@ const convertEnvVarToBoolean = (val, defaults) => {
 
 const offChainAdapters = {};
 
-if (process.env.ADAPTER_IN_MEMORY) {
+if (convertEnvVarToBoolean(process.env.ADAPTER_IN_MEMORY, false)) {
   offChainAdapters['in-memory'] = {
     create: (options) => {
       return new InMemoryAdapter(options);
@@ -30,7 +31,7 @@ if (process.env.ADAPTER_IN_MEMORY) {
   };
 }
 
-if (process.env.ADAPTER_SWARM) {
+if (convertEnvVarToBoolean(process.env.ADAPTER_SWARM, true)) {
   offChainAdapters['bzz-raw'] = {
     options: {
       swarmProviderUrl: process.env.ADAPTER_SWARM_GATEWAY,
@@ -42,7 +43,7 @@ if (process.env.ADAPTER_SWARM) {
   };
 }
 
-if (process.env.ADAPTER_HTTPS) {
+if (convertEnvVarToBoolean(process.env.ADAPTER_HTTPS, true)) {
   offChainAdapters.https = {
     create: () => {
       return new HttpAdapter();
@@ -66,5 +67,8 @@ module.exports = {
     offChainDataOptions: {
       adapters: offChainAdapters,
     },
+    trustClueOptions: getTrustCluesConfig(process.env.ETH_NETWORK_PROVIDER, {
+      curatedListAddress: process.env.TRUST_CLUES_CURATED_LIST_ADDRESS,
+    }),
   },
 };
