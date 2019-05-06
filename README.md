@@ -94,6 +94,7 @@ These are:
 - `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
 - `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
+- `TRUST_CLUES_CHECK` - If trust clues should be evaluated for hotels. This may affect which data will be returned by the API. Defaults to `true`.
 
 For example the playground configuration can be emulated with the following command:
 

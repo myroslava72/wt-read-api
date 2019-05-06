@@ -9,6 +9,7 @@ module.exports = {
     airlines: 'will-be-set-during-init',
   },
   ethNetwork: 'test',
+  checkTrustClues: false,
   wtLibsOptions: {
     onChainDataOptions: {
       provider: 'http://localhost:8545',

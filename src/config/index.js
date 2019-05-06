@@ -14,6 +14,7 @@ let config = Object.assign({
   port: process.env.PORT || 3000,
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
   wtLibs: {},
+  checkTrustClues: true,
   logger: winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
     transports: [

@@ -380,7 +380,7 @@ describe('Hotels', function () {
     });
   });
 
-  describe.only('GET /hotels/:hotelAddress', () => {
+  describe('GET /hotels/:hotelAddress', () => {
     let address;
     beforeEach(async () => {
       address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);

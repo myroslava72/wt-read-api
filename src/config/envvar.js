@@ -2,6 +2,24 @@ const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
+const convertEnvVarToBoolean = (val, defaults) => {
+  if (val === undefined) {
+    return defaults;
+  }
+  switch (val.toLowerCase().trim()) {
+  case '1':
+  case 'true':
+  case 'yes':
+    return true;
+  case '0':
+  case 'false':
+  case 'no':
+    return false;
+  default:
+    return defaults;
+  }
+};
+
 const offChainAdapters = {};
 
 if (process.env.ADAPTER_IN_MEMORY) {
@@ -40,6 +58,7 @@ module.exports = {
   port: process.env.PORT || 3000,
   baseUrl: process.env.BASE_URL,
   ethNetwork: process.env.ETH_NETWORK_NAME,
+  checkTrustClues: convertEnvVarToBoolean(process.env.TRUST_CLUES_CHECK, true),
   wtLibsOptions: {
     onChainDataOptions: {
       provider: process.env.ETH_NETWORK_PROVIDER,

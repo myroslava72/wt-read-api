@@ -3,7 +3,6 @@ const winston = require('winston');
 const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
-
 const { TrustClueCuratedList } = require('@windingtree/trust-clue-curated-list');
 
 const { deployHotelIndex, deployFullHotel,
