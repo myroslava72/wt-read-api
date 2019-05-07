@@ -43,7 +43,7 @@ module.exports = {
         },
         'bzz-raw': {
           options: {
-            swarmProviderUrl: 'https://swarm.windingtree.com',
+            swarmProviderUrl: 'http://localhost:8500',
             timeoutRead: 500,
           },
           create: (options) => {
