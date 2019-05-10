@@ -2,6 +2,8 @@ const TruffleContract = require('truffle-contract');
 const Web3 = require('web3');
 const { WTHotelIndexContract, AbstractHotelContract, WTAirlineIndexContract } = require('@windingtree/wt-contracts');
 const CuratedListContract = require('@windingtree/trust-clue-curated-list/build/contracts/CuratedList.json');
+const LifDepositContract = require('@windingtree/lif-deposit-curated-list/build/contracts/LifDeposit.json');
+const LifTokenContract = require('@windingtree/lif-token/build/contracts/LifToken.json');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
@@ -131,10 +133,40 @@ const deployCuratedListTrustClue = async () => {
   return curatedList;
 }
 
+const deployLifToken = async () => {
+  const depositContract = getContractWithProvider(LifTokenContract, provider);
+  const accounts = await web3.eth.getAccounts();
+  const curatedList = await depositContract.new('', {
+    from: accounts[0],
+    gas: 6000000,
+  });
+  await curatedList.addDeposit(Web3.utils.toWei('1', 'wei'), {
+    from: accounts[0],
+    gas: 6000000,
+  });
+  return curatedList;
+};
+
+const deployLifDepositTrustClue = async (lifTokenContract) => {
+  const depositContract = getContractWithProvider(LifDepositContract, provider);
+  const accounts = await web3.eth.getAccounts();
+  const curatedList = await depositContract.new(lifTokenContract.address, {
+    from: accounts[0],
+    gas: 6000000,
+  });
+  await curatedList.addDeposit(Web3.utils.toWei('1', 'wei'), {
+    from: accounts[0],
+    gas: 6000000,
+  });
+  return curatedList;
+};
+
 module.exports = {
   deployHotelIndex,
   deployFullHotel,
   deployAirlineIndex,
   deployFullAirline,
   deployCuratedListTrustClue,
+  deployLifToken,
+  deployLifDepositTrustClue,
 };
