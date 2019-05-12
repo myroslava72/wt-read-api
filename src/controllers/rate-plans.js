@@ -1,5 +1,6 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
+const wtJsLibs = require('../services/wt-js-libs');
 const { formatError } = require('../services/utils');
 const { config } = require('../config');
 const {
@@ -11,6 +12,10 @@ const {
 const findAll = async (req, res, next) => {
   try {
     let plainHotel = await res.locals.wt.hotel.toPlainObject(['ratePlansUri']);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     if (!plainHotel.dataUri.contents.ratePlansUri) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
@@ -57,6 +62,10 @@ const find = async (req, res, next) => {
   let { ratePlanId } = req.params;
   try {
     let plainHotel = await res.locals.wt.hotel.toPlainObject(['ratePlansUri']);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     if (!plainHotel.dataUri.contents.ratePlansUri) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }

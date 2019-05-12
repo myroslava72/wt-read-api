@@ -37,7 +37,7 @@ describe('Room types', function () {
 
   beforeEach(async () => {
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
+    wtLibsInstance = wtJsLibsWrapper.getInstance();
     indexContract = await deployHotelIndex();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
     address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
@@ -118,6 +118,15 @@ describe('Room types', function () {
             _compareRoomTypes(roomType, HOTEL_DESCRIPTION.roomTypes[i++]);
           }
         });
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
     });
 
     it('should return warning for old data format version', async () => {
@@ -220,6 +229,15 @@ describe('Room types', function () {
           expect(res.body).to.have.property('ratePlans');
           expect(res.body.ratePlans.length).to.be.eql(1);
         });
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
     });
 
     it('should return warning for old data format version', async () => {
@@ -327,6 +345,15 @@ describe('Room types', function () {
           expect(ratePlans.length).to.be.eql(1);
           expect(ratePlans[0]).to.have.property('id', 'rate-plan-1');
         });
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/ratePlans`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
     });
 
     it('should return empty object if no rate plans are associated', async () => {
@@ -462,6 +489,15 @@ describe('Room types', function () {
           expect(errors.length).to.be.eql(0);
           expect(warnings[0].msgLong).to.match(/^Unsupported data format version/);
         });
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${hotel}/roomTypes/room-type-1111/availability`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
     });
 
     it('should return error for invalid data', async () => {

@@ -1,9 +1,17 @@
+const Web3Utils = require('web3-utils');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const wtJsLibs = require('../services/wt-js-libs');
 const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
   HttpValidationError, HttpForbiddenError,
   HttpInternalError, Http404Error } = require('../errors');
+
+const isZeroAddress = (address) => {
+  if (!address || !Web3Utils.isAddress(address)) {
+    return true;
+  }
+  return String(address) === '0x0000000000000000000000000000000000000000';
+};
 
 const injectWtLibs = async (req, res, next) => {
   if (res.locals.wt) {
@@ -12,11 +20,9 @@ const injectWtLibs = async (req, res, next) => {
   let usedSegments = process.env.WT_SEGMENTS.split(',');
   let wt = {};
   if (usedSegments.indexOf(HOTEL_SEGMENT_ID) !== -1) {
-    wt.hotelInstance = wtJsLibs.getInstance(HOTEL_SEGMENT_ID);
     wt.hotelIndex = await wtJsLibs.getWTHotelIndex();
   }
   if (usedSegments.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
-    wt.airlineInstance = wtJsLibs.getInstance(AIRLINE_SEGMENT_ID);
     wt.airlineIndex = await wtJsLibs.getWTAirlineIndex();
   }
   res.locals.wt = wt;
@@ -25,9 +31,8 @@ const injectWtLibs = async (req, res, next) => {
 
 const validateHotelAddress = (req, res, next) => {
   const { hotelAddress } = req.params;
-  const { wt } = res.locals;
 
-  if (wt.hotelInstance.dataModel.web3Utils.isZeroAddress(hotelAddress) || !wt.hotelInstance.dataModel.web3Utils.checkAddressChecksum(hotelAddress)) {
+  if (isZeroAddress(hotelAddress) || !Web3Utils.checkAddressChecksum(hotelAddress)) {
     return next(new HttpValidationError('hotelChecksum', 'Given hotel address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for hotel address.'));
   }
   next();
@@ -35,8 +40,7 @@ const validateHotelAddress = (req, res, next) => {
 
 const validateAirlineAddress = (req, res, next) => {
   const { airlineAddress } = req.params;
-  const { wt } = res.locals;
-  if (wt.airlineInstance.dataModel.web3Utils.isZeroAddress(airlineAddress) || !wt.airlineInstance.dataModel.web3Utils.checkAddressChecksum(airlineAddress)) {
+  if (isZeroAddress(airlineAddress) || !Web3Utils.checkAddressChecksum(airlineAddress)) {
     return next(new HttpValidationError('airlineChecksum', 'Given airline address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for airline address.'));
   }
   next();

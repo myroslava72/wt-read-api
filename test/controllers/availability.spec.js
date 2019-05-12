@@ -26,7 +26,7 @@ describe('Availability', function () {
 
   beforeEach(async () => {
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance(HOTEL_SEGMENT_ID);
+    wtLibsInstance = wtJsLibsWrapper.getInstance();
     indexContract = await deployHotelIndex();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
     address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
@@ -106,6 +106,15 @@ describe('Availability', function () {
       let hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS);
       await request(server)
         .get(`/hotels/${hotel}/availability`)
+        .set('content-type', 'application/json')
+        .set('accept', 'application/json')
+        .expect(404);
+    });
+
+    it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
+      address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY, 1);
+      await request(server)
+        .get(`/hotels/${address}/availability`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);

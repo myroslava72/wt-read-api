@@ -9,7 +9,7 @@ module.exports = {
   baseUrl: 'https://playground-api.windingtree.com',
   ethNetwork: 'ropsten',
   wtLibsOptions: {
-    dataModelOptions: {
+    onChainDataOptions: {
       provider: process.env.ETH_NETWORK_PROVIDER,
     },
     offChainDataOptions: {

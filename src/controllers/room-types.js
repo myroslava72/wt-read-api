@@ -1,5 +1,6 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
+const wtJsLibs = require('../services/wt-js-libs');
 const { formatError } = require('../services/utils');
 const { config } = require('../config');
 const {
@@ -32,6 +33,7 @@ const getPlainHotel = async (hotel, fieldsArray) => {
   if (fieldsArray.indexOf('availability') > -1) {
     resolvedFields.push('availabilityUri');
   }
+  resolvedFields.push('guarantee');
   return hotel.toPlainObject(resolvedFields);
 };
 
@@ -63,6 +65,10 @@ const findAll = async (req, res, next) => {
   const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
     const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     const items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL);
@@ -109,6 +115,10 @@ const find = async (req, res, next) => {
   const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
     const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
@@ -148,7 +158,10 @@ const findRatePlans = async (req, res, next) => {
   let { roomTypeId } = req.params;
   try {
     let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['ratePlans']);
-    
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
@@ -200,7 +213,10 @@ const findAvailability = async (req, res, next) => {
   let { roomTypeId } = req.params;
   try {
     let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['availability']);
-    
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {

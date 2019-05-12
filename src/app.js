@@ -6,8 +6,7 @@ const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan');
 const cors = require('cors');
 const slash = require('express-slash');
-
-const app = express();
+const wtJsLibsWrapper = require('./services/wt-js-libs');
 const { config } = require('./config');
 const {
   AIRLINE_SEGMENT_ID,
@@ -20,6 +19,7 @@ const { version } = require('../package.json');
 const { hotelsRouter } = require('./routes/hotels');
 const { airlinesRouter } = require('./routes/airlines');
 
+const app = express();
 // No need to leak information and waste bandwith with this
 // header.
 app.disable('x-powered-by');
@@ -62,7 +62,8 @@ app.use(morgan(':remote-addr :remote-user [:date[clf]] :method :url HTTP/:http-v
 }));
 
 // Root handler
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  const trustClues = await wtJsLibsWrapper.getTrustClueClient().getMetadataForAllClues();
   const response = {
     docs: config.baseUrl + '/docs/',
     info: 'https://github.com/windingtree/wt-read-api/blob/master/README.md',
@@ -72,6 +73,9 @@ app.get('/', (req, res) => {
     ethNetwork: config.ethNetwork,
     dataFormatVersions: config.dataFormatVersions,
   };
+  if (config.checkTrustClues) {
+    response.trustClues = trustClues;
+  }
   res.status(200).json(response);
 });
 

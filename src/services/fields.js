@@ -86,7 +86,7 @@ const _airlineFields = (fields, defaults) => {
 const _hotelFields = (fields, defaults) => {
   fields = fields || defaults;
   const fieldsArray = Array.isArray(fields) ? fields : fields.split(',');
-  const required = ['dataFormatVersion'];
+  const required = ['dataFormatVersion', 'guarantee'];
   return _calculateFields(
     _.uniq(fieldsArray.concat(required)),
     mapHotelFieldsFromQuery,

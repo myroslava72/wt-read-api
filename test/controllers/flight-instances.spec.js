@@ -26,7 +26,7 @@ describe('Flight instances', function () {
 
   beforeEach(async () => {
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance(AIRLINE_SEGMENT_ID);
+    wtLibsInstance = wtJsLibsWrapper.getInstance();
     indexContract = await deployAirlineIndex();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
     address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);

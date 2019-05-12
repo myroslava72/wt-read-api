@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const wtJsLibs = require('../services/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
 const { DataFormatValidator } = require('../services/validation');
@@ -42,6 +43,7 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
       // Some offChainFields need special treatment
       const fieldModifiers = {
         'defaultLocale': (data, source, key) => { data[key] = source[key]; return data; },
+        'guarantee': (data, source, key) => { data[key] = source[key]; return data; },
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
         'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
@@ -89,8 +91,16 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     promises.push((() => {
       let resolvedHotelObject;
       return resolveHotelObject(hotel, fields.toFlatten, fields.onChain)
-        .then((resolved) => {
+        .then(async (resolved) => {
           resolvedHotelObject = resolved;
+          if (resolvedHotelObject.error) {
+            throw new HttpValidationError(resolvedHotelObject.error);
+          }
+          const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotelObject.id, resolvedHotelObject.guarantee);
+          // silently remove all that does not pass the test
+          if (!passesTrustworthinessTest) {
+            return;
+          }
           DataFormatValidator.validate(
             resolvedHotelObject,
             HOTEL_SCHEMA_MODEL,
@@ -105,7 +115,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
           if (e instanceof HttpValidationError) {
             hotel = {
               error: 'Upstream hotel data format validation failed: ' + e.toString(),
-              originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
+              originalError: e.data && e.data.errors && e.data.errors.length && e.data.errors.map((err) => { return err.toString(); }).join(';'),
               data: resolvedHotelObject,
             };
             if (e.data && e.data.valid) {
@@ -172,6 +182,11 @@ const find = async (req, res, next) => {
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
       }
+      const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.id, resolvedHotel.guarantee);
+      // If a hotel does not pass the test, it's like it never existed
+      if (!passesTrustworthinessTest) {
+        return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+      }
       DataFormatValidator.validate(
         resolvedHotel,
         HOTEL_SCHEMA_MODEL,
@@ -197,6 +212,7 @@ const find = async (req, res, next) => {
     }
     return res.status(200).json(resolvedHotel);
   } catch (e) {
+    // improve error handling
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
   }
 };
@@ -204,6 +220,10 @@ const find = async (req, res, next) => {
 const meta = async (req, res, next) => {
   try {
     const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.address, resolvedHotel.dataUri.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     return res.status(200).json({
       address: resolvedHotel.address,
       dataUri: resolvedHotel.dataUri.ref,
@@ -212,6 +232,7 @@ const meta = async (req, res, next) => {
       availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
       dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
       defaultLocale: resolvedHotel.dataUri.contents.defaultLocale,
+      guarantee: resolvedHotel.dataUri.contents.guarantee,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));

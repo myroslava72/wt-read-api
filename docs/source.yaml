@@ -47,15 +47,26 @@ paths:
                   dataFormatVersions:
                     description: Version number indicating the data format specification version the server expects from hotels.
                     type: object
+                    properties:
+                      airlines:
+                        type: string
+                        format: semver
+                        maxLength: 20
+                      hotels:
+                        type: string
+                        format: semver
+                        maxLength: 20
+                  trustClues:
+                    description: Lists all used trust clues and their metadata. Every clue contains name and description field, but it might contiain other fields depending on the clue.
+                    type: array
+                    items:
+                      type: object
                       properties:
-                        airlines:
+                        name:
                           type: string
-                          format: semver
-                          maxLength: 20
-                        hotels:
+                        description:
                           type: string
-                          format: semver
-                          maxLength: 20
+
   /hotels:
     get:
       summary: Lists hotels
@@ -105,6 +116,7 @@ paths:
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
+                - guarantee
                 - id
                 - images
                 - location
@@ -200,6 +212,7 @@ paths:
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
+                - guarantee
                 - id
                 - images
                 - location
@@ -1113,6 +1126,8 @@ components:
           type: string
           format: semver
           maxLength: 20
+        guarantee:
+          $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/GuarantorMessage'
 
     Error:
       title: Error
