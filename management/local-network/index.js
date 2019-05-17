@@ -1,9 +1,15 @@
-const { deployHotelIndex,
-  deployFullHotel } = require('./hotels');
-const { deployAirlineIndex,
-  deployFullAirline } = require('./airlines');
 const {
-  deployCuratedListTrustClue } = require('./trust-clues');
+  deployHotelIndex,
+  deployFullHotel
+} = require('./hotels');
+const {
+  deployAirlineIndex,
+  deployFullAirline
+} = require('./airlines');
+const {
+  deployCuratedListTrustClue,
+  deployLifDepositTrustClue
+} = require('./trust-clues');
 
 module.exports = {
   deployHotelIndex,
@@ -11,4 +17,5 @@ module.exports = {
   deployAirlineIndex,
   deployFullAirline,
   deployCuratedListTrustClue,
+  deployLifDepositTrustClue,
 };

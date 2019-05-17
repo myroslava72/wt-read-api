@@ -46,7 +46,12 @@ async function passesTrustworthinessTest (hotelAddress, guarantee) {
     const trustworthinessTestResults = await trustClueClient.interpretAllValues(data.guarantor);
     // 3. return single boolean value - this expects all clues to have interpret function that returns boolean
     return trustworthinessTestResults
-      .map((v) => v.value === true)
+      .map((v) => {
+        if (!v.value) {
+          console.warn(`Guarantor ${data.guarantor} for hotel ${data.hotel} does not pass ${v.name}`);
+        }
+        return v.value === true;
+      })
       .indexOf(false) === -1;
   } catch (e) {
     config.logger.warn(`Cannot establish trust level for '${hotelAddress}': ${e.toString()}`);

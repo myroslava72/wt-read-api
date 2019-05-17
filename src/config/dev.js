@@ -8,7 +8,7 @@ const { TrustClueLifDeposit } = require('@windingtree/trust-clue-lif-deposit');
 
 const { deployHotelIndex, deployFullHotel,
   deployAirlineIndex, deployFullAirline,
-  deployCuratedListTrustClue,
+  deployCuratedListTrustClue, deployLifDepositTrustClue,
 } = require('../../management/local-network');
 const { getSchemaVersion } = require('../../test/utils/schemas');
 const {
@@ -76,10 +76,13 @@ module.exports = {
         'lif-deposit': {
           options: {
             provider: web3ProviderAddress,
+            interpret: (v) => v.toNumber() > 10,
           },
           create: async (options) => {
+            const lifDeposit = await deployLifDepositTrustClue();
+            console.log(`LIF deposit deployed to ${lifDeposit.address}`);
             return new TrustClueLifDeposit(Object.assign(options, {
-              address: '0x0', // use trust-clue-lif-deposit to deploy ENS locally if needed
+              address: lifDeposit.address,
             }));
           },
         },
