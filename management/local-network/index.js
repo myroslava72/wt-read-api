@@ -1,14 +1,14 @@
 const {
   deployHotelIndex,
-  deployFullHotel
+  deployFullHotel,
 } = require('./hotels');
 const {
   deployAirlineIndex,
-  deployFullAirline
+  deployFullAirline,
 } = require('./airlines');
 const {
   deployCuratedListTrustClue,
-  deployLifDepositTrustClue
+  deployLifDepositTrustClue,
 } = require('./trust-clues');
 
 module.exports = {

@@ -4,7 +4,7 @@
   "description": " API to interact with the Winding Tree platform",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint src test",
+    "lint": "eslint src test management",
     "test": "rimraf .nyc_output && NODE_ENV=test WT_CONFIG=test ./test/utils/management/localtestnet.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start": "node ./src/index.js",

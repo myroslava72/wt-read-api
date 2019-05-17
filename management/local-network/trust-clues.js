@@ -3,7 +3,7 @@ const CuratedListContract = require('@windingtree/trust-clue-curated-list/build/
 const LifDeposit = require('@windingtree/trust-clue-lif-deposit/build/contracts/LifDeposit.json');
 const LifTokenTest = require('@windingtree/lif-token/build/contracts/LifTokenTest.json');
 const ENS = require('@ensdomains/ens/build/contracts/ENSRegistry.json');
-const PublicResolver = require( '@ensdomains/resolver/build/contracts/PublicResolver.json');
+const PublicResolver = require('@ensdomains/resolver/build/contracts/PublicResolver.json');
 const TestRegistrar = require('@ensdomains/ens/build/contracts/TestRegistrar.json');
 const namehash = require('eth-ens-namehash');
 
@@ -40,7 +40,7 @@ const setupEnsRegistry = async (ensContract, tokenContract) => {
   const resolverContract = getContractWithProvider(PublicResolver, provider);
   const registrarContract = getContractWithProvider(TestRegistrar, provider);
   const accounts = await web3.eth.getAccounts();
-  txOptions = {
+  const txOptions = {
     from: accounts[0],
     gas: 4700000,
   };
@@ -99,7 +99,7 @@ const deployLifDepositTrustClue = async () => {
   console.log(`LIF token with faucet deployed to ${lifToken.address}`);
   await setupEnsRegistry(ensRegistry, lifToken);
   return deployLifDeposit(lifToken, ensRegistry);
-}
+};
 
 module.exports = {
   deployCuratedListTrustClue,
