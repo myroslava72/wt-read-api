@@ -96,6 +96,7 @@ These are:
 - `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
 - `TRUST_CLUES_CHECK` - If trust clues should be evaluated for hotels. This may affect which data will be returned by the API. Defaults to `true`.
 - `TRUST_CLUES_CURATED_LIST_ADDRESS` - ETH Address of an instance of [Curated List Trust clue](https://github.com/windingtree/trust-clue-curated-list) if used as a trust clue.
+- `TRUST_CLUES_LIF_DEPOSIT_ADDRESS` - ETH Address of an instance of [Líf Deposit Trust clue](https://github.com/windingtree/trust-clue-lif-deposit) if used as a trust clue.
 A local instance is automatically deployed if a `dev` config is used.
 
 For example the playground configuration can be emulated with the following command:

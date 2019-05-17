@@ -4,7 +4,7 @@
   "description": " API to interact with the Winding Tree platform",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint src test",
+    "lint": "eslint src test management",
     "test": "rimraf .nyc_output && NODE_ENV=test WT_CONFIG=test ./test/utils/management/localtestnet.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "start": "node ./src/index.js",
@@ -41,6 +41,7 @@
     "@windingtree/off-chain-adapter-in-memory": "^5.0.1",
     "@windingtree/off-chain-adapter-swarm": "^4.0.0",
     "@windingtree/trust-clue-curated-list": "^0.4.0",
+    "@windingtree/trust-clue-lif-deposit": "^0.0.2",
     "@windingtree/wt-airline-schemas": "^0.6.6",
     "@windingtree/wt-hotel-schemas": "^0.7.0",
     "@windingtree/wt-js-libs": "^0.11.2",
@@ -60,6 +61,9 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@ensdomains/ens": "^0.3.5",
+    "@ensdomains/resolver": "^0.1.6",
+    "@windingtree/lif-token": "^0.1.2-erc827",
     "@windingtree/wt-contracts": "^0.6.1",
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
@@ -69,6 +73,7 @@
     "eslint-plugin-node": "^9.0.0",
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-standard": "^4.0.0",
+    "eth-ens-namehash": "^2.0.8",
     "ganache-cli": "^6.1.6",
     "mocha": "^6.0.0",
     "nyc": "^14.1.0",

@@ -4,10 +4,11 @@ const InMemoryAdapter = require('@windingtree/off-chain-adapter-in-memory');
 const SwarmAdapter = require('@windingtree/off-chain-adapter-swarm');
 const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 const { TrustClueCuratedList } = require('@windingtree/trust-clue-curated-list');
+const { TrustClueLifDeposit } = require('@windingtree/trust-clue-lif-deposit');
 
 const { deployHotelIndex, deployFullHotel,
   deployAirlineIndex, deployFullAirline,
-  deployCuratedListTrustClue,
+  deployCuratedListTrustClue, deployLifDepositTrustClue,
 } = require('../../management/local-network');
 const { getSchemaVersion } = require('../../test/utils/schemas');
 const {
@@ -69,6 +70,19 @@ module.exports = {
             console.log(`Curated list deployed to ${curatedList.address}`);
             return new TrustClueCuratedList(Object.assign(options, {
               address: curatedList.address,
+            }));
+          },
+        },
+        'lif-deposit': {
+          options: {
+            provider: web3ProviderAddress,
+            interpret: (v) => v.toNumber() > 10,
+          },
+          create: async (options) => {
+            const lifDeposit = await deployLifDepositTrustClue();
+            console.log(`LIF deposit deployed to ${lifDeposit.address}`);
+            return new TrustClueLifDeposit(Object.assign(options, {
+              address: lifDeposit.address,
             }));
           },
         },
