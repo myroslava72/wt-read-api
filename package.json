@@ -44,7 +44,7 @@
     "@windingtree/trust-clue-lif-deposit": "^0.0.2",
     "@windingtree/wt-airline-schemas": "^0.6.6",
     "@windingtree/wt-hotel-schemas": "^0.7.0",
-    "@windingtree/wt-js-libs": "^0.12.0",
+    "@windingtree/wt-js-libs": "^0.12.1",
     "@windingtree/wt-shared-schemas": "^0.6.6",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
