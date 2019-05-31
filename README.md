@@ -58,7 +58,7 @@ to WT_CONFIG variable at runtime.
 
 ```sh
 $ docker build -t windingtree/wt-read-api .
-$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground windingtree/wt-read-api
+$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node -e WT_CONFIG=playground windingtree/wt-read-api
 ```
 After that you can access the wt-read-api on local port `8080`. This deployment
 is using a Ropsten configuration that can be found in `src/config/playground.js`.
