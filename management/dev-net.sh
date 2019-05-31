@@ -16,7 +16,7 @@ cleanup() {
 ganache_port=8545
 
 ganache_running() {
-  nc -z localhost "$ganache_port"
+  netstat -a | grep ":$ganache_port" | grep -i listen
 }
 
 start_ganache() {
