@@ -35,15 +35,15 @@ for (let segment of process.env.WT_SEGMENTS.split(',')) {
   if (ACCEPTED_SEGMENTS.indexOf(segment) === -1) {
     throw new Error(`Unknown segment ${segment}.`);
   }
-  if (!config.wtLibsOptions.onChainDataOptions.provider) {
-    throw new Error('ETH_NETWORK_PROVIDER not set');
-  }
-  config.wtLibs = WtJsLibs.createInstance({
-    onChainDataOptions: { provider: config.wtLibsOptions.onChainDataOptions.provider },
-    offChainDataOptions: config.wtLibsOptions.offChainDataOptions,
-    trustClueOptions: config.wtLibsOptions.trustClueOptions,
-  });
 }
+if (!config.wtLibsOptions.onChainDataOptions.provider) {
+  throw new Error('ETH_NETWORK_PROVIDER not set');
+}
+config.wtLibs = WtJsLibs.createInstance({
+  onChainDataOptions: { provider: config.wtLibsOptions.onChainDataOptions.provider },
+  offChainDataOptions: config.wtLibsOptions.offChainDataOptions,
+  trustClueOptions: config.wtLibsOptions.trustClueOptions,
+});
 
 module.exports = {
   config,
