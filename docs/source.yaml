@@ -5,9 +5,9 @@ servers:
   - description: Localhost
     url: 'http://localhost:3000'
 info:
-  description: API for reading hotels from WT
+  description: API for reading inventory from Winding Tree platform
   version: 'will-be-set-at-runtime'
-  title: WT reading
+  title: WT Read API
 paths:
   /:
     get:
