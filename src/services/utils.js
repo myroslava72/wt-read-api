@@ -91,11 +91,11 @@ const flattenObject = (contents, fields) => {
         }
       } else {
         for (let key in contents) {
-          if (contents[key][field] !== undefined) {
+          if (contents[key] && contents[key][field] !== undefined) {
             if (!result[key]) {
               result[key] = {};
             }
-            result[key][field] = contents[key][field];
+            result[key][field] = contents[key] && contents[key][field];
           }
         }
       }
