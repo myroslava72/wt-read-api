@@ -63,7 +63,7 @@ const flattenObject = (contents, fields) => {
       // No specific children selected
       if (!currentFieldDef[field]) {
         // Differentiate between storage pointers and plain objects
-        result[field] = contents[field].contents ? contents[field].contents : contents[field];
+        result[field] = contents[field] && contents[field].contents ? contents[field].contents : contents[field];
       // Specific children selected
       } else {
         let searchSpace;
