@@ -7,7 +7,7 @@ const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
 const {
-  deployHotelIndex,
+  deployhotelDirectory,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -36,7 +36,7 @@ describe('Hotels', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployHotelIndex();
+    indexContract = await deployhotelDirectory();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
   });
 
@@ -78,7 +78,7 @@ describe('Hotels', function () {
     });
 
     it('should not return hotels that do not pass the trustworthiness test', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeNotTrustworthyHotel()]),
       });
       await request(server)
@@ -90,12 +90,12 @@ describe('Hotels', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(1);
           expect(errors.length).to.be.eql(0);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should return validation errors if they happen to individual hotels', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([new FakeOldFormatHotel(), new FakeWrongFormatHotel()]),
       });
       await request(server)
@@ -110,12 +110,12 @@ describe('Hotels', function () {
           expect(errors.length).to.be.eql(1);
           expect(warnings[0].originalError).to.match(/^Unsupported data format version/);
           expect(errors[0].originalError).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should return errors if they happen to individual hotels', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
       });
       await request(server)
@@ -127,12 +127,12 @@ describe('Hotels', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(1);
           expect(errors.length).to.be.eql(1);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid hotels', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -150,12 +150,12 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should not break when requesting much more hotels than actually available', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -173,12 +173,12 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should not provide next if all hotels are broken', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -198,13 +198,13 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(0);
           expect(errors.length).to.be.eql(6);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid hotels and provide valid next', async () => {
       const nextNiceHotel = new FakeNiceHotel();
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOffChainData(),
@@ -225,7 +225,7 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(4);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/hotels?limit=4&fields=id,location,name&startWith=${nextNiceHotel.address}`);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
@@ -319,7 +319,7 @@ describe('Hotels', function () {
 
     it('should properly transfer limit even if not in querystring', async () => {
       const nextNiceHotel = new FakeNiceHotel();
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
         getAllHotels: sinon.stub().resolves([
           new FakeHotelWithBadOnChainData(),
           new FakeHotelWithBadOnChainData(),
@@ -337,7 +337,7 @@ describe('Hotels', function () {
           expect(items.length).to.be.eql(30);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/hotels?limit=${DEFAULT_PAGE_SIZE}&fields=id,location,name&startWith=${nextNiceHotel.address}`);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
@@ -688,8 +688,8 @@ describe('Hotels', function () {
     });
 
     it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
       });
 
       await request(server)
@@ -698,13 +698,13 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(404)
         .expect((res) => {
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should return 502 when on-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
       });
 
       await request(server)
@@ -713,13 +713,13 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should return a warning when on-chain data is outdated', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeOldFormatHotel()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeOldFormatHotel()),
       });
 
       await request(server)
@@ -730,13 +730,13 @@ describe('Hotels', function () {
         .expect((res) => {
           expect(res.headers).to.have.property(VALIDATION_WARNING_HEADER);
           expect(res.headers[VALIDATION_WARNING_HEADER]).to.match(/^Unsupported data format version 0\.1\.0\./);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
     it('should return 502 when off-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
 
       await request(server)
@@ -745,7 +745,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
@@ -822,8 +822,8 @@ describe('Hotels', function () {
     });
 
     it('should return 404 for a hotel that does not pass the trustworthiness test', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeNotTrustworthyHotel()),
       });
 
       await request(server)
@@ -832,7 +832,7 @@ describe('Hotels', function () {
         .set('accept', 'application/json')
         .expect(404)
         .expect((res) => {
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 

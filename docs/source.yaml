@@ -32,15 +32,15 @@ paths:
                   config:
                     type: string
                     description: Which config is the API using. It might be useful to name configs after used ETH networks.
-                  wtIndexAddresses:
+                  directoryAddresses:
                     type: object
                     properties:
                       airlines:
                         type: string
-                        description: Ethereum address of used Winding Tree airline index.
+                        description: Ethereum address of used Winding Tree airline directory.
                       hotels:
                         type: string
-                        description: Ethereum address of used Winding Tree hotel index.
+                        description: Ethereum address of used Winding Tree hotel directory.
                   ethNetwork:
                     type: string
                     description: Name of the ethereum network against which this instance runs.
@@ -91,8 +91,8 @@ paths:
           in: query
           description: >
             List of fields to return with the hotel item. Selecting only `id`
-            field leads to fastest responses as all data are  trieved from
-            WTIndex only.
+            field leads to fastest responses as all data are retrieved from
+            directory only.
           required: false
           schema:
             default:
@@ -112,7 +112,7 @@ paths:
                 - contacts
                 - currency
                 - dataFormatVersion
-                - dataUri
+                - orgJsonUri
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
@@ -208,7 +208,7 @@ paths:
                 - contacts
                 - currency
                 - dataFormatVersion
-                - dataUri
+                - orgJsonUri
                 - defaultCancellationAmount
                 - defaultLocale
                 - description
@@ -529,7 +529,7 @@ paths:
           description: >
             List of fields to return with the airline item. Selecting only `id`
             field leads to fastest responses as all data are retrieved from
-            WTIndex only.
+            directory only.
           required: false
           schema:
             default:
@@ -546,7 +546,7 @@ paths:
                 - contacts
                 - currency
                 - dataFormatVersion
-                - dataUri
+                - orgJsonUri
                 - defaultCancellationAmount
                 - description
                 - flights
@@ -629,7 +629,7 @@ paths:
                 - contacts
                 - currency
                 - dataFormatVersion
-                - dataUri
+                - orgJsonUri
                 - defaultCancellationAmount
                 - description
                 - flights
@@ -992,8 +992,8 @@ components:
       title: Hotel data index fields that can be resolved in read api
       type: object
       properties:
-        dataUri:
-          description: URI of the Hotel data index (pointing off-chain)
+        orgJsonUri:
+          description: URI of the Hotel ORG.JSON (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         dataFormatVersion:
           description: Version number indicating the data format specification version.
@@ -1142,22 +1142,22 @@ components:
       description: Collection of identifiers required to look up hotel data
       required:
         - address
-        - dataUri
+        - orgJsonUri
       properties:
         address:
           description: Ethereum address of the hotel
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
-        dataUri:
-          description: URI of the Hotel data index (pointing off-chain)
+        orgJsonUri:
+          description: URI of the Hotel ORG.JSON (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         descriptionUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel description (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         ratePlansUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel rate plans (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         availabilityUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel availability (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         dataFormatVersion:
           description: Version number indicating the data format specification version.

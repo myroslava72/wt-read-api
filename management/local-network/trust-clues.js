@@ -102,6 +102,7 @@ const deployLifDepositTrustClue = async () => {
 };
 
 module.exports = {
+  deployLifToken,
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
 };

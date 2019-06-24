@@ -8,15 +8,19 @@ function getInstance () {
 }
 
 function _setIndexAddress (address, segment) {
-  config.wtIndexAddresses[segment] = address;
+  config.directoryAddresses[segment] = address;
 }
 
-async function getWTHotelIndex () {
-  return getInstance().getWTIndex(HOTEL_SEGMENT_ID, config.wtIndexAddresses[HOTEL_SEGMENT_ID]);
+async function getHotelDirectory () {
+  return getInstance().getDirectory(HOTEL_SEGMENT_ID, config.directoryAddresses[HOTEL_SEGMENT_ID]);
 }
 
-async function getWTAirlineIndex () {
-  return getInstance().getWTIndex(AIRLINE_SEGMENT_ID, config.wtIndexAddresses[AIRLINE_SEGMENT_ID]);
+async function getAirlineDirectory () {
+  return getInstance().getDirectory(AIRLINE_SEGMENT_ID, config.directoryAddresses[AIRLINE_SEGMENT_ID]);
+}
+
+async function getFactory(segment) {
+  return getInstance().getFactory(config.directoryAddresses[`${segment}Factory`]);
 }
 
 function getTrustClueClient () {
@@ -68,8 +72,9 @@ async function passesTrustworthinessTest (hotelAddress, guarantee) {
 
 module.exports = {
   getInstance,
-  getWTHotelIndex,
-  getWTAirlineIndex,
+  getFactory,
+  getHotelDirectory,
+  getAirlineDirectory,
   getTrustClueClient,
   passesTrustworthinessTest,
   _setIndexAddress,

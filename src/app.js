@@ -69,7 +69,7 @@ app.get('/', async (req, res) => {
     info: 'https://github.com/windingtree/wt-read-api/blob/master/README.md',
     version,
     config: process.env.WT_CONFIG,
-    wtIndexAddresses: config.wtIndexAddresses,
+    directoryAddresses: config.directoryAddresses,
     ethNetwork: config.ethNetwork,
     dataFormatVersions: config.dataFormatVersions,
   };

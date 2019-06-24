@@ -52,7 +52,7 @@ if (convertEnvVarToBoolean(process.env.ADAPTER_HTTPS, true)) {
 }
 
 module.exports = {
-  wtIndexAddresses: {
+  directoryAddresses: {
     hotels: process.env.WT_HOTEL_INDEX_ADDRESS,
     airlines: process.env.WT_AIRLINE_INDEX_ADDRESS,
   },

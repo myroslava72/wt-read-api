@@ -42,10 +42,10 @@
     "@windingtree/off-chain-adapter-swarm": "^4.0.0",
     "@windingtree/trust-clue-curated-list": "^0.4.0",
     "@windingtree/trust-clue-lif-deposit": "^0.0.2",
-    "@windingtree/wt-airline-schemas": "^0.6.6",
+    "@windingtree/wt-airline-schemas": "^0.7.0",
     "@windingtree/wt-hotel-schemas": "^0.7.0",
     "@windingtree/wt-js-libs": "^0.12.1",
-    "@windingtree/wt-shared-schemas": "^0.6.6",
+    "@windingtree/wt-shared-schemas": "^0.7.2",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
@@ -64,7 +64,7 @@
     "@ensdomains/ens": "^0.3.5",
     "@ensdomains/resolver": "^0.1.6",
     "@windingtree/lif-token": "^0.1.2-erc827",
-    "@windingtree/wt-contracts": "^0.6.1",
+    "@windingtree/wt-contracts": "^0.7.0",
     "chai": "^4.1.2",
     "coveralls": "^3.0.2",
     "eslint": "^5.2.0",
@@ -80,7 +80,8 @@
     "sinon": "^7.2.4",
     "supertest": "^4.0.2",
     "truffle-contract": "^4.0.19",
-    "web3": "1.0.0-beta.36"
+    "web3": "1.0.0-beta.36",
+    "zos-lib": "^2.3.1"
   },
   "engines": {
     "node": ">=10.0.0"

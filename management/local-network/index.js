@@ -3,10 +3,11 @@ const {
   deployFullHotel,
 } = require('./hotels');
 const {
-  deployAirlineIndex,
+  deployAirlineDirectory,
   deployFullAirline,
 } = require('./airlines');
 const {
+  deployLifToken,
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
 } = require('./trust-clues');
@@ -14,8 +15,9 @@ const {
 module.exports = {
   deployHotelIndex,
   deployFullHotel,
-  deployAirlineIndex,
+  deployAirlineDirectory,
   deployFullAirline,
+  deployLifToken,
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
 };

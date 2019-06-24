@@ -22,11 +22,11 @@ const getGuarantee = async (address, time, accountIdx = 0) => {
 /**
  * Usage:
  * const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
- * sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
- *   getHotel: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
+ * sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+ *   getOrganization: sinon.stub().resolves(new FakeHotelWithBadOnChainData()),
  *   getAllHotels: sinon.stub().resolves([new FakeNiceHotel(), new FakeHotelWithBadOnChainData()]),
  * });
- * wtJsLibsWrapper.getWTHotelIndex.restore();
+ * wtJsLibsWrapper.getWThotelDirectory.restore();
  */
 
 let fakeHotelCounter = 1;

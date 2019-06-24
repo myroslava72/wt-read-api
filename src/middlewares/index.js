@@ -20,10 +20,10 @@ const injectWtLibs = async (req, res, next) => {
   let usedSegments = process.env.WT_SEGMENTS.split(',');
   let wt = {};
   if (usedSegments.indexOf(HOTEL_SEGMENT_ID) !== -1) {
-    wt.hotelIndex = await wtJsLibs.getWTHotelIndex();
+    wt.hotelDirectory = await wtJsLibs.getHotelDirectory();
   }
   if (usedSegments.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
-    wt.airlineIndex = await wtJsLibs.getWTAirlineIndex();
+    wt.airlineDirectory = await wtJsLibs.getAirlineDirectory();
   }
   res.locals.wt = wt;
   next();
@@ -90,7 +90,7 @@ const resolveHotel = async (req, res, next) => {
   }
   let { hotelAddress } = req.params;
   try {
-    res.locals.wt.hotel = await res.locals.wt.hotelIndex.getHotel(hotelAddress);
+    res.locals.wt.hotel = await res.locals.wt.hotelDirectory.getOrganization(hotelAddress);
     return next();
   } catch (e) {
     return next(new Http404Error('hotelNotFound', 'Hotel not found'));
@@ -106,7 +106,7 @@ const resolveAirline = async (req, res, next) => {
   }
   let { airlineAddress } = req.params;
   try {
-    res.locals.wt.airline = await res.locals.wt.airlineIndex.getAirline(airlineAddress);
+    res.locals.wt.airline = await res.locals.wt.airlineDirectory.getOrganization(airlineAddress);
     return next();
   } catch (e) {
     return next(new Http404Error('airlineNotFound', 'Airline not found'));

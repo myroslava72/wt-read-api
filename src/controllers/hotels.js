@@ -158,7 +158,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
 const findAll = async (req, res, next) => {
   const { limit, startWith, fields } = req.query;
   try {
-    let hotels = await res.locals.wt.hotelIndex.getAllHotels();
+    let hotels = await res.locals.wt.getHotelDirectory().getOrganizations();
     const { items, warnings, errors, next } = await fillHotelList(req.path, calculateHotelsFields(fields), hotels, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {

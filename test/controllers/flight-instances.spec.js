@@ -7,7 +7,7 @@ const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
 const { AIRLINE_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
-  deployAirlineIndex,
+  deployAirlineDirectory,
   deployFullAirline,
 } = require('../../management/local-network');
 const {
@@ -27,7 +27,7 @@ describe('Flight instances', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployAirlineIndex();
+    indexContract = await deployAirlineDirectory();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
     address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
   });
@@ -145,7 +145,7 @@ describe('Flight instances', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
         getAirline: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
       });
       const flightInstanceId = 'IeKeix6G-1';
@@ -156,7 +156,7 @@ describe('Flight instances', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 

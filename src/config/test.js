@@ -8,7 +8,7 @@ const web3 = new Web3(provider);
 module.exports = {
   port: 8100,
   baseUrl: 'http://example.com',
-  wtIndexAddresses: {
+  directoryAddresses: {
     hotels: 'will-be-set-during-init',
     airlines: 'will-be-set-during-init',
   },

@@ -7,7 +7,7 @@ const { getSchemaVersion } = require('../utils/schemas');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { HOTEL_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
-  deployHotelIndex,
+  deployhotelDirectory,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -27,7 +27,7 @@ describe('Rate plans', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployHotelIndex();
+    indexContract = await deployhotelDirectory();
     wtJsLibsWrapper._setIndexAddress(indexContract.address, HOTEL_SEGMENT_ID);
     address = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS);
   });
@@ -52,8 +52,8 @@ describe('Rate plans', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
         .get(`/hotels/${address}/ratePlans`)
@@ -61,7 +61,7 @@ describe('Rate plans', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 
@@ -165,8 +165,8 @@ describe('Rate plans', function () {
     });
 
     it('should return bad gateway for inaccessible data', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTHotelIndex').resolves({
-        getHotel: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getWThotelDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeHotelWithBadOffChainData()),
       });
       await request(server)
         .get(`/hotels/${address}/ratePlans/rate-plan-1`)
@@ -174,7 +174,7 @@ describe('Rate plans', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.status).to.be.eql(502);
-          wtJsLibsWrapper.getWTHotelIndex.restore();
+          wtJsLibsWrapper.getWThotelDirectory.restore();
         });
     });
 

@@ -7,7 +7,7 @@ const { TrustClueCuratedList } = require('@windingtree/trust-clue-curated-list')
 const { TrustClueLifDeposit } = require('@windingtree/trust-clue-lif-deposit');
 
 const { deployHotelIndex, deployFullHotel,
-  deployAirlineIndex, deployFullAirline,
+  deployAirlineDirectory, deployFullAirline,
   deployCuratedListTrustClue, deployLifDepositTrustClue,
 } = require('../../management/local-network');
 const { getSchemaVersion } = require('../../test/utils/schemas');
@@ -26,7 +26,7 @@ const web3ProviderAddress = 'http://localhost:8545';
 module.exports = {
   port: 3000,
   baseUrl: 'http://localhost:3000',
-  wtIndexAddresses: {
+  directoryAddresses: {
     hotels: 'will-be-set-during-init',
     airlines: 'will-be-set-during-init',
   },
@@ -93,15 +93,15 @@ module.exports = {
     const segmentsToStart = process.env.WT_SEGMENTS.split(',');
     if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
       const indexContract = await deployHotelIndex();
-      currentConfig.wtIndexAddresses[HOTEL_SEGMENT_ID] = indexContract.address;
+      currentConfig.directoryAddresses[HOTEL_SEGMENT_ID] = indexContract.address;
       currentConfig.logger.info(`Winding Tree hotel index deployed to ${indexContract.address}`);
 
       const hotelAddress = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await currentConfig.wtLibs.getOffChainDataClient('in-memory'), indexContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
       currentConfig.logger.info(`Example hotel deployed to ${hotelAddress}`);
     }
     if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
-      const indexContract = await deployAirlineIndex();
-      currentConfig.wtIndexAddresses[AIRLINE_SEGMENT_ID] = indexContract.address;
+      const indexContract = await deployAirlineDirectory();
+      currentConfig.directoryAddresses[AIRLINE_SEGMENT_ID] = indexContract.address;
       currentConfig.logger.info(`Winding Tree airline index deployed to ${indexContract.address}`);
 
       const airlineAddress = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await currentConfig.wtLibs.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);

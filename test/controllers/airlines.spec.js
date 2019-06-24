@@ -7,7 +7,8 @@ const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
 const {
-  deployAirlineIndex,
+  deployLifToken,
+  deployAirlineDirectory,
   deployFullAirline,
 } = require('../../management/local-network');
 const {
@@ -30,14 +31,18 @@ const {
 
 describe('Airlines', function () {
   let server;
-  let wtLibsInstance, indexContract;
-  let airline0address, airline1address;
+  let wtLibsInstance, directoryContract, lifTokenContract, factoryContract;
+  let airline0, airline1;
 
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    indexContract = await deployAirlineIndex();
-    wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
+    lifTokenContract = await deployLifToken();
+    const project = await deployAirlineDirectory(lifTokenContract);
+    directoryContract = project.directory;
+    factoryContract = project.factory;
+    wtJsLibsWrapper._setIndexAddress(directoryContract.address, AIRLINE_SEGMENT_ID);
+    wtJsLibsWrapper._setIndexAddress(factoryContract.address, `${AIRLINE_SEGMENT_ID}Factory`);
   });
 
   afterEach(() => {
@@ -46,8 +51,8 @@ describe('Airlines', function () {
 
   describe('GET /airlines', () => {
     beforeEach(async () => {
-      airline0address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
-      airline1address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline0 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline1 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
     });
 
     it('should return default fields for airlines list', async () => {
@@ -60,10 +65,10 @@ describe('Airlines', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(0);
-          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('id', airline0.address);
           expect(items[0]).to.have.property('name');
           expect(items[0]).to.have.property('code');
-          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('id', airline1.address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('code');
           expect(items[1]).to.not.have.property('flights');
@@ -71,8 +76,8 @@ describe('Airlines', function () {
     });
 
     it('should return validation errors if they happen to individual airlines', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([new FakeOldFormatAirline(), new FakeWrongFormatAirline()]),
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([new FakeOldFormatAirline(), new FakeWrongFormatAirline()]),
       });
       await request(server)
         .get('/airlines?fields=code,name,contacts,updatedAt,defaultCancellationAmount')
@@ -86,7 +91,7 @@ describe('Airlines', function () {
           expect(errors.length).to.be.eql(1);
           expect(warnings[0].originalError).to.match(/^Unsupported data format version/);
           expect(errors[0].originalError).to.match(/^Error: Unable to validate a model with a type: number, expected: string/);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
@@ -100,11 +105,11 @@ describe('Airlines', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(0);
-          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('id', airline0.address);
           expect(items[0]).to.have.property('name');
           expect(items[0]).to.have.property('code');
           expect(items[0]).to.have.property('flights');
-          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('id', airline1.address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('code');
           expect(items[1]).to.have.property('flights');
@@ -127,10 +132,10 @@ describe('Airlines', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(0);
-          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('id', airline0.address);
           expect(items[0]).to.have.property('name');
           expect(items[0]).to.have.property('code');
-          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('id', airline1.address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('code');
           for (let airline of res.body.items) {
@@ -154,10 +159,10 @@ describe('Airlines', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(0);
-          expect(items[0]).to.have.property('id', airline0address);
+          expect(items[0]).to.have.property('id', airline0.address);
           expect(items[0]).to.have.property('name');
           expect(items[0]).to.have.property('code');
-          expect(items[1]).to.have.property('id', airline1address);
+          expect(items[1]).to.have.property('id', airline1.address);
           expect(items[1]).to.have.property('name');
           expect(items[1]).to.have.property('code');
           for (let airline of res.body.items) {
@@ -180,14 +185,14 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(2);
           expect(warnings.length).to.be.eql(0);
           expect(errors.length).to.be.eql(0);
-          expect(items[0]).to.eql({ id: airline0address });
-          expect(items[1]).to.eql({ id: airline1address });
+          expect(items[0]).to.eql({ id: airline0.address });
+          expect(items[1]).to.eql({ id: airline1.address });
         });
     });
 
     it('should return errors if they happen to individual airlines', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([new FakeNiceAirline(), new FakeAirlineWithBadOnChainData()]),
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([new FakeNiceAirline(), new FakeAirlineWithBadOnChainData()]),
       });
       await request(server)
         .get('/airlines')
@@ -198,13 +203,13 @@ describe('Airlines', function () {
           const { items, errors } = res.body;
           expect(items.length).to.be.eql(1);
           expect(errors.length).to.be.eql(1);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid airlines', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([
           new FakeAirlineWithBadOnChainData(),
           new FakeAirlineWithBadOffChainData(),
           new FakeNiceAirline(),
@@ -221,13 +226,13 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should not break when requesting much more airlines than actually available', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([
           new FakeAirlineWithBadOnChainData(),
           new FakeAirlineWithBadOffChainData(),
           new FakeNiceAirline(),
@@ -244,13 +249,13 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(2);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should not provide next if all airlines are broken', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([
           new FakeAirlineWithBadOnChainData(),
           new FakeAirlineWithBadOffChainData(),
           new FakeAirlineWithBadOnChainData(),
@@ -269,14 +274,14 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(0);
           expect(errors.length).to.be.eql(6);
           expect(next).to.be.undefined;
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should try to fullfill the requested limit of valid airlines and provide valid next', async () => {
       const nextNiceAirline = new FakeNiceAirline();
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([
           new FakeAirlineWithBadOnChainData(),
           new FakeAirlineWithBadOffChainData(),
           new FakeNiceAirline(),
@@ -296,13 +301,13 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(4);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/airlines?limit=4&fields=id,name,code,defaultCancellationAmount,contacts&startWith=${nextNiceAirline.address}`);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should return all fields that a client asks for in airline list', async () => {
       const fields = [
-        'managerAddress',
+        // 'managerAddress', // TODO
         'name',
         'contacts',
         'flights',
@@ -360,7 +365,7 @@ describe('Airlines', function () {
         .expect((res) => {
           const { items, next } = res.body;
           expect(items.length).to.be.eql(1);
-          expect(next).to.be.eql(`http://example.com/airlines?limit=1&fields=id,name,code,defaultCancellationAmount,contacts&startWith=${airline1address}`);
+          expect(next).to.be.eql(`http://example.com/airlines?limit=1&fields=id,name,code,defaultCancellationAmount,contacts&startWith=${airline1.address}`);
 
           items.forEach(airline => {
             expect(airline).to.have.property('id');
@@ -372,7 +377,7 @@ describe('Airlines', function () {
 
     it('should paginate', async () => {
       await request(server)
-        .get(`/airlines?limit=1&startWith=${airline1address}`)
+        .get(`/airlines?limit=1&startWith=${airline1.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -389,8 +394,8 @@ describe('Airlines', function () {
 
     it('should properly transfer limit even if not in querystring', async () => {
       const nextNiceAirline = new FakeNiceAirline();
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAllAirlines: sinon.stub().resolves([
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganizations: sinon.stub().resolves([
           new FakeAirlineWithBadOnChainData(),
           new FakeAirlineWithBadOnChainData(),
         ].concat([...Array(30).keys()].map(() => new FakeNiceAirline()))
@@ -407,7 +412,7 @@ describe('Airlines', function () {
           expect(items.length).to.be.eql(30);
           expect(errors.length).to.be.eql(2);
           expect(next).to.be.equal(`http://example.com/airlines?limit=${DEFAULT_PAGE_SIZE}&fields=id,name,code,defaultCancellationAmount,contacts&startWith=${nextNiceAirline.address}`);
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
@@ -419,7 +424,7 @@ describe('Airlines', function () {
         .expect((res) => {
           const { items, next } = res.body;
           expect(items.length).to.be.eql(1);
-          expect(next).to.be.eql(`http://example.com/airlines?limit=1&fields=id,name&startWith=${airline1address}`);
+          expect(next).to.be.eql(`http://example.com/airlines?limit=1&fields=id,name&startWith=${airline1.address}`);
           items.forEach(airline => {
             expect(airline).to.have.property('id');
             expect(airline).to.have.property('name');
@@ -453,10 +458,10 @@ describe('Airlines', function () {
   });
 
   describe('GET /airlines/:airlineAddress', () => {
-    let address;
+    let airline;
     beforeEach(async () => {
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
-    });
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+ });
 
     it('should return default fields for airline detail', async () => {
       const defaultAirlineFields = [
@@ -466,7 +471,7 @@ describe('Airlines', function () {
         'defaultCancellationAmount',
       ];
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -478,9 +483,9 @@ describe('Airlines', function () {
 
     it('should return validation warning for unsupported version', async () => {
       let dataFormatVersion = '0.1.0';
-      address = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
@@ -491,10 +496,10 @@ describe('Airlines', function () {
     });
 
     it('should not return validation warning when data differs in patch version', async () => {
-      let dataFormatVersion = '0.6.0';
-      address = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      let dataFormatVersion = '0.7.99';
+      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
@@ -505,7 +510,7 @@ describe('Airlines', function () {
 
     it('should not break down when no off-chain data is requested', async () => {
       await request(server)
-        .get(`/airlines/${address}?fields=id`)
+        .get(`/airlines/${airline.address}?fields=id`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
@@ -517,9 +522,9 @@ describe('Airlines', function () {
     it('should return validation errors for default field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       airlineDescription.code = 23;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -531,9 +536,9 @@ describe('Airlines', function () {
     it('should return validation errors for missing default field', async () => {
       let airlineDescription = Object.assign({}, AIRLINE_DESCRIPTION);
       delete airlineDescription.code;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -545,9 +550,9 @@ describe('Airlines', function () {
     it('should return validation errors for non-default field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       airlineDescription.updatedAt = false;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}?fields=updatedAt`)
+        .get(`/airlines/${airline.address}?fields=updatedAt`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -559,9 +564,9 @@ describe('Airlines', function () {
     it('should return validation errors for missing non-default field', async () => {
       let airlineDescription = Object.assign({}, AIRLINE_DESCRIPTION);
       delete airlineDescription.defaultCancellationAmount;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}?fields=defaultCancellationAmount`)
+        .get(`/airlines/${airline.address}?fields=defaultCancellationAmount`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -573,9 +578,9 @@ describe('Airlines', function () {
     it('should return validation errors for missing value in nested field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       delete airlineDescription.contacts.general;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -587,9 +592,9 @@ describe('Airlines', function () {
     it('should return validation errors for missing nested exact field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       delete airlineDescription.contacts.general;
-      address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${address}?fields=contacts.general`)
+        .get(`/airlines/${airline.address}?fields=contacts.general`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(422)
@@ -602,7 +607,7 @@ describe('Airlines', function () {
       // defaultCancellationAmount was problematic when set to 0
       const fields = [
         'name',
-        'managerAddress',
+        // 'managerAddress', // TODO
         'defaultCancellationAmount',
         'notificationsUri',
         'bookingUri',
@@ -610,7 +615,7 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -619,7 +624,7 @@ describe('Airlines', function () {
         .expect(200);
       const query2 = (fields.map((f) => `fields=${f}`)).join('&');
       await request(server)
-        .get(`/airlines/${address}?${query2}`)
+        .get(`/airlines/${airline.address}?${query2}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -633,12 +638,12 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.property('id');
-          expect(res.body).to.have.property('managerAddress');
+          // expect(res.body).to.have.property('managerAddress'); // TODO
           expect(res.body).to.have.property('name');
           expect(res.body).to.have.property('code');
           expect(res.body).to.have.property('contacts');
@@ -654,7 +659,7 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -677,7 +682,7 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -700,7 +705,7 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -721,7 +726,7 @@ describe('Airlines', function () {
       const query = `fields=${fields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -746,52 +751,52 @@ describe('Airlines', function () {
 
     it('should return just id when asked for', async () => {
       await request(server)
-        .get(`/airlines/${address}?fields=id`)
+        .get(`/airlines/${airline.address}?fields=id`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(200)
         .expect((res) => {
-          expect(res.body).to.eql({ id: address });
+          expect(res.body).to.eql({ id: airline.address });
         });
     });
 
     it('should return 502 when on-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAirline: sinon.stub().resolves(new FakeAirlineWithBadOnChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeAirlineWithBadOnChainData()),
       });
 
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should return 502 when off-chain data is inaccessible', async () => {
-      sinon.stub(wtJsLibsWrapper, 'getWTAirlineIndex').resolves({
-        getAirline: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
+      sinon.stub(wtJsLibsWrapper, 'getAirlineDirectory').resolves({
+        getOrganization: sinon.stub().resolves(new FakeAirlineWithBadOffChainData()),
       });
 
       await request(server)
-        .get(`/airlines/${address}`)
+        .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(502)
         .expect((res) => {
-          wtJsLibsWrapper.getWTAirlineIndex.restore();
+          wtJsLibsWrapper.getAirlineDirectory.restore();
         });
     });
 
     it('should not return any non-existent fields even if a client asks for them', async () => {
-      const fields = ['managerAddress', 'name'];
+      const fields = ['name'];
       const invalidFields = ['invalid', 'invalidField'];
       const query = `fields=${fields.join()},${invalidFields.join()}`;
 
       await request(server)
-        .get(`/airlines/${address}?${query}`)
+        .get(`/airlines/${airline.address}?${query}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -819,7 +824,7 @@ describe('Airlines', function () {
 
     it('should not work for an address in a badly checksummed format', async () => {
       await request(server)
-        .get(`/airlines/${address.toUpperCase()}`)
+        .get(`/airlines/${airline.address.toUpperCase()}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -831,18 +836,18 @@ describe('Airlines', function () {
 
   describe('GET /airlines/:airlineAddress/meta', () => {
     it('should return all fields', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${airline}/meta`)
+        .get(`/airlines/${airline.address}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.property('address', airline);
-          expect(res.body).to.have.property('dataUri');
+          expect(res.body).to.have.property('address', airline.address);
+          expect(res.body).to.have.property('orgJsonUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('flightsUri');
           expect(res.body).to.have.property('dataFormatVersion', getSchemaVersion('@windingtree/wt-airline-schemas'));
-          expect(res.body.dataUri).to.match(/^in-memory:\/\//);
+          expect(res.body.orgJsonUri).to.match(/^in-memory:\/\//);
           expect(res.body.descriptionUri).to.match(/^in-memory:\/\//);
           expect(res.body.flightsUri).to.match(/^in-memory:\/\//);
         })
@@ -850,14 +855,14 @@ describe('Airlines', function () {
     });
 
     it('should not return unspecified optional fields', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION);
       await request(server)
-        .get(`/airlines/${airline}/meta`)
+        .get(`/airlines/${airline.address}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
-          expect(res.body).to.have.property('address', airline);
-          expect(res.body).to.have.property('dataUri');
+          expect(res.body).to.have.property('address', airline.address);
+          expect(res.body).to.have.property('orgJsonUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('dataFormatVersion', getSchemaVersion('@windingtree/wt-airline-schemas'));
           expect(res.body).to.not.have.property('flightsUri');
