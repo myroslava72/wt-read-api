@@ -9,6 +9,19 @@ const swaggerDocument = YAML.load(path.resolve(__dirname, '../../docs/swagger.ya
 
 const getListOfFieldsFromSwagger = (schema) => {
   try {
+    if (swaggerDocument.components.schemas[schema].allOf) {
+      let res = [];
+      for (let subSchema of swaggerDocument.components.schemas[schema].allOf) {
+        if (subSchema.$ref) {
+          const normalizedName = subSchema.$ref.replace('#/components/schemas/', '');
+          const properties = getListOfFieldsFromSwagger(normalizedName);
+          res = res.concat(properties);
+        } else {
+          res = res.concat(Object.keys(subSchema.properties));
+        }
+      }
+      return res;
+    }
     return Object.keys(swaggerDocument.components.schemas[schema].properties);
   } catch (e) {
     return [];
@@ -42,8 +55,7 @@ const AIRLINE_DEFAULT_FIELDS_LIST = [
   'contacts',
 ];
 const AIRLINE_DEFAULT_FIELDS = AIRLINE_DEFAULT_FIELDS_LIST.concat(['code', 'currency']);
-// address conflicts with a postal address fields
-const AIRLINE_ONCHAIN_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineOnChain').filter((f) => f !== 'address');
+const AIRLINE_ONCHAIN_FIELDS = ['owner', 'created'];
 const AIRLINE_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDescriptionBase');
 const AIRLINE_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
 
