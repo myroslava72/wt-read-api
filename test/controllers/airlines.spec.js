@@ -461,7 +461,7 @@ describe('Airlines', function () {
     let airline;
     beforeEach(async () => {
       airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
- });
+    });
 
     it('should return default fields for airline detail', async () => {
       const defaultAirlineFields = [

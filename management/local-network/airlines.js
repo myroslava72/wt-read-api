@@ -5,7 +5,6 @@ const { getSchemaVersion } = require('../../test/utils/schemas');
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
 
-
 // Setup a local copy of zos package for wt-contracts
 const ZWeb3 = lib.ZWeb3;
 ZWeb3.initialize(web3.currentProvider);
@@ -17,33 +16,33 @@ Contracts.setArtifactsDefaults({
 const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
 
 const deployAirlineDirectory = async (lifTokenContract) => {
-    const accounts = await web3.eth.getAccounts();
+  const accounts = await web3.eth.getAccounts();
 
-    // setup the project with all the proxies
-    const project = await lib.AppProject.fetchOrDeploy('wt-contracts', '0.0.1');
-    const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
-    const OrganizationFactory = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'OrganizationFactory');
-    const SegmentDirectory = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'SegmentDirectory');
-    await project.setImplementation(Organization, 'Organization');
-    await project.setImplementation(OrganizationFactory, 'OrganizationFactory');
-    await project.setImplementation(SegmentDirectory, 'SegmentDirectory');
+  // setup the project with all the proxies
+  const project = await lib.AppProject.fetchOrDeploy('wt-contracts', '0.0.1');
+  const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
+  const OrganizationFactory = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'OrganizationFactory');
+  const SegmentDirectory = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'SegmentDirectory');
+  await project.setImplementation(Organization, 'Organization');
+  await project.setImplementation(OrganizationFactory, 'OrganizationFactory');
+  await project.setImplementation(SegmentDirectory, 'SegmentDirectory');
 
-    // setup the factory proxy
-    const factory = await project.createProxy(OrganizationFactory, {
-      initFunction: 'initialize',
-      initArgs: [accounts[4], project.getApp().address],
-      from: accounts[4],
-    });
-    const airlineDirectory = await project.createProxy(SegmentDirectory, {
-      initFunction: 'initialize',
-      initArgs: [accounts[4], 'airlines', lifTokenContract.address],
-      from: accounts[4],
-    });
+  // setup the factory proxy
+  const factory = await project.createProxy(OrganizationFactory, {
+    initFunction: 'initialize',
+    initArgs: [accounts[4], project.getApp().address],
+    from: accounts[4],
+  });
+  const airlineDirectory = await project.createProxy(SegmentDirectory, {
+    initFunction: 'initialize',
+    initArgs: [accounts[4], 'airlines', lifTokenContract.address],
+    from: accounts[4],
+  });
 
-    return {
-      directory: airlineDirectory,
-      factory: factory,
-    }
+  return {
+    directory: airlineDirectory,
+    factory: factory,
+  };
 };
 
 const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, factory, directory, wtJsLibsWrapper, airlineDescription, flights, flightInstances) => {

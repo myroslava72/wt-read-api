@@ -19,7 +19,7 @@ async function getAirlineDirectory () {
   return getInstance().getDirectory(AIRLINE_SEGMENT_ID, config.directoryAddresses[AIRLINE_SEGMENT_ID]);
 }
 
-async function getFactory(segment) {
+async function getFactory (segment) {
   return getInstance().getFactory(config.directoryAddresses[`${segment}Factory`]);
 }
 
