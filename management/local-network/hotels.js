@@ -1,6 +1,5 @@
 const Web3 = require('web3');
 const lib = require('zos-lib');
-const { deployDirectory } = require('./utils');
 const { getSchemaVersion } = require('../../test/utils/schemas');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
@@ -8,11 +7,11 @@ const web3 = new Web3(provider);
 const Contracts = lib.Contracts;
 const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
 
-const deployHotelDirectory = async (lifTokenContract) => {
-  return deployDirectory(web3, lifTokenContract, 'hotels');
-};
+const deployFullHotel = async (deploymentOptions, hotelDescription, ratePlans, availability, ownerAcountIdx = 0) => {
+  const dataFormatVersion = deploymentOptions.schemaVersion;
+  const offChainDataAdapter = deploymentOptions.offChainDataClient;
+  const app = deploymentOptions.app;
 
-const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, factory, directory, hotelDescription, ratePlans, availability, ownerAcountIdx = 0) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -49,7 +48,7 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, factory, 
     },
   });
 
-  const hotelEvent = await factory.methods.createAndAddToDirectory(orgJsonUri, directory.address).send({ from: accounts[ownerAcountIdx] });
+  const hotelEvent = await app.factory.methods.createAndAddToDirectory(orgJsonUri, app.directory.address).send({ from: accounts[ownerAcountIdx] });
   const hotel = Organization.at(hotelEvent.events.OrganizationCreated.returnValues.organization);
 
   const monthFromNow = new Date();
@@ -70,6 +69,5 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, factory, 
 };
 
 module.exports = {
-  deployHotelDirectory,
   deployFullHotel,
 };

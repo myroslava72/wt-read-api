@@ -7,8 +7,7 @@ const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
 const {
-  deployLifToken,
-  deployHotelDirectory,
+  deployHotelApp,
   deployFullHotel,
 } = require('../../management/local-network');
 const {
@@ -17,7 +16,6 @@ const {
   AVAILABILITY,
 } = require('../utils/test-data');
 const {
-  HOTEL_SEGMENT_ID,
   DEFAULT_PAGE_SIZE,
   VALIDATION_WARNING_HEADER,
 } = require('../../src/constants');
@@ -32,17 +30,17 @@ const {
 
 describe('Hotels', function () {
   let server;
-  let wtLibsInstance, directoryContract, lifTokenContract, factoryContract;
+  let wtLibsInstance, app, deploymentOptions;
   let hotel0, hotel1;
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    lifTokenContract = await deployLifToken();
-    const project = await deployHotelDirectory(lifTokenContract);
-    directoryContract = project.directory;
-    factoryContract = project.factory;
-    wtJsLibsWrapper._setDirectoryAddress(directoryContract.address, HOTEL_SEGMENT_ID);
-    wtJsLibsWrapper._setDirectoryAddress(factoryContract.address, `${HOTEL_SEGMENT_ID}Factory`);
+    app = await deployHotelApp(wtJsLibsWrapper);
+    deploymentOptions = {
+      schemaVersion: getSchemaVersion('@windingtree/wt-hotel-schemas'),
+      offChainDataClient: await wtLibsInstance.getOffChainDataClient('in-memory'),
+      app: app,
+    };
   });
 
   afterEach(() => {
@@ -51,8 +49,8 @@ describe('Hotels', function () {
 
   describe('GET /hotels', () => {
     beforeEach(async () => {
-      hotel0 = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS);
-      hotel1 = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS);
+      hotel0 = await deployFullHotel(deploymentOptions, HOTEL_DESCRIPTION, RATE_PLANS);
+      hotel1 = await deployFullHotel(deploymentOptions, HOTEL_DESCRIPTION, RATE_PLANS);
     });
 
     it('should enforce strict routing', async () => {
@@ -406,7 +404,7 @@ describe('Hotels', function () {
   describe('GET /hotels/:hotelAddress', () => {
     let hotel;
     beforeEach(async () => {
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
     });
 
     it('should return default fields for hotel detail', async () => {
@@ -444,8 +442,10 @@ describe('Hotels', function () {
     });
 
     it('should return validation warning for unsupported version', async () => {
-      let dataFormatVersion = '0.1.0';
-      hotel = await deployFullHotel(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel({
+        ...deploymentOptions,
+        schemaVersion: '0.1.0',
+      }, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}`)
         .set('content-type', 'application/json')
@@ -458,8 +458,10 @@ describe('Hotels', function () {
     });
 
     it('should not return validation warning when data differs in patch version', async () => {
-      let dataFormatVersion = '0.8.99';
-      hotel = await deployFullHotel(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel({
+        ...deploymentOptions,
+        schemaVersion: '0.8.99',
+      }, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}`)
         .set('content-type', 'application/json')
@@ -473,7 +475,7 @@ describe('Hotels', function () {
     it('should return validation errors for default field', async () => {
       let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
       hotelDescription.description = 23;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}`)
         .set('content-type', 'application/json')
@@ -487,7 +489,7 @@ describe('Hotels', function () {
     it('should return validation errors for missing default field', async () => {
       let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
       delete hotelDescription.description;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}`)
         .set('content-type', 'application/json')
@@ -501,7 +503,7 @@ describe('Hotels', function () {
     it('should return validation errors for non-default field', async () => {
       let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
       hotelDescription.timezone = false;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}?fields=timezone`)
         .set('content-type', 'application/json')
@@ -515,7 +517,7 @@ describe('Hotels', function () {
     it('should return validation errors for missing non-default field', async () => {
       let hotelDescription = Object.assign({}, HOTEL_DESCRIPTION);
       delete hotelDescription.defaultCancellationAmount;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}?fields=defaultCancellationAmount`)
         .set('content-type', 'application/json')
@@ -529,7 +531,7 @@ describe('Hotels', function () {
     it('should return validation errors for missing value in nested field', async () => {
       let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
       delete hotelDescription.location.latitude;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}`)
         .set('content-type', 'application/json')
@@ -543,7 +545,7 @@ describe('Hotels', function () {
     it('should return validation errors for missing nested exact field', async () => {
       let hotelDescription = _.cloneDeep(HOTEL_DESCRIPTION);
       delete hotelDescription.location.latitude;
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, hotelDescription, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, hotelDescription, RATE_PLANS, AVAILABILITY);
       await request(server)
         .get(`/hotels/${hotel.address}?fields=location.latitude`)
         .set('content-type', 'application/json')
@@ -801,7 +803,7 @@ describe('Hotels', function () {
   describe('GET /hotels/:hotelAddress/meta', () => {
     let hotel;
     beforeEach(async () => {
-      hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
+      hotel = await deployFullHotel(deploymentOptions, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
     });
 
     it('should return all fields', async () => {
@@ -842,7 +844,7 @@ describe('Hotels', function () {
     });
 
     it('should not return unspecified optional fields', async () => {
-      const hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION);
+      const hotel = await deployFullHotel(deploymentOptions, HOTEL_DESCRIPTION);
       await request(server)
         .get(`/hotels/${hotel.address}/meta`)
         .set('content-type', 'application/json')

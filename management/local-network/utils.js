@@ -1,13 +1,12 @@
-const TruffleContract = require('truffle-contract');
+const { deployLifToken } = require('./trust-clues');
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../../src/constants');
 const lib = require('zos-lib');
+const Web3 = require('web3');
 
-const getContractWithProvider = (metadata, provider) => {
-  let contract = TruffleContract(metadata);
-  contract.setProvider(provider);
-  return contract;
-};
+const provider = new Web3.providers.HttpProvider('http://localhost:8545');
+const web3 = new Web3(provider);
 
-const deployDirectory = async (web3, lifTokenContract, segment) => {
+const deployApp = async (web3, lifTokenContract, segment) => {
   // Setup a local copy of zos package for wt-contracts
   const ZWeb3 = lib.ZWeb3;
   ZWeb3.initialize(web3.currentProvider);
@@ -46,7 +45,24 @@ const deployDirectory = async (web3, lifTokenContract, segment) => {
   };
 };
 
+const deployAirlineApp = async (wtJsLibsWrapper) => {
+  const lifTokenContract = await deployLifToken();
+  const app = await deployApp(web3, lifTokenContract, 'airlines');
+  wtJsLibsWrapper._setDirectoryAddress(app.directory.address, AIRLINE_SEGMENT_ID);
+  wtJsLibsWrapper._setDirectoryAddress(app.factory.address, `${AIRLINE_SEGMENT_ID}Factory`);
+  return app;
+};
+
+const deployHotelApp = async (wtJsLibsWrapper) => {
+  const lifTokenContract = await deployLifToken();
+  const app = await deployApp(web3, lifTokenContract, 'hotels');
+  wtJsLibsWrapper._setDirectoryAddress(app.directory.address, HOTEL_SEGMENT_ID);
+  wtJsLibsWrapper._setDirectoryAddress(app.factory.address, `${HOTEL_SEGMENT_ID}Factory`);
+  return app;
+};
+
 module.exports = {
-  getContractWithProvider,
-  deployDirectory,
+  deployApp,
+  deployHotelApp,
+  deployAirlineApp,
 };

@@ -1,9 +1,7 @@
 const {
-  deployHotelDirectory,
   deployFullHotel,
 } = require('./hotels');
 const {
-  deployAirlineDirectory,
   deployFullAirline,
 } = require('./airlines');
 const {
@@ -11,13 +9,17 @@ const {
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
 } = require('./trust-clues');
+const {
+  deployHotelApp,
+  deployAirlineApp,
+} = require('./utils');
 
 module.exports = {
-  deployHotelDirectory,
   deployFullHotel,
-  deployAirlineDirectory,
   deployFullAirline,
   deployLifToken,
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
+  deployHotelApp,
+  deployAirlineApp,
 };

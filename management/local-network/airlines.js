@@ -1,6 +1,5 @@
 const Web3 = require('web3');
 const lib = require('zos-lib');
-const { deployDirectory } = require('./utils');
 const { getSchemaVersion } = require('../../test/utils/schemas');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
@@ -8,11 +7,11 @@ const web3 = new Web3(provider);
 const Contracts = lib.Contracts;
 const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
 
-const deployAirlineDirectory = async (lifTokenContract) => {
-  return deployDirectory(web3, lifTokenContract, 'airlines');
-};
+const deployFullAirline = async (deploymentOptions, airlineDescription, flights, flightInstances) => {
+  const dataFormatVersion = deploymentOptions.schemaVersion;
+  const offChainDataAdapter = deploymentOptions.offChainDataClient;
+  const app = deploymentOptions.app;
 
-const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, factory, directory, airlineDescription, flights, flightInstances) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -50,11 +49,10 @@ const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, factory
     },
   });
 
-  const airlineEvent = await factory.methods.createAndAddToDirectory(orgJsonUri, directory.address).send({ from: accounts[3] });
+  const airlineEvent = await app.factory.methods.createAndAddToDirectory(orgJsonUri, app.directory.address).send({ from: accounts[3] });
   return Organization.at(airlineEvent.events.OrganizationCreated.returnValues.organization);
 };
 
 module.exports = {
-  deployAirlineDirectory,
   deployFullAirline,
 };
