@@ -24,6 +24,7 @@ const getListOfFieldsFromSwagger = (schema) => {
     }
     return Object.keys(swaggerDocument.components.schemas[schema].properties);
   } catch (e) {
+    console.log(`No schema properties found for ${schema}`);
     return [];
   }
 };
@@ -42,8 +43,7 @@ const HOTEL_DEFAULT_FIELDS = HOTEL_DEFAULT_FIELDS_LIST.concat([
   'amenities',
   'updatedAt',
 ]);
-// address conflicts with a postal address fields
-const HOTEL_ONCHAIN_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelOnChain').filter((f) => f !== 'address');
+const HOTEL_ONCHAIN_FIELDS = ['owner', 'created'];
 const HOTEL_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDescriptionBase');
 const HOTEL_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
 

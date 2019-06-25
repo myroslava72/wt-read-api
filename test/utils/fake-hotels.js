@@ -40,45 +40,34 @@ class FakeNiceHotel {
     this.monthFromNow.setMonth(this.monthFromNow.getMonth() + 1);
   }
 
-  get dataIndex () {
-    return Promise.resolve({
-      contents: {
-        dataFormatVersion: this.dataFormatVersion,
-        get descriptionUri () {
-          return Promise.resolve({
-            contents: {
-              name: 'nice hotel',
-              description: 'nice hotel desc',
-            },
-          });
-        },
-      },
-    });
+  getWindingTreeApi () {
+    return {
+      hotel: [
+        this,
+      ],
+    };
   }
   
   async toPlainObject () {
     return {
-      address: this.address,
-      dataUri: {
-        contents: {
-          dataFormatVersion: this.dataFormatVersion,
-          guarantee: await getGuarantee(this.address, this.monthFromNow),
-          descriptionUri: {
-            ref: this.descriptionUri,
-            contents: {
-              name: 'nice hotel name',
-              description: 'nice hotel desc',
-              contacts: {
-                general: {
-                  email: 'me@home.com',
-                },
+      contents: {
+        dataFormatVersion: this.dataFormatVersion,
+        guarantee: await getGuarantee(this.address, this.monthFromNow),
+        descriptionUri: {
+          ref: this.descriptionUri,
+          contents: {
+            name: 'nice hotel name',
+            description: 'nice hotel desc',
+            contacts: {
+              general: {
+                email: 'me@home.com',
               },
-              address: { road: 'Main', houseNumber: '1', city: 'Asgard', countryCode: 'USA' },
-              timezone: '',
-              currency: 'USD',
-              updatedAt: (new Date()).toISOString(),
-              defaultCancellationAmount: 20,
             },
+            address: { road: 'Main', houseNumber: '1', city: 'Asgard', countryCode: 'USA' },
+            timezone: '',
+            currency: 'USD',
+            updatedAt: (new Date()).toISOString(),
+            defaultCancellationAmount: 20,
           },
         },
       },
@@ -89,7 +78,7 @@ class FakeNiceHotel {
 class FakeNotTrustworthyHotel extends FakeNiceHotel {
   async toPlainObject () {
     const data = await super.toPlainObject();
-    data.dataUri.contents.guarantee = await getGuarantee(this.address, this.monthFromNow, 1);
+    data.contents.guarantee = await getGuarantee(this.address, this.monthFromNow, 1);
     return data;
   }
 }
@@ -104,23 +93,21 @@ class FakeOldFormatHotel extends FakeNiceHotel {
 class FakeWrongFormatHotel extends FakeNiceHotel {
   async toPlainObject () {
     return {
-      dataUri: {
-        contents: {
-          address: this.address,
-          dataFormatVersion: this.dataFormatVersion,
-          guarantee: await getGuarantee(this.address, this.monthFromNow),
-          descriptionUri: {
-            ref: this.descriptionUri,
-            contents: {
-              name: 'hotel name',
-              description: 23,
-              contacts: { general: { email: 'email1' } },
-              address: { road: 'brick lane', houseNumber: '123', city: 'london', countryCode: 'uk' },
-              timezone: 'cet',
-              currency: 'czk',
-              updatedAt: '2018-12-12 12:00:00',
-              defaultCancellationAmount: 20,
-            },
+      contents: {
+        address: this.address,
+        dataFormatVersion: this.dataFormatVersion,
+        guarantee: await getGuarantee(this.address, this.monthFromNow),
+        descriptionUri: {
+          ref: this.descriptionUri,
+          contents: {
+            name: 'hotel name',
+            description: 23,
+            contacts: { general: { email: 'email1' } },
+            address: { road: 'brick lane', houseNumber: '123', city: 'london', countryCode: 'uk' },
+            timezone: 'cet',
+            currency: 'czk',
+            updatedAt: '2018-12-12 12:00:00',
+            defaultCancellationAmount: 20,
           },
         },
       },
@@ -132,9 +119,6 @@ class FakeHotelWithBadOnChainData {
   constructor () {
     this.address = `fake-hotel-on-chain-${fakeHotelCounter++}`;
   }
-  get dataIndex () {
-    throw new wtJsLibsErrors.RemoteDataReadError('something');
-  }
   toPlainObject () {
     throw new wtJsLibsErrors.RemoteDataReadError('something');
   }
@@ -143,9 +127,6 @@ class FakeHotelWithBadOnChainData {
 class FakeHotelWithBadOffChainData {
   constructor () {
     this.address = `fake-hotel-off-chain-${fakeHotelCounter++}`;
-  }
-  get dataIndex () {
-    throw new wtJsLibsErrors.StoragePointerError('something');
   }
   toPlainObject () {
     throw new wtJsLibsErrors.StoragePointerError('something');

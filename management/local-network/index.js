@@ -1,5 +1,5 @@
 const {
-  deployHotelIndex,
+  deployHotelDirectory,
   deployFullHotel,
 } = require('./hotels');
 const {
@@ -13,7 +13,7 @@ const {
 } = require('./trust-clues');
 
 module.exports = {
-  deployHotelIndex,
+  deployHotelDirectory,
   deployFullHotel,
   deployAirlineDirectory,
   deployFullAirline,

@@ -51,8 +51,8 @@ describe('Airlines', function () {
 
   describe('GET /airlines', () => {
     beforeEach(async () => {
-      airline0 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
-      airline1 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline0 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline1 = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
     });
 
     it('should return default fields for airlines list', async () => {
@@ -460,7 +460,7 @@ describe('Airlines', function () {
   describe('GET /airlines/:airlineAddress', () => {
     let airline;
     beforeEach(async () => {
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
     });
 
     it('should return default fields for airline detail', async () => {
@@ -483,7 +483,7 @@ describe('Airlines', function () {
 
     it('should return validation warning for unsupported version', async () => {
       let dataFormatVersion = '0.1.0';
-      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
@@ -497,7 +497,7 @@ describe('Airlines', function () {
 
     it('should not return validation warning when data differs in patch version', async () => {
       let dataFormatVersion = '0.7.99';
-      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
@@ -522,7 +522,7 @@ describe('Airlines', function () {
     it('should return validation errors for default field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       airlineDescription.code = 23;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
@@ -536,7 +536,7 @@ describe('Airlines', function () {
     it('should return validation errors for missing default field', async () => {
       let airlineDescription = Object.assign({}, AIRLINE_DESCRIPTION);
       delete airlineDescription.code;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
@@ -550,7 +550,7 @@ describe('Airlines', function () {
     it('should return validation errors for non-default field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       airlineDescription.updatedAt = false;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}?fields=updatedAt`)
         .set('content-type', 'application/json')
@@ -564,7 +564,7 @@ describe('Airlines', function () {
     it('should return validation errors for missing non-default field', async () => {
       let airlineDescription = Object.assign({}, AIRLINE_DESCRIPTION);
       delete airlineDescription.defaultCancellationAmount;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}?fields=defaultCancellationAmount`)
         .set('content-type', 'application/json')
@@ -578,7 +578,7 @@ describe('Airlines', function () {
     it('should return validation errors for missing value in nested field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       delete airlineDescription.contacts.general;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}`)
         .set('content-type', 'application/json')
@@ -592,7 +592,7 @@ describe('Airlines', function () {
     it('should return validation errors for missing nested exact field', async () => {
       let airlineDescription = _.cloneDeep(AIRLINE_DESCRIPTION);
       delete airlineDescription.contacts.general;
-      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, airlineDescription, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}?fields=contacts.general`)
         .set('content-type', 'application/json')
@@ -836,7 +836,7 @@ describe('Airlines', function () {
 
   describe('GET /airlines/:airlineAddress/meta', () => {
     it('should return all fields', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
         .get(`/airlines/${airline.address}/meta`)
         .set('content-type', 'application/json')
@@ -855,7 +855,7 @@ describe('Airlines', function () {
     });
 
     it('should not return unspecified optional fields', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, wtJsLibsWrapper, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, AIRLINE_DESCRIPTION);
       await request(server)
         .get(`/airlines/${airline.address}/meta`)
         .set('content-type', 'application/json')

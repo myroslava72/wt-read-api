@@ -33,12 +33,13 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
   let hotelData = {};
   try {
     if (offChainFields.length) {
-      const plainHotel = await hotel.toPlainObject(offChainFields);
-      const flattenedOffChainData = flattenObject(plainHotel.dataUri.contents, offChainFields);
+      const hotelApis = await hotel.getWindingTreeApi();
+      const apiContents = (await hotelApis.hotel[0].toPlainObject(offChainFields)).contents;
+
+      const flattenedOffChainData = flattenObject(apiContents, offChainFields);
       hotelData = {
-        dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
+        dataFormatVersion: apiContents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
-        ...(flattenObject(plainHotel, offChainFields)),
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
@@ -158,7 +159,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
 const findAll = async (req, res, next) => {
   const { limit, startWith, fields } = req.query;
   try {
-    let hotels = await res.locals.wt.getHotelDirectory().getOrganizations();
+    let hotels = await res.locals.wt.hotelDirectory.getOrganizations();
     const { items, warnings, errors, next } = await fillHotelList(req.path, calculateHotelsFields(fields), hotels, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
@@ -219,20 +220,21 @@ const find = async (req, res, next) => {
 
 const meta = async (req, res, next) => {
   try {
-    const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
-    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.address, resolvedHotel.dataUri.contents.guarantee);
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiObject = await hotelApis.hotel[0].toPlainObject([]);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiObject.contents.guarantee);
     if (!passesTrustworthinessTest) {
       return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
     }
     return res.status(200).json({
-      address: resolvedHotel.address,
-      dataUri: resolvedHotel.dataUri.ref,
-      descriptionUri: resolvedHotel.dataUri.contents.descriptionUri,
-      ratePlansUri: resolvedHotel.dataUri.contents.ratePlansUri,
-      availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
-      dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
-      defaultLocale: resolvedHotel.dataUri.contents.defaultLocale,
-      guarantee: resolvedHotel.dataUri.contents.guarantee,
+      address: res.locals.wt.hotel.address,
+      orgJsonUri: apiObject.ref,
+      descriptionUri: apiObject.contents.descriptionUri,
+      ratePlansUri: apiObject.contents.ratePlansUri,
+      availabilityUri: apiObject.contents.availabilityUri,
+      dataFormatVersion: apiObject.contents.dataFormatVersion,
+      defaultLocale: apiObject.contents.defaultLocale,
+      guarantee: apiObject.contents.guarantee,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));

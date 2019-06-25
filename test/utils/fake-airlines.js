@@ -19,21 +19,6 @@ class FakeNiceAirline {
     this.dataFormatVersion = getSchemaVersion('@windingtree/wt-airline-schemas');
     this.descriptionUri = `nice-airline-uri-${fakeAirlineCounter++}`;
   }
-  get dataIndex () {
-    return Promise.resolve({
-      contents: {
-        dataFormatVersion: this.dataFormatVersion,
-        get descriptionUri () {
-          return Promise.resolve({
-            contents: {
-              name: 'nice airline',
-              description: 'nice airline desc',
-            },
-          });
-        },
-      },
-    });
-  }
   getWindingTreeApi () {
     return {
       airline: [
@@ -93,9 +78,6 @@ class FakeAirlineWithBadOnChainData {
   constructor () {
     this.address = `fake-airline-on-chain-${fakeAirlineCounter++}`;
   }
-  get dataIndex () {
-    throw new wtJsLibsErrors.RemoteDataReadError('something');
-  }
   toPlainObject () {
     throw new wtJsLibsErrors.RemoteDataReadError('something');
   }
@@ -104,9 +86,6 @@ class FakeAirlineWithBadOnChainData {
 class FakeAirlineWithBadOffChainData {
   constructor () {
     this.address = `fake-airline-off-chain-${fakeAirlineCounter++}`;
-  }
-  get dataIndex () {
-    throw new wtJsLibsErrors.StoragePointerError('something');
   }
   toPlainObject () {
     throw new wtJsLibsErrors.StoragePointerError('something');
