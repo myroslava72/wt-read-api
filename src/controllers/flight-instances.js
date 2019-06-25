@@ -11,11 +11,12 @@ const {
 const find = async (req, res, next) => {
   let { flightId, flightInstanceId } = req.params;
   try {
-    let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri.items.flightInstancesUri']);
-    if (!plainAirline.dataUri.contents.flightsUri) {
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiContents = (await airlineApis.airline[0].toPlainObject(['flightsUri.items.flightInstancesUri'])).contents;
+    if (!apiContents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
-    const flights = plainAirline.dataUri.contents.flightsUri.contents;
+    const flights = apiContents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
@@ -31,7 +32,7 @@ const find = async (req, res, next) => {
         FLIGHT_INSTANCE_MODEL,
         swaggerDocument.components.schemas,
         config.dataFormatVersions.airlines,
-        plainAirline.dataUri.contents.dataFormatVersion,
+        apiContents.dataFormatVersion,
         'flight instance',
       );
     } catch (e) {
@@ -56,11 +57,12 @@ const find = async (req, res, next) => {
 const findAll = async (req, res, next) => {
   let { flightId } = req.params;
   try {
-    let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri.items.flightInstancesUri']);
-    if (!plainAirline.dataUri.contents.flightsUri) {
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiContents = (await airlineApis.airline[0].toPlainObject(['flightsUri.items.flightInstancesUri'])).contents;
+    if (!apiContents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
-    const flights = plainAirline.dataUri.contents.flightsUri.contents;
+    const flights = apiContents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
@@ -74,7 +76,7 @@ const findAll = async (req, res, next) => {
           FLIGHT_INSTANCE_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.airlines,
-          plainAirline.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'flight instance',
         );
         instances.push(instance);

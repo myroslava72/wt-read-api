@@ -78,6 +78,13 @@ class FakeAirlineWithBadOnChainData {
   constructor () {
     this.address = `fake-airline-on-chain-${fakeAirlineCounter++}`;
   }
+  getWindingTreeApi () {
+    return {
+      airline: [
+        this,
+      ],
+    };
+  }
   toPlainObject () {
     throw new wtJsLibsErrors.RemoteDataReadError('something');
   }
@@ -86,6 +93,13 @@ class FakeAirlineWithBadOnChainData {
 class FakeAirlineWithBadOffChainData {
   constructor () {
     this.address = `fake-airline-off-chain-${fakeAirlineCounter++}`;
+  }
+  getWindingTreeApi () {
+    return {
+      airline: [
+        this,
+      ],
+    };
   }
   toPlainObject () {
     throw new wtJsLibsErrors.StoragePointerError('something');
