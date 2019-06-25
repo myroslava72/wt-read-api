@@ -6,6 +6,10 @@ const Web3Utils = require('web3-utils');
 const { getTrustClueClient, passesTrustworthinessTest } = require('../../src/services/wt-js-libs');
 const { config } = require('../../src/config');
 
+const Web3 = require('web3');
+const provider = new Web3.providers.HttpProvider('http://localhost:8545');
+const web3 = new Web3(provider);
+
 describe('WtJsLibs wrapper', () => {
   describe('getTrustClueClient', () => {
     it('should call wtJsLibs', () => {
@@ -21,7 +25,7 @@ describe('WtJsLibs wrapper', () => {
     let origGetTrustClueClient, baseTrustClueClient, warnLogStub, guarantee;
     const hotelAddress = '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8';
 
-    beforeEach(() => {
+    beforeEach(async () => {
       origGetTrustClueClient = config.wtLibs.getTrustClueClient;
       baseTrustClueClient = {
         verifySignedData: (claim, sig, verFn) => verFn('0x5808b3232de474e155a8d915cc588D5095C13631'),
@@ -32,9 +36,19 @@ describe('WtJsLibs wrapper', () => {
       };
       config.wtLibs.getTrustClueClient = () => (baseTrustClueClient);
       warnLogStub = sinon.stub(config.logger, 'warn');
+
+      const accounts = await web3.eth.getAccounts();
+      const monthFromNow = new Date();
+      monthFromNow.setMonth(monthFromNow.getMonth() + 1);
+      const rawClaim = {
+        'hotel': hotelAddress,
+        'guarantor': '0x5808b3232de474e155a8d915cc588D5095C13631',
+        'expiresAt': monthFromNow.getTime(),
+      };
+      const hexClaim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
       guarantee = {
-        claim: '0x7b22686f74656c223a22307844626446394236333664463732644433356642323262623130356438653162423961303935374338222c2267756172616e746f72223a22307835383038623332333264653437346531353561386439313563633538384435303935433133363331222c22657870697265734174223a313536313336343436393030307d',
-        signature: '0x6bd1846b460d5ce14a329240db33f83ecbcce795e0ae701ebdb3060eea686252525ddde8e7769e748b03df5acecf104acd605726c469d23470223de03243a9571c',
+        claim: hexClaim,
+        signature: await web3.eth.sign(hexClaim, accounts[0]),
       };
     });
 
