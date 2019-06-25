@@ -41,8 +41,8 @@ describe('Airlines', function () {
     const project = await deployAirlineDirectory(lifTokenContract);
     directoryContract = project.directory;
     factoryContract = project.factory;
-    wtJsLibsWrapper._setIndexAddress(directoryContract.address, AIRLINE_SEGMENT_ID);
-    wtJsLibsWrapper._setIndexAddress(factoryContract.address, `${AIRLINE_SEGMENT_ID}Factory`);
+    wtJsLibsWrapper._setDirectoryAddress(directoryContract.address, AIRLINE_SEGMENT_ID);
+    wtJsLibsWrapper._setDirectoryAddress(factoryContract.address, `${AIRLINE_SEGMENT_ID}Factory`);
   });
 
   afterEach(() => {

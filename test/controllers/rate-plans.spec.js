@@ -32,8 +32,8 @@ describe('Rate plans', function () {
     const project = await deployHotelDirectory(lifTokenContract);
     directoryContract = project.directory;
     factoryContract = project.factory;
-    wtJsLibsWrapper._setIndexAddress(directoryContract.address, HOTEL_SEGMENT_ID);
-    wtJsLibsWrapper._setIndexAddress(factoryContract.address, `${HOTEL_SEGMENT_ID}Factory`);
+    wtJsLibsWrapper._setDirectoryAddress(directoryContract.address, HOTEL_SEGMENT_ID);
+    wtJsLibsWrapper._setDirectoryAddress(factoryContract.address, `${HOTEL_SEGMENT_ID}Factory`);
     hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS);
   });
 

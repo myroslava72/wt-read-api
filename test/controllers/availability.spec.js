@@ -32,7 +32,7 @@ describe('Availability', function () {
     const project = await deployHotelDirectory(lifTokenContract);
     directoryContract = project.directory;
     factoryContract = project.factory;
-    wtJsLibsWrapper._setIndexAddress(directoryContract.address, HOTEL_SEGMENT_ID);
+    wtJsLibsWrapper._setDirectoryAddress(directoryContract.address, HOTEL_SEGMENT_ID);
     hotel = await deployFullHotel(getSchemaVersion('@windingtree/wt-hotel-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), factoryContract, directoryContract, HOTEL_DESCRIPTION, RATE_PLANS, AVAILABILITY);
   });
 

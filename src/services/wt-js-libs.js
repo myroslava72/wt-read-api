@@ -7,7 +7,7 @@ function getInstance () {
   return config.wtLibs;
 }
 
-function _setIndexAddress (address, segment) {
+function _setDirectoryAddress (address, segment) {
   config.directoryAddresses[segment] = address;
 }
 
@@ -77,5 +77,5 @@ module.exports = {
   getAirlineDirectory,
   getTrustClueClient,
   passesTrustworthinessTest,
-  _setIndexAddress,
+  _setDirectoryAddress,
 };
