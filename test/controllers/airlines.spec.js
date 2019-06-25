@@ -307,7 +307,7 @@ describe('Airlines', function () {
 
     it('should return all fields that a client asks for in airline list', async () => {
       const fields = [
-        // 'managerAddress', // TODO
+        'ownerAddress',
         'name',
         'contacts',
         'flights',
@@ -607,7 +607,7 @@ describe('Airlines', function () {
       // defaultCancellationAmount was problematic when set to 0
       const fields = [
         'name',
-        // 'managerAddress', // TODO
+        'ownerAddress',
         'defaultCancellationAmount',
         'notificationsUri',
         'bookingUri',
@@ -634,7 +634,7 @@ describe('Airlines', function () {
     });
 
     it('should return all the nested fields that a client asks for', async () => {
-      const fields = ['managerAddress', 'name', 'code', 'contacts.general.email', 'contacts.general.phone'];
+      const fields = ['ownerAddress', 'name', 'code', 'contacts.general.email', 'contacts.general.phone'];
       const query = `fields=${fields.join()}`;
 
       await request(server)
@@ -643,7 +643,7 @@ describe('Airlines', function () {
         .set('accept', 'application/json')
         .expect((res) => {
           expect(res.body).to.have.property('id');
-          // expect(res.body).to.have.property('managerAddress'); // TODO
+          expect(res.body).to.have.property('ownerAddress');
           expect(res.body).to.have.property('name');
           expect(res.body).to.have.property('code');
           expect(res.body).to.have.property('contacts');
@@ -791,7 +791,7 @@ describe('Airlines', function () {
     });
 
     it('should not return any non-existent fields even if a client asks for them', async () => {
-      const fields = ['name'];
+      const fields = ['ownerAddress', 'name'];
       const invalidFields = ['invalid', 'invalidField'];
       const query = `fields=${fields.join()},${invalidFields.join()}`;
 
