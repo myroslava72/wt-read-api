@@ -48,16 +48,16 @@ const deployApp = async (web3, lifTokenContract, segment) => {
 const deployAirlineApp = async (wtJsLibsWrapper) => {
   const lifTokenContract = await deployLifToken();
   const app = await deployApp(web3, lifTokenContract, 'airlines');
-  wtJsLibsWrapper._setDirectoryAddress(app.directory.address, AIRLINE_SEGMENT_ID);
-  wtJsLibsWrapper._setDirectoryAddress(app.factory.address, `${AIRLINE_SEGMENT_ID}Factory`);
+  wtJsLibsWrapper.directoryAddresses[AIRLINE_SEGMENT_ID] = app.directory.address;
+  wtJsLibsWrapper.directoryAddresses[`${AIRLINE_SEGMENT_ID}Factory`] = app.factory.address;
   return app;
 };
 
 const deployHotelApp = async (wtJsLibsWrapper) => {
   const lifTokenContract = await deployLifToken();
   const app = await deployApp(web3, lifTokenContract, 'hotels');
-  wtJsLibsWrapper._setDirectoryAddress(app.directory.address, HOTEL_SEGMENT_ID);
-  wtJsLibsWrapper._setDirectoryAddress(app.factory.address, `${HOTEL_SEGMENT_ID}Factory`);
+  wtJsLibsWrapper.directoryAddresses[HOTEL_SEGMENT_ID] = app.directory.address;
+  wtJsLibsWrapper.directoryAddresses[`${HOTEL_SEGMENT_ID}Factory`] = app.factory.address;
   return app;
 };
 
