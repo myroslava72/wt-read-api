@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const sinon = require('sinon');
 const { getSchemaVersion } = require('../utils/schemas');
+const { config } = require('../../src/config');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
@@ -38,7 +39,7 @@ describe('Room types', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    app = await deployHotelApp(wtJsLibsWrapper);
+    app = await deployHotelApp(config);
     deploymentOptions = {
       schemaVersion: getSchemaVersion('@windingtree/wt-hotel-schemas'),
       offChainDataClient: await wtLibsInstance.getOffChainDataClient('in-memory'),

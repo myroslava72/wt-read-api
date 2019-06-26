@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
+const { config } = require('../../src/config');
 const { VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
   deployAirlineApp,
@@ -23,7 +24,7 @@ describe('Flights', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    app = await deployAirlineApp(wtJsLibsWrapper);
+    app = await deployAirlineApp(config);
     deploymentOptions = {
       schemaVersion: getSchemaVersion('@windingtree/wt-airline-schemas'),
       offChainDataClient: await wtLibsInstance.getOffChainDataClient('in-memory'),

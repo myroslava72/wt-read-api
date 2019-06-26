@@ -6,6 +6,7 @@ const sinon = require('sinon');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
+const { config } = require('../../src/config');
 const {
   deployHotelApp,
   deployFullHotel,
@@ -35,7 +36,7 @@ describe('Hotels', function () {
   beforeEach(async () => {
     server = require('../../src/index');
     wtLibsInstance = wtJsLibsWrapper.getInstance();
-    app = await deployHotelApp(wtJsLibsWrapper);
+    app = await deployHotelApp(config);
     deploymentOptions = {
       schemaVersion: getSchemaVersion('@windingtree/wt-hotel-schemas'),
       offChainDataClient: await wtLibsInstance.getOffChainDataClient('in-memory'),

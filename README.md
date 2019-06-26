@@ -39,9 +39,10 @@ Now we can run our dev server.
 ```bash
 npm run dev
 ```
-When using a `dev` config, we internally run a script to deploy WT Index. It is not immediate,
-so you might experience some errors in a first few seconds. And that's the reason why
-it is not used in the same manner in tests.
+When using a `dev` config, we internally run a script to deploy
+contracts. It is not immediate, so you might experience some errors in a
+first few seconds. And that's the reason why it is not used in the same
+manner in tests.
 
 You can then visit [http://localhost:3000/docs/](http://localhost:3000/docs/) to interact
 with the live server. An [OAS](https://github.com/OAI/OpenAPI-Specification) description is published there.
