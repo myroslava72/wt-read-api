@@ -24,11 +24,13 @@ describe('WtJsLibs wrapper', () => {
   describe('passesTrustworthinessTest', () => {
     let origGetTrustClueClient, baseTrustClueClient, warnLogStub, guarantee;
     const hotelAddress = '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8';
+    let accounts;
 
     beforeEach(async () => {
+      accounts = await web3.eth.getAccounts();
       origGetTrustClueClient = config.wtLibs.getTrustClueClient;
       baseTrustClueClient = {
-        verifySignedData: (claim, sig, verFn) => verFn('0x5808b3232de474e155a8d915cc588D5095C13631'),
+        verifySignedData: (claim, sig, verFn) => verFn(accounts[0]),
         interpretAllValues: () => Promise.resolve([
           { name: 'test-clue', value: true },
           { name: 'test-clue-2', value: true },
@@ -37,12 +39,11 @@ describe('WtJsLibs wrapper', () => {
       config.wtLibs.getTrustClueClient = () => (baseTrustClueClient);
       warnLogStub = sinon.stub(config.logger, 'warn');
 
-      const accounts = await web3.eth.getAccounts();
       const monthFromNow = new Date();
       monthFromNow.setMonth(monthFromNow.getMonth() + 1);
       const rawClaim = {
         'hotel': hotelAddress,
-        'guarantor': '0x5808b3232de474e155a8d915cc588D5095C13631',
+        'guarantor': accounts[0],
         'expiresAt': monthFromNow.getTime(),
       };
       const hexClaim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
@@ -110,7 +111,7 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee has no hotel information', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        guarantor: accounts[0],
         expiresAt: 1561364469000,
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -121,7 +122,7 @@ describe('WtJsLibs wrapper', () => {
     it('should return false and log if hotelAddress does not match the guarantee', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
         hotel: '456',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        guarantor: accounts[0],
         expiresAt: 1561364469000,
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -131,8 +132,8 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee is expired', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        hotel: '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        hotel: hotelAddress,
+        guarantor: accounts[0],
         expiresAt: (new Date()).setDate((new Date()).getDate() - 1),
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -142,8 +143,8 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee has no expiration information', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        hotel: '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        hotel: hotelAddress,
+        guarantor: accounts[0],
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
       expect(warnLogStub.callCount).to.be.eql(1);
