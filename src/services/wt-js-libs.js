@@ -20,7 +20,7 @@ async function getAirlineDirectory () {
 }
 
 async function getFactory (segment) {
-  return getInstance().getFactory(config.directoryAddresses[`${segment}Factory`]);
+  return getInstance().getFactory(config.factoryAddresses[segment]);
 }
 
 function getTrustClueClient () {

@@ -49,7 +49,7 @@ const deployAirlineApp = async (config) => {
   const lifTokenContract = await deployLifToken();
   const app = await deployApp(web3, lifTokenContract, 'airlines');
   config.directoryAddresses[AIRLINE_SEGMENT_ID] = app.directory.address;
-  config.directoryAddresses[`${AIRLINE_SEGMENT_ID}Factory`] = app.factory.address;
+  config.factoryAddresses[AIRLINE_SEGMENT_ID] = app.factory.address;
   return app;
 };
 
@@ -57,7 +57,7 @@ const deployHotelApp = async (config) => {
   const lifTokenContract = await deployLifToken();
   const app = await deployApp(web3, lifTokenContract, 'hotels');
   config.directoryAddresses[HOTEL_SEGMENT_ID] = app.directory.address;
-  config.directoryAddresses[`${HOTEL_SEGMENT_ID}Factory`] = app.factory.address;
+  config.factoryAddresses[HOTEL_SEGMENT_ID] = app.factory.address;
   return app;
 };
 

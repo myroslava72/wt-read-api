@@ -70,6 +70,7 @@ app.get('/', async (req, res) => {
     version,
     config: process.env.WT_CONFIG,
     directoryAddresses: config.directoryAddresses,
+    factoryAddresses: config.factoryAddresses,
     ethNetwork: config.ethNetwork,
     dataFormatVersions: config.dataFormatVersions,
   };

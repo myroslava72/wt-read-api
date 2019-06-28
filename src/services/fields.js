@@ -45,7 +45,7 @@ const HOTEL_DEFAULT_FIELDS = HOTEL_DEFAULT_FIELDS_LIST.concat([
 ]);
 const HOTEL_ONCHAIN_FIELDS = ['owner', 'created'];
 const HOTEL_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDescriptionBase');
-const HOTEL_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
+const HOTEL_DATAINDEX_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
 
 const AIRLINE_DEFAULT_FIELDS_LIST = [
   'id',
@@ -57,9 +57,9 @@ const AIRLINE_DEFAULT_FIELDS_LIST = [
 const AIRLINE_DEFAULT_FIELDS = AIRLINE_DEFAULT_FIELDS_LIST.concat(['code', 'currency']);
 const AIRLINE_ONCHAIN_FIELDS = ['owner', 'created'];
 const AIRLINE_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDescriptionBase');
-const AIRLINE_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
+const AIRLINE_DATAINDEX_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
 
-const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descriptionFieldsSpec = [], dataUriFieldsSpec = [], toDropSpec = []) => {
+const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descriptionFieldsSpec = [], dataIndexFieldsSpec = [], toDropSpec = []) => {
   const mappedFields = mappingSpec(fields);
   return {
     mapped: mappedFields,
@@ -72,7 +72,7 @@ const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descripti
       if (descriptionFieldsSpec.indexOf(firstPart) > -1) {
         return `descriptionUri.${f}`;
       }
-      if (dataUriFieldsSpec.indexOf(firstPart) > -1) {
+      if (dataIndexFieldsSpec.indexOf(firstPart) > -1) {
         return f;
       }
       return null;
@@ -90,7 +90,7 @@ const _airlineFields = (fields, defaults) => {
     mapAirlineFieldsFromQuery,
     AIRLINE_ONCHAIN_FIELDS,
     AIRLINE_DESCRIPTION_FIELDS,
-    AIRLINE_DATAURI_FIELDS,
+    AIRLINE_DATAINDEX_FIELDS,
     required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };
@@ -104,7 +104,7 @@ const _hotelFields = (fields, defaults) => {
     mapHotelFieldsFromQuery,
     HOTEL_ONCHAIN_FIELDS,
     HOTEL_DESCRIPTION_FIELDS,
-    HOTEL_DATAURI_FIELDS,
+    HOTEL_DATAINDEX_FIELDS,
     required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };

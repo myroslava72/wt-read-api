@@ -44,7 +44,7 @@
     "@windingtree/trust-clue-lif-deposit": "^0.1.0",
     "@windingtree/wt-airline-schemas": "^0.7.0",
     "@windingtree/wt-hotel-schemas": "^0.8.3",
-    "@windingtree/wt-js-libs": "^0.13.0",
+    "@windingtree/wt-js-libs": "^0.13.1",
     "@windingtree/wt-shared-schemas": "^0.7.2",
     "body-parser": "^1.18.3",
     "cors": "^2.8.4",
@@ -80,7 +80,6 @@
     "nyc": "^14.1.0",
     "sinon": "^7.2.4",
     "supertest": "^4.0.2",
-    "truffle-contract": "^4.0.21",
     "web3": "1.0.0-beta.36",
     "zos-lib": "^2.3.1"
   },

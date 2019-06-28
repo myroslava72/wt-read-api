@@ -85,7 +85,7 @@ describe('Fields', function () {
       expect(fields.toFlatten[1]).to.be.eql('dataFormatVersion');
     });
 
-    it('should keep dataUri fields', () => {
+    it('should keep dataIndex fields', () => {
       const fields = _airlineFields(['flightsUri', 'notificationsUri', 'bookingUri'], []);
       expect(fields.onChain.length).to.be.eql(0);
       expect(fields.toFlatten.length).to.be.eql(4);
@@ -190,7 +190,7 @@ describe('Fields', function () {
       expect(fields.toFlatten[2]).to.be.eql('guarantee');
     });
 
-    it('should keep dataUri fields', () => {
+    it('should keep dataIndex fields', () => {
       const fields = _hotelFields([
         'ratePlansUri',
         'availabilityUri',

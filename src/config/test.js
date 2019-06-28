@@ -12,6 +12,10 @@ module.exports = {
     hotels: 'will-be-set-during-init',
     airlines: 'will-be-set-during-init',
   },
+  factoryAddresses: {
+    hotels: 'will-be-set-during-init',
+    airlines: 'will-be-set-during-init',
+  },
   ethNetwork: 'test',
   checkTrustClues: true,
   wtLibsOptions: {

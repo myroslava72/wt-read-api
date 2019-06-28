@@ -30,6 +30,10 @@ module.exports = {
     hotels: 'will-be-set-during-init',
     airlines: 'will-be-set-during-init',
   },
+  factoryAddresses: {
+    hotels: 'will-be-set-during-init',
+    airlines: 'will-be-set-during-init',
+  },
   ethNetwork: 'local',
   wtLibsOptions: {
     onChainDataOptions: {
@@ -94,7 +98,9 @@ module.exports = {
     if (segmentsToStart.indexOf(HOTEL_SEGMENT_ID) !== -1) {
       const hotelApp = await deployHotelApp(currentConfig);
       currentConfig.directoryAddresses[HOTEL_SEGMENT_ID] = hotelApp.directory.address;
-      currentConfig.logger.info(`Winding Tree hotel index deployed to ${hotelApp.directory.address}`);
+      currentConfig.factoryAddresses[HOTEL_SEGMENT_ID] = hotelApp.factory.address;
+      currentConfig.logger.info(`Winding Tree hotel directory deployed to ${hotelApp.directory.address}`);
+      currentConfig.logger.info(`Winding Tree hotel factory deployed to ${hotelApp.factory.address}`);
 
       const hotel = await deployFullHotel({
         schemaVersion: getSchemaVersion('@windingtree/wt-hotel-schemas'),
@@ -106,7 +112,9 @@ module.exports = {
     if (segmentsToStart.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
       const airlineApp = await deployAirlineApp(currentConfig);
       currentConfig.directoryAddresses[AIRLINE_SEGMENT_ID] = airlineApp.directory.address;
-      currentConfig.logger.info(`Winding Tree airline index deployed to ${airlineApp.directory.address}`);
+      currentConfig.factoryAddresses[AIRLINE_SEGMENT_ID] = airlineApp.factory.address;
+      currentConfig.logger.info(`Winding Tree airline directory deployed to ${airlineApp.directory.address}`);
+      currentConfig.logger.info(`Winding Tree airline factory deployed to ${airlineApp.factory.address}`);
 
       const airline = await deployFullAirline({
         schemaVersion: getSchemaVersion('@windingtree/wt-airline-schemas'),

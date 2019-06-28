@@ -22,6 +22,7 @@ describe('API', function () {
         expect(res.body).to.have.property('version');
         expect(res.body).to.have.property('config', process.env.WT_CONFIG);
         expect(res.body).to.have.property('directoryAddresses');
+        expect(res.body).to.have.property('factoryAddresses');
         expect(res.body.directoryAddresses).to.have.property('hotels', config.directoryAddresses.hotels);
         expect(res.body.directoryAddresses).to.have.property('airlines', config.directoryAddresses.airlines);
         expect(res.body).to.have.property('ethNetwork', config.ethNetwork);
