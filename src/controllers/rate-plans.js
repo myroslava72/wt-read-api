@@ -11,15 +11,16 @@ const {
 
 const findAll = async (req, res, next) => {
   try {
-    let plainHotel = await res.locals.wt.hotel.toPlainObject(['ratePlansUri']);
-    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(['ratePlansUri'])).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
     if (!passesTrustworthinessTest) {
       return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
     }
-    if (!plainHotel.dataUri.contents.ratePlansUri) {
+    if (!apiContents.ratePlansUri) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    let ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
+    let ratePlans = apiContents.ratePlansUri.contents;
     const items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     for (let plan of ratePlans) {
@@ -29,7 +30,7 @@ const findAll = async (req, res, next) => {
           RATE_PLAN_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.hotels,
-          plainHotel.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'rate plan'
         );
         items.push(plan);
@@ -61,15 +62,16 @@ const findAll = async (req, res, next) => {
 const find = async (req, res, next) => {
   let { ratePlanId } = req.params;
   try {
-    let plainHotel = await res.locals.wt.hotel.toPlainObject(['ratePlansUri']);
-    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(['ratePlansUri'])).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
     if (!passesTrustworthinessTest) {
       return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
     }
-    if (!plainHotel.dataUri.contents.ratePlansUri) {
+    if (!apiContents.ratePlansUri) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
     }
-    const ratePlans = plainHotel.dataUri.contents.ratePlansUri.contents;
+    const ratePlans = apiContents.ratePlansUri.contents;
     let ratePlan = ratePlans.find((rp) => { return rp.id === ratePlanId; });
     if (!ratePlan) {
       return next(new Http404Error('ratePlanNotFound', 'Rate plan not found'));
@@ -81,7 +83,7 @@ const find = async (req, res, next) => {
         RATE_PLAN_MODEL,
         swaggerDocument.components.schemas,
         config.dataFormatVersions.hotels,
-        plainHotel.dataUri.contents.dataFormatVersion,
+        apiContents.dataFormatVersion,
         'rate plan'
       );
     } catch (e) {

@@ -1,27 +1,17 @@
 const Web3 = require('web3');
-const { WTHotelIndexContract, AbstractHotelContract } = require('@windingtree/wt-contracts');
-const { getContractWithProvider } = require('./utils');
+const lib = require('zos-lib');
+const { getSchemaVersion } = require('../../test/utils/schemas');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
+const Contracts = lib.Contracts;
+const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
 
-const deployHotelIndex = async () => {
-  const indexContract = getContractWithProvider(WTHotelIndexContract, provider);
-  const accounts = await web3.eth.getAccounts();
-  const hotelIndex = await indexContract.new({
-    from: accounts[0],
-    gas: 6000000,
-  });
-  // we have to call initialize as it's not automatically called by zos proxies
-  // because we don't use them for dev env
-  await hotelIndex.initialize(accounts[0], accounts[1], {
-    from: accounts[0],
-  });
-  return hotelIndex;
-};
+const deployFullHotel = async (deploymentOptions, hotelDescription, ratePlans, availability, ownerAcountIdx = 0) => {
+  const dataFormatVersion = deploymentOptions.schemaVersion;
+  const offChainDataAdapter = deploymentOptions.offChainDataClient;
+  const app = deploymentOptions.app;
 
-const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, hotelDescription, ratePlans, availability, ownerAcountIdx = 0) => {
-  const hotelContract = getContractWithProvider(AbstractHotelContract, provider);
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -40,15 +30,31 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
   indexFile.defaultLocale = 'en';
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
-  const registerResult = await index.registerHotel(dataUri, {
-    from: accounts[ownerAcountIdx],
-    gas: 6000000,
+  const orgJsonUri = await offChainDataAdapter.upload({
+    'dataFormatVersion': getSchemaVersion('@windingtree/wt-hotel-schemas'),
+    'name': hotelDescription.name,
+    'hotel': {
+      'name': hotelDescription.name,
+      'apis': [
+        {
+          'entrypoint': dataUri,
+          'format': 'windingtree',
+        },
+        {
+          'entrypoint': 'http://dummy.restapiexample.com/api/v1/employees',
+          'format': 'coolapi',
+        },
+      ],
+    },
   });
-  const address = web3.utils.toChecksumAddress(registerResult.logs[0].args.hotel);
+
+  const hotelEvent = await app.factory.methods.createAndAddToDirectory(orgJsonUri, app.directory.address).send({ from: accounts[ownerAcountIdx] });
+  const hotel = Organization.at(hotelEvent.events.OrganizationCreated.returnValues.organization);
+
   const monthFromNow = new Date();
   monthFromNow.setMonth(monthFromNow.getMonth() + 1);
   const rawClaim = {
-    'hotel': address,
+    'hotel': hotel.address,
     'guarantor': accounts[ownerAcountIdx],
     'expiresAt': monthFromNow.getTime(),
   };
@@ -58,17 +64,10 @@ const deployFullHotel = async (dataFormatVersion, offChainDataAdapter, index, ho
     claim: hexClaim,
     signature: signature,
   };
-  const dataUriWithGuarantee = await offChainDataAdapter.upload(indexFile);
-  const hotelContractInstance = await hotelContract.at(address);
-  const txData = hotelContractInstance.contract.methods.editInfo(dataUriWithGuarantee).encodeABI();
-  await index.callHotel(address, txData, {
-    from: accounts[ownerAcountIdx],
-    gas: 6000000,
-  });
-  return address;
+
+  return hotel;
 };
 
 module.exports = {
-  deployHotelIndex,
   deployFullHotel,
 };

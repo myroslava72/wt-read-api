@@ -1,4 +1,5 @@
 const Web3 = require('web3');
+const TruffleContract = require('truffle-contract');
 const CuratedListContract = require('@windingtree/trust-clue-curated-list/build/contracts/CuratedList.json');
 const LifDeposit = require('@windingtree/trust-clue-lif-deposit/build/contracts/LifDeposit.json');
 const LifTokenTest = require('@windingtree/lif-token/build/contracts/LifTokenTest.json');
@@ -7,7 +8,11 @@ const PublicResolver = require('@ensdomains/resolver/build/contracts/PublicResol
 const TestRegistrar = require('@ensdomains/ens/build/contracts/TestRegistrar.json');
 const namehash = require('eth-ens-namehash');
 
-const { getContractWithProvider } = require('./utils');
+const getContractWithProvider = (metadata, provider) => {
+  let contract = TruffleContract(metadata);
+  contract.setProvider(provider);
+  return contract;
+};
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
@@ -102,6 +107,7 @@ const deployLifDepositTrustClue = async () => {
 };
 
 module.exports = {
+  deployLifToken,
   deployCuratedListTrustClue,
   deployLifDepositTrustClue,
 };

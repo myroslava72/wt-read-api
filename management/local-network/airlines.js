@@ -1,26 +1,17 @@
 const Web3 = require('web3');
-const { WTAirlineIndexContract } = require('@windingtree/wt-contracts');
-const { getContractWithProvider } = require('./utils');
+const lib = require('zos-lib');
+const { getSchemaVersion } = require('../../test/utils/schemas');
 
 const provider = new Web3.providers.HttpProvider('http://localhost:8545');
 const web3 = new Web3(provider);
+const Contracts = lib.Contracts;
+const Organization = Contracts.getFromNodeModules('@windingtree/wt-contracts', 'Organization');
 
-const deployAirlineIndex = async () => {
-  const indexContract = getContractWithProvider(WTAirlineIndexContract, provider);
-  const accounts = await web3.eth.getAccounts();
-  const airlineIndex = await indexContract.new({
-    from: accounts[0],
-    gas: 6000000,
-  });
-  // we have to call initialize as it's not automatically called by zos proxies
-  // because we don't use them for dev env
-  await airlineIndex.initialize(accounts[0], accounts[1], {
-    from: accounts[0],
-  });
-  return airlineIndex;
-};
+const deployFullAirline = async (deploymentOptions, airlineDescription, flights, flightInstances) => {
+  const dataFormatVersion = deploymentOptions.schemaVersion;
+  const offChainDataAdapter = deploymentOptions.offChainDataClient;
+  const app = deploymentOptions.app;
 
-const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, index, airlineDescription, flights, flightInstances) => {
   const accounts = await web3.eth.getAccounts();
   const indexFile = {};
 
@@ -40,14 +31,28 @@ const deployFullAirline = async (dataFormatVersion, offChainDataAdapter, index, 
   indexFile.dataFormatVersion = dataFormatVersion;
   const dataUri = await offChainDataAdapter.upload(indexFile);
 
-  const registerResult = await index.registerAirline(dataUri, {
-    from: accounts[0],
-    gas: 6000000,
+  const orgJsonUri = await offChainDataAdapter.upload({
+    'dataFormatVersion': getSchemaVersion('@windingtree/wt-airline-schemas'),
+    'name': airlineDescription.name,
+    'airline': {
+      'name': airlineDescription.name,
+      'apis': [
+        {
+          'entrypoint': dataUri,
+          'format': 'windingtree',
+        },
+        {
+          'entrypoint': 'http://dummy.restapiexample.com/api/v1/employees',
+          'format': 'coolapi',
+        },
+      ],
+    },
   });
-  return web3.utils.toChecksumAddress(registerResult.logs[0].args.airline);
+
+  const airlineEvent = await app.factory.methods.createAndAddToDirectory(orgJsonUri, app.directory.address).send({ from: accounts[3] });
+  return Organization.at(airlineEvent.events.OrganizationCreated.returnValues.organization);
 };
 
 module.exports = {
-  deployAirlineIndex,
   deployFullAirline,
 };

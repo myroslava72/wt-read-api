@@ -35,19 +35,19 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
       const loadInstances = offChainFields.indexOf('flightsUri.items.flightInstancesUri') > -1;
       const depth = loadInstances ? undefined : 3;
 
-      let plainAirline = await airline.toPlainObject(offChainFields, depth);
+      const airlineApis = await airline.getWindingTreeApi();
+      const apiContents = (await airlineApis.airline[0].toPlainObject(offChainFields, depth)).contents;
 
-      if (!loadInstances && plainAirline.dataUri.contents.flightsUri && plainAirline.dataUri.contents.flightsUri.contents) {
-        for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
+      if (!loadInstances && apiContents.flightsUri && apiContents.flightsUri.contents) {
+        for (let flight of apiContents.flightsUri.contents.items) {
           delete flight.flightInstancesUri;
         }
       }
 
-      const flattenedOffChainData = flattenObject(plainAirline.dataUri.contents, offChainFields);
+      const flattenedOffChainData = flattenObject(apiContents, offChainFields);
       airlineData = {
-        dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
+        dataFormatVersion: apiContents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
-        ...(flattenObject(plainAirline, offChainFields)),
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
@@ -171,7 +171,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
 const findAll = async (req, res, next) => {
   const { limit, startWith, fields } = req.query;
   try {
-    let airlines = await res.locals.wt.airlineIndex.getAllAirlines();
+    let airlines = await res.locals.wt.airlineDirectory.getOrganizations();
     const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateAirlinesFields(fields), airlines, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
@@ -226,13 +226,14 @@ const find = async (req, res, next) => {
 
 const meta = async (req, res, next) => {
   try {
-    const resolvedAirline = await res.locals.wt.airline.toPlainObject([]);
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiObject = await airlineApis.airline[0].toPlainObject([]);
     return res.status(200).json({
-      address: resolvedAirline.address,
-      dataUri: resolvedAirline.dataUri.ref,
-      descriptionUri: resolvedAirline.dataUri.contents.descriptionUri,
-      flightsUri: resolvedAirline.dataUri.contents.flightsUri,
-      dataFormatVersion: resolvedAirline.dataUri.contents.dataFormatVersion,
+      address: res.locals.wt.airline.address,
+      orgJsonUri: apiObject.ref,
+      descriptionUri: apiObject.contents.descriptionUri,
+      flightsUri: apiObject.contents.flightsUri,
+      dataFormatVersion: apiObject.contents.dataFormatVersion,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('airlineNotAccessible', e.message, 'Airline data is not accessible.'));

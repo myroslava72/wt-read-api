@@ -6,6 +6,10 @@ const Web3Utils = require('web3-utils');
 const { getTrustClueClient, passesTrustworthinessTest } = require('../../src/services/wt-js-libs');
 const { config } = require('../../src/config');
 
+const Web3 = require('web3');
+const provider = new Web3.providers.HttpProvider('http://localhost:8545');
+const web3 = new Web3(provider);
+
 describe('WtJsLibs wrapper', () => {
   describe('getTrustClueClient', () => {
     it('should call wtJsLibs', () => {
@@ -20,11 +24,13 @@ describe('WtJsLibs wrapper', () => {
   describe('passesTrustworthinessTest', () => {
     let origGetTrustClueClient, baseTrustClueClient, warnLogStub, guarantee;
     const hotelAddress = '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8';
+    let accounts;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+      accounts = await web3.eth.getAccounts();
       origGetTrustClueClient = config.wtLibs.getTrustClueClient;
       baseTrustClueClient = {
-        verifySignedData: (claim, sig, verFn) => verFn('0x5808b3232de474e155a8d915cc588D5095C13631'),
+        verifySignedData: (claim, sig, verFn) => verFn(accounts[0]),
         interpretAllValues: () => Promise.resolve([
           { name: 'test-clue', value: true },
           { name: 'test-clue-2', value: true },
@@ -32,9 +38,18 @@ describe('WtJsLibs wrapper', () => {
       };
       config.wtLibs.getTrustClueClient = () => (baseTrustClueClient);
       warnLogStub = sinon.stub(config.logger, 'warn');
+
+      const monthFromNow = new Date();
+      monthFromNow.setMonth(monthFromNow.getMonth() + 1);
+      const rawClaim = {
+        'hotel': hotelAddress,
+        'guarantor': accounts[0],
+        'expiresAt': monthFromNow.getTime(),
+      };
+      const hexClaim = web3.utils.utf8ToHex(JSON.stringify(rawClaim));
       guarantee = {
-        claim: '0x7b22686f74656c223a22307844626446394236333664463732644433356642323262623130356438653162423961303935374338222c2267756172616e746f72223a22307835383038623332333264653437346531353561386439313563633538384435303935433133363331222c22657870697265734174223a313536313336343436393030307d',
-        signature: '0x6bd1846b460d5ce14a329240db33f83ecbcce795e0ae701ebdb3060eea686252525ddde8e7769e748b03df5acecf104acd605726c469d23470223de03243a9571c',
+        claim: hexClaim,
+        signature: await web3.eth.sign(hexClaim, accounts[0]),
       };
     });
 
@@ -96,7 +111,7 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee has no hotel information', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        guarantor: accounts[0],
         expiresAt: 1561364469000,
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -107,7 +122,7 @@ describe('WtJsLibs wrapper', () => {
     it('should return false and log if hotelAddress does not match the guarantee', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
         hotel: '456',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        guarantor: accounts[0],
         expiresAt: 1561364469000,
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -117,8 +132,8 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee is expired', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        hotel: '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        hotel: hotelAddress,
+        guarantor: accounts[0],
         expiresAt: (new Date()).setDate((new Date()).getDate() - 1),
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
@@ -128,8 +143,8 @@ describe('WtJsLibs wrapper', () => {
 
     it('should return false and log if guarantee has no expiration information', async () => {
       guarantee.claim = Web3Utils.utf8ToHex(JSON.stringify({
-        hotel: '0xDbdF9B636dF72dD35fB22bb105d8e1bB9a0957C8',
-        guarantor: '0x5808b3232de474e155a8d915cc588D5095C13631',
+        hotel: hotelAddress,
+        guarantor: accounts[0],
       }));
       expect(await passesTrustworthinessTest(hotelAddress, guarantee)).to.be.equal(false);
       expect(warnLogStub.callCount).to.be.eql(1);

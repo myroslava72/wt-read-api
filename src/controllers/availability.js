@@ -10,15 +10,16 @@ const {
 
 const findAll = async (req, res, next) => {
   try {
-    let plainHotel = await res.locals.wt.hotel.toPlainObject(['availabilityUri']);
-    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(plainHotel.address, plainHotel.dataUri.contents.guarantee);
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(['availabilityUri'])).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
     if (!passesTrustworthinessTest) {
       return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
     }
-    if (!plainHotel.dataUri.contents.availabilityUri) {
+    if (!apiContents.availabilityUri) {
       return next(new Http404Error('noAvailability', 'No availabilityUri specified.'));
     }
-    let availability = plainHotel.dataUri.contents.availabilityUri.contents;
+    let availability = apiContents.availabilityUri.contents;
     const items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL);
     for (let roomType of availability.roomTypes) {
@@ -28,7 +29,7 @@ const findAll = async (req, res, next) => {
           AVAILABILITY_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.hotels,
-          plainHotel.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'availability'
         );
         items.push(roomType);

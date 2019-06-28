@@ -18,11 +18,12 @@ const find = async (req, res, next) => {
     const loadInstances = fieldsArray.indexOf('flightInstancesUri') > -1;
     const fieldsToResolve = loadInstances ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
     const depth = loadInstances ? undefined : 2;
-    let plainAirline = await res.locals.wt.airline.toPlainObject(fieldsToResolve, depth);
-    if (!plainAirline.dataUri.contents.flightsUri) {
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiContents = (await airlineApis.airline[0].toPlainObject(fieldsToResolve, depth)).contents;
+    if (!apiContents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
-    const flights = plainAirline.dataUri.contents.flightsUri.contents;
+    const flights = apiContents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));
@@ -38,7 +39,7 @@ const find = async (req, res, next) => {
         FLIGHT_MODEL,
         swaggerDocument.components.schemas,
         config.dataFormatVersions.airlines,
-        plainAirline.dataUri.contents.dataFormatVersion,
+        apiContents.dataFormatVersion,
         'flight',
       );
     } catch (e) {
@@ -68,13 +69,14 @@ const findAll = async (req, res, next) => {
     const loadInstances = fieldsArray.indexOf('flightInstancesUri') > -1;
     const fieldsToResolve = loadInstances ? ['flightsUri.items.flightInstancesUri'] : ['flightsUri.items'];
     const depth = loadInstances ? undefined : 2;
-    let plainAirline = await res.locals.wt.airline.toPlainObject(fieldsToResolve, depth);
-    if (!plainAirline.dataUri.contents.flightsUri) {
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiContents = (await airlineApis.airline[0].toPlainObject(fieldsToResolve, depth)).contents;
+    if (!apiContents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
     const flights = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, FLIGHT_MODEL);
-    for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
+    for (let flight of apiContents.flightsUri.contents.items) {
       let flattenedFlight = flattenObject(flight, fieldsArray);
       flight.flightInstances = flattenedFlight.flightInstancesUri;
       delete flight.flightInstancesUri;
@@ -84,7 +86,7 @@ const findAll = async (req, res, next) => {
           FLIGHT_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.airlines,
-          plainAirline.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'flight',
         );
         flights.push(flight);
@@ -107,7 +109,7 @@ const findAll = async (req, res, next) => {
       items: flights,
       warnings: warnings,
       errors: errors,
-      updatedAt: plainAirline.dataUri.contents.flightsUri.contents.updatedAt,
+      updatedAt: apiContents.flightsUri.contents.updatedAt,
     });
   } catch (e) {
     next(e);
@@ -117,11 +119,12 @@ const findAll = async (req, res, next) => {
 const meta = async (req, res, next) => {
   let { flightId } = req.params;
   try {
-    let plainAirline = await res.locals.wt.airline.toPlainObject(['flightsUri']);
-    if (!plainAirline.dataUri.contents.flightsUri) {
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiContents = (await airlineApis.airline[0].toPlainObject(['flightsUri'])).contents;
+    if (!apiContents.flightsUri) {
       return next(new Http404Error('flightNotFound', 'Flights not found'));
     }
-    const flights = plainAirline.dataUri.contents.flightsUri.contents;
+    const flights = apiContents.flightsUri.contents;
     const flight = flights.items.find(f => f.id === flightId);
     if (!flight) {
       return next(new Http404Error('flightNotFound', 'Flight not found'));

@@ -27,10 +27,10 @@ describe('Fields', function () {
 
   describe('_airlineFields', () => {
     it('should work when fields is non-empty string', () => {
-      const fields = _airlineFields('manager,contacts', (f) => f);
+      const fields = _airlineFields('owner,contacts', (f) => f);
       expect(fields).to.have.property('mapped');
       expect(fields.mapped.length).to.be.eql(3);
-      expect(fields.mapped[0]).to.be.eql('manager');
+      expect(fields.mapped[0]).to.be.eql('owner');
       expect(fields.mapped[1]).to.be.eql('contacts');
       expect(fields.mapped[2]).to.be.eql('dataFormatVersion');
     });
@@ -63,18 +63,18 @@ describe('Fields', function () {
     });
 
     it('should categorize on-chain fields', () => {
-      const fields = _airlineFields(['manager'], []);
+      const fields = _airlineFields(['owner'], []);
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
     });
 
     it('should apply airline mapping', () => {
-      const fields = _airlineFields(['managerAddress'], []);
+      const fields = _airlineFields(['ownerAddress'], []);
       expect(fields.mapped.length).to.be.eql(2);
-      expect(fields.mapped[0]).to.be.eql('manager');
+      expect(fields.mapped[0]).to.be.eql('owner');
       expect(fields.mapped[1]).to.be.eql('dataFormatVersion');
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
     });
 
     it('should nest description fields', () => {
@@ -85,7 +85,7 @@ describe('Fields', function () {
       expect(fields.toFlatten[1]).to.be.eql('dataFormatVersion');
     });
 
-    it('should keep dataUri fields', () => {
+    it('should keep dataIndex fields', () => {
       const fields = _airlineFields(['flightsUri', 'notificationsUri', 'bookingUri'], []);
       expect(fields.onChain.length).to.be.eql(0);
       expect(fields.toFlatten.length).to.be.eql(4);
@@ -96,9 +96,9 @@ describe('Fields', function () {
     });
 
     it('should drop unknown fields', () => {
-      const fields = _airlineFields(['bookingUri', 'managerAddress', 'contacts', '__stuff'], []);
+      const fields = _airlineFields(['bookingUri', 'ownerAddress', 'contacts', '__stuff'], []);
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
       expect(fields.toFlatten.length).to.be.eql(3);
       expect(fields.toFlatten[0]).to.be.eql('bookingUri');
       expect(fields.toFlatten[1]).to.be.eql('descriptionUri.contacts');
@@ -125,10 +125,10 @@ describe('Fields', function () {
 
   describe('_hotelFields', () => {
     it('should work when fields is non-empty string', () => {
-      const fields = _hotelFields('manager,contacts', (f) => f);
+      const fields = _hotelFields('owner,contacts', (f) => f);
       expect(fields).to.have.property('mapped');
       expect(fields.mapped.length).to.be.eql(4);
-      expect(fields.mapped[0]).to.be.eql('manager');
+      expect(fields.mapped[0]).to.be.eql('owner');
       expect(fields.mapped[1]).to.be.eql('contacts');
       expect(fields.mapped[2]).to.be.eql('dataFormatVersion');
       expect(fields.mapped[3]).to.be.eql('guarantee');
@@ -166,19 +166,19 @@ describe('Fields', function () {
     });
 
     it('should categorize on-chain fields', () => {
-      const fields = _hotelFields(['manager'], []);
+      const fields = _hotelFields(['owner'], []);
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
     });
 
     it('should apply hotel mapping', () => {
-      const fields = _hotelFields(['managerAddress'], []);
+      const fields = _hotelFields(['ownerAddress'], []);
       expect(fields.mapped.length).to.be.eql(3);
-      expect(fields.mapped[0]).to.be.eql('manager');
+      expect(fields.mapped[0]).to.be.eql('owner');
       expect(fields.mapped[1]).to.be.eql('dataFormatVersion');
       expect(fields.mapped[2]).to.be.eql('guarantee');
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
     });
 
     it('should nest description fields', () => {
@@ -190,7 +190,7 @@ describe('Fields', function () {
       expect(fields.toFlatten[2]).to.be.eql('guarantee');
     });
 
-    it('should keep dataUri fields', () => {
+    it('should keep dataIndex fields', () => {
       const fields = _hotelFields([
         'ratePlansUri',
         'availabilityUri',
@@ -210,9 +210,9 @@ describe('Fields', function () {
     });
 
     it('should drop unknown fields', () => {
-      const fields = _hotelFields(['bookingUri', 'managerAddress', 'contacts', '__stuff'], []);
+      const fields = _hotelFields(['bookingUri', 'ownerAddress', 'contacts', '__stuff'], []);
       expect(fields.onChain.length).to.be.eql(1);
-      expect(fields.onChain[0]).to.be.eql('manager');
+      expect(fields.onChain[0]).to.be.eql('owner');
       expect(fields.toFlatten.length).to.be.eql(4);
       expect(fields.toFlatten[0]).to.be.eql('bookingUri');
       expect(fields.toFlatten[1]).to.be.eql('descriptionUri.contacts');

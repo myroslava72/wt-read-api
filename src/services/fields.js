@@ -9,8 +9,22 @@ const swaggerDocument = YAML.load(path.resolve(__dirname, '../../docs/swagger.ya
 
 const getListOfFieldsFromSwagger = (schema) => {
   try {
+    if (swaggerDocument.components.schemas[schema].allOf) {
+      let res = [];
+      for (let subSchema of swaggerDocument.components.schemas[schema].allOf) {
+        if (subSchema.$ref) {
+          const normalizedName = subSchema.$ref.replace('#/components/schemas/', '');
+          const properties = getListOfFieldsFromSwagger(normalizedName);
+          res = res.concat(properties);
+        } else {
+          res = res.concat(Object.keys(subSchema.properties));
+        }
+      }
+      return res;
+    }
     return Object.keys(swaggerDocument.components.schemas[schema].properties);
   } catch (e) {
+    console.log(`No schema properties found for ${schema}`);
     return [];
   }
 };
@@ -29,10 +43,9 @@ const HOTEL_DEFAULT_FIELDS = HOTEL_DEFAULT_FIELDS_LIST.concat([
   'amenities',
   'updatedAt',
 ]);
-// address conflicts with a postal address fields
-const HOTEL_ONCHAIN_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelOnChain').filter((f) => f !== 'address');
+const HOTEL_ONCHAIN_FIELDS = ['owner', 'created'];
 const HOTEL_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDescriptionBase');
-const HOTEL_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
+const HOTEL_DATAINDEX_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
 
 const AIRLINE_DEFAULT_FIELDS_LIST = [
   'id',
@@ -42,12 +55,11 @@ const AIRLINE_DEFAULT_FIELDS_LIST = [
   'contacts',
 ];
 const AIRLINE_DEFAULT_FIELDS = AIRLINE_DEFAULT_FIELDS_LIST.concat(['code', 'currency']);
-// address conflicts with a postal address fields
-const AIRLINE_ONCHAIN_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineOnChain').filter((f) => f !== 'address');
+const AIRLINE_ONCHAIN_FIELDS = ['owner', 'created'];
 const AIRLINE_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDescriptionBase');
-const AIRLINE_DATAURI_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
+const AIRLINE_DATAINDEX_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-airline-schemas-AirlineDataIndex');
 
-const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descriptionFieldsSpec = [], dataUriFieldsSpec = [], toDropSpec = []) => {
+const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descriptionFieldsSpec = [], dataIndexFieldsSpec = [], toDropSpec = []) => {
   const mappedFields = mappingSpec(fields);
   return {
     mapped: mappedFields,
@@ -60,7 +72,7 @@ const _calculateFields = (fields, mappingSpec, onChainFieldsSpec = [], descripti
       if (descriptionFieldsSpec.indexOf(firstPart) > -1) {
         return `descriptionUri.${f}`;
       }
-      if (dataUriFieldsSpec.indexOf(firstPart) > -1) {
+      if (dataIndexFieldsSpec.indexOf(firstPart) > -1) {
         return f;
       }
       return null;
@@ -78,7 +90,7 @@ const _airlineFields = (fields, defaults) => {
     mapAirlineFieldsFromQuery,
     AIRLINE_ONCHAIN_FIELDS,
     AIRLINE_DESCRIPTION_FIELDS,
-    AIRLINE_DATAURI_FIELDS,
+    AIRLINE_DATAINDEX_FIELDS,
     required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };
@@ -92,7 +104,7 @@ const _hotelFields = (fields, defaults) => {
     mapHotelFieldsFromQuery,
     HOTEL_ONCHAIN_FIELDS,
     HOTEL_DESCRIPTION_FIELDS,
-    HOTEL_DATAURI_FIELDS,
+    HOTEL_DATAINDEX_FIELDS,
     required.map((f) => fields.indexOf(f) === -1 ? f : null)
   );
 };
