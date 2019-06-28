@@ -10,6 +10,7 @@ module.exports = {
     hotels: '0x78D1548E03660093B51159De0E615ea8F6B9eaF9',
     airlines: '0x78D1548E03660093B51159De0E615ea8F6B9eaF9',
   },
+  checkTrustClues: false,
   baseUrl: 'https://lisbon-api.windingtree.com',
   ethNetwork: 'ropsten',
   wtLibsOptions: {
