@@ -3,14 +3,14 @@ const HttpAdapter = require('@windingtree/off-chain-adapter-http');
 
 module.exports = {
   directoryAddresses: {
-    hotels: '0xad98e1eCcB4Db6c4BB5a03ee9989a583F0821473',
-    airlines: '0xC3f87605886A190a3802d2328EEA496FCd413C2e',
+    hotels: '0x8ea119A7Ef0Ac4c1a83a3BB6D1aa1a3afcAfDE8b',
+    airlines: '0x6f8Ab047Ccc0C8128Cc4d343Feb618065a13D965',
   },
   factoryAddresses: {
-    hotels: 'TBD',
-    airlines: 'TBD',
+    hotels: '0x78D1548E03660093B51159De0E615ea8F6B9eaF9',
+    airlines: '0x78D1548E03660093B51159De0E615ea8F6B9eaF9',
   },
-  baseUrl: 'https://demo-api.windingtree.com',
+  baseUrl: 'https://lisbon-api.windingtree.com',
   ethNetwork: 'ropsten',
   wtLibsOptions: {
     onChainDataOptions: {

@@ -63,11 +63,11 @@ jobs:
   - stage: Start service from docker with latest merged tag
     install: true
     sudo: true
-    if: branch = release/demo
+    if: branch = release/lisbon
     script:
     - pip install --user awscli
     - export PATH=$PATH:$HOME/.local/bin
-    - npm run deploy-aws-demo
+    - npm run deploy-aws-lisbon
 env:
   global:
   - secure: hINTP0maD3IhgnkrHmkXQEffU2kujBkaTbyHYRvYJWiAdOrKbFS+Rmgz7ZixjxHvB4zCkJkuHLRdiYcCKg1FXwFmqG7Qml5bSZYLWVt0J9n8pWGfy2UqJ5+wRkxAqtChc6LJNH/yqteM+amuTZt1Skt+ByS7l2vG4T5CjsNMJ2MTqx+gtPuGbexyurLEROWojf6HtIYT9ijodHVJQ+RReTkNgnTP/ZQGlo2Z81/lhb8BpPtAE/Bl6X7xLU8u+Z3tg847HJgWLd0XRsk9VDf9e7lr5b/J56SwGCE2NBp9btBSdakDdacl+RQ3C5DvifFd28EqVp4d7A4f6cIo/IXxL2l+5HcXF+AqfR/OL0TTCqWlAEp8auOl3oouytKtNQqHeH3xecUP6OeOyCN5dHkKvAVf5uHULe4c3/o/HQaPLYDiWFini+13e59bBP+19tIG9gESlNnoKUk27UQUwBVizeKUHHMmxXFjnsHFp387+nyNEpjPcArcvVc3YrsMZ62CCOvvNFnm8gv1b6815IcLeVYzju++iC8tf+RGX6MUe0P/1Mo/9ATjahipNOYNScX0tG1/BA610VQVzLKLjXxlXdMS4SaY9nE6IThKXOOJnmk/WFNlMJbRfq1CcKbdWFtGjwxb1fT+Yqn5S8dj3BZBna4utWIxLflCFq1LzEK02Oc=

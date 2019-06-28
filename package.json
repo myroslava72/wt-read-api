@@ -11,7 +11,7 @@
     "dev": "npm run resolve-swagger-references && WT_CONFIG=dev npm start",
     "resolve-swagger-references": "node management/resolve-swagger-references.js",
     "deploy-aws-playground": "./management/deploy-aws.sh playground",
-    "deploy-aws-demo": "./management/deploy-aws.sh demo",
+    "deploy-aws-lisbon": "./management/deploy-aws.sh lisbon",
     "dev-net": "./management/dev-net.sh"
   },
   "repository": {
