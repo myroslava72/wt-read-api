@@ -35,6 +35,7 @@ module.exports = {
     airlines: 'will-be-set-during-init',
   },
   ethNetwork: 'local',
+  checkTrustClues: false, // highly experimental
   wtLibsOptions: {
     onChainDataOptions: {
       provider: web3ProviderAddress,

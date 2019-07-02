@@ -1150,6 +1150,9 @@ components:
         orgJsonUri:
           description: URI of the Hotel ORG.JSON (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
+        dataIndexUri:
+          description: URI of the Hotel API data index
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         descriptionUri:
           description: URI of the Hotel description (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'

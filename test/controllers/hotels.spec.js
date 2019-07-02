@@ -815,6 +815,7 @@ describe('Hotels', function () {
         .expect((res) => {
           expect(res.body).to.have.property('address', hotel.address);
           expect(res.body).to.have.property('orgJsonUri');
+          expect(res.body).to.have.property('dataIndexUri');
           expect(res.body).to.have.property('descriptionUri');
           expect(res.body).to.have.property('ratePlansUri');
           expect(res.body).to.have.property('availabilityUri');

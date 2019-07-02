@@ -228,7 +228,8 @@ const meta = async (req, res, next) => {
     }
     return res.status(200).json({
       address: res.locals.wt.hotel.address,
-      orgJsonUri: apiObject.ref,
+      dataIndexUri: apiObject.ref,
+      orgJsonUri: await res.locals.wt.hotel.orgJsonUri,
       descriptionUri: apiObject.contents.descriptionUri,
       ratePlansUri: apiObject.contents.ratePlansUri,
       availabilityUri: apiObject.contents.availabilityUri,
