@@ -39,9 +39,10 @@ Now we can run our dev server.
 ```bash
 npm run dev
 ```
-When using a `dev` config, we internally run a script to deploy WT Index. It is not immediate,
-so you might experience some errors in a first few seconds. And that's the reason why
-it is not used in the same manner in tests.
+When using a `dev` config, we internally run a script to deploy
+contracts. It is not immediate, so you might experience some errors in a
+first few seconds. And that's the reason why it is not used in the same
+manner in tests.
 
 You can then visit [http://localhost:3000/docs/](http://localhost:3000/docs/) to interact
 with the live server. An [OAS](https://github.com/OAI/OpenAPI-Specification) description is published there.
@@ -58,7 +59,7 @@ to WT_CONFIG variable at runtime.
 
 ```sh
 $ docker build -t windingtree/wt-read-api .
-$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node WT_CONFIG=playground windingtree/wt-read-api
+$ docker run -p 8080:3000 -e ETH_NETWORK_PROVIDER=address_to_node -e WT_CONFIG=playground windingtree/wt-read-api
 ```
 After that you can access the wt-read-api on local port `8080`. This deployment
 is using a Ropsten configuration that can be found in `src/config/playground.js`.
@@ -83,37 +84,44 @@ These are:
 
 - `WT_CONFIG` - Which config will be used. Defaults to `dev`.
 - `WT_SEGMENTS` - Which segments will be enabled. Defaults to `hotels,airlines`.
-- `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory)
-- `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm)
+- `ADAPTER_IN_MEMORY` - Enables [in memory off-chain data adapter](https://github.com/windingtree/off-chain-adapter-in-memory). Defaults to `false`.
+- `ADAPTER_SWARM` - Enables [Swarm off-chain data adapter](https://github.com/windingtree/off-chain-adapter-swarm). Defaults to `true`.
 - `ADAPTER_SWARM_GATEWAY` - Address of a Swarm HTTP Gateway, for example `https://swarm.windingtree.com` or `https://swarm-gateways.net`
 - `ADAPTER_SWARM_READ_TIMEOUT` - Read timeout in milliseconds for Swarm, defaults to 1000
-- `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http)
-- `WT_HOTEL_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTHotelIndex.sol)
-- `WT_AIRLINE_INDEX_ADDRESS` - On chain address of [Winding Tree index](https://github.com/windingtree/wt-contracts/blob/master/contracts/WTAirlineIndex.sol)
+- `ADAPTER_HTTPS` - Enables [HTTP off-chain data adapter](https://github.com/windingtree/off-chain-adapter-http). Defaults to `true`.
+- `WT_HOTEL_DIRECTORY_ADDRESS` - On chain address of [Segment Directory](https://github.com/windingtree/wt-contracts/blob/master/contracts/SegmentDirectory.sol)
+- `WT_AIRLINE_DIRECTORY_ADDRESS` - On chain address of [Segment Directory](https://github.com/windingtree/wt-contracts/blob/master/contracts/SegmentDirectory.sol)
+- `WT_HOTEL_FACTORY_ADDRESS` - On chain address of [Organization Factory](https://github.com/windingtree/wt-contracts/blob/master/contracts/OrganizationFactory.sol)
+- `WT_AIRLINE_FACTORY_ADDRESS` - On chain address of [Organization Factory](https://github.com/windingtree/wt-contracts/blob/master/contracts/OrganizationFactory.sol)
 - `PORT` - HTTP Port where the API will listen, defaults to 3000.
 - `BASE_URL` - Base URL of this API instance, for example `https://playground-api.windingtree.com`
 - `ETH_NETWORK_NAME` - Name of Ethereum network for informational purposes, for example `ropsten` or `mainnet`
 - `ETH_NETWORK_PROVIDER` - Address of Ethereum node, for example `https://ropsten.infura.io/v3/my-project-id`
+- `TRUST_CLUES_CHECK` - If trust clues should be evaluated for hotels. This may affect which data will be returned by the API. Defaults to `true`.
+- `TRUST_CLUES_CURATED_LIST_ADDRESS` - ETH Address of an instance of [Curated List Trust clue](https://github.com/windingtree/trust-clue-curated-list) if used as a trust clue.
+- `TRUST_CLUES_LIF_DEPOSIT_ADDRESS` - ETH Address of an instance of [Líf Deposit Trust clue](https://github.com/windingtree/trust-clue-lif-deposit) if used as a trust clue.
+A local instance is automatically deployed if a `dev` config is used.
 
-For example the playground configuration can be emulated with the following command:
+For example the playground configuration can be emulated with the following command (the actual values will differ, check `src/config/playground.js` for current ones):
 
 ```sh
 docker run -p 8080:3000 \
   -e WT_CONFIG=envvar \
   -e WT_SEGMENTS=hotels,airlines \
-  -e WT_HOTEL_INDEX_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
-  -e WT_AIRLINE_INDEX_ADDRESS=0xai562057d613175c850df65e435bb0824b65d333 \
+  -e WT_HOTEL_DIRECTORY_ADDRESS=0xfb562057d613175c850df65e435bb0824b65d319 \
+  -e WT_AIRLINE_DIRECTORY_ADDRESS=0xai562057d613175c850df65e435bb0824b65d333 \
   -e ADAPTER_SWARM_GATEWAY=https://swarm.windingtree.com \
   -e ADAPTER_SWARM=1 \
   -e ADAPTER_HTTPS=1 \
   -e ETH_NETWORK_NAME=ropsten \
   -e ETH_NETWORK_PROVIDER=https://ropsten.infura.io/v3/my-project-id \
+  -e TRUST_CLUES_CHECK=0 \
   windingtree/wt-read-api
 ```
 
 ## Examples
 
-See [API definition](docs/swagger.yaml) for full details.
+See [API definition](docs/source.yaml) for full details or in a more [readable form here](https://developers.windingtree.com/apis/wt-read-api.html).
 
 ### Hotels
 #### Get list of hotels

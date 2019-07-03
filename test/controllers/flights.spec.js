@@ -4,9 +4,10 @@ const { expect } = require('chai');
 const request = require('supertest');
 const wtJsLibsWrapper = require('../../src/services/wt-js-libs');
 const { getSchemaVersion } = require('../utils/schemas');
-const { AIRLINE_SEGMENT_ID, VALIDATION_WARNING_HEADER } = require('../../src/constants');
+const { config } = require('../../src/config');
+const { VALIDATION_WARNING_HEADER } = require('../../src/constants');
 const {
-  deployAirlineIndex,
+  deployAirlineApp,
   deployFullAirline,
 } = require('../../management/local-network');
 const {
@@ -17,15 +18,19 @@ const {
 
 describe('Flights', function () {
   let server;
-  let wtLibsInstance;
-  let address, indexContract;
+  let wtLibsInstance, app, deploymentOptions;
+  let airline;
 
   beforeEach(async () => {
     server = require('../../src/index');
-    wtLibsInstance = wtJsLibsWrapper.getInstance(AIRLINE_SEGMENT_ID);
-    indexContract = await deployAirlineIndex();
-    wtJsLibsWrapper._setIndexAddress(indexContract.address, AIRLINE_SEGMENT_ID);
-    address = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+    wtLibsInstance = wtJsLibsWrapper.getInstance();
+    app = await deployAirlineApp(config);
+    deploymentOptions = {
+      schemaVersion: getSchemaVersion('@windingtree/wt-airline-schemas'),
+      offChainDataClient: await wtLibsInstance.getOffChainDataClient('in-memory'),
+      app: app,
+    };
+    airline = await deployFullAirline(deploymentOptions, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
   });
 
   afterEach(() => {
@@ -35,7 +40,7 @@ describe('Flights', function () {
   describe('GET /airlines/:airlineAddress/flights', () => {
     it('should enforce strict routing', async () => {
       await request(server)
-        .get(`/airlines/${address}/flights/`)
+        .get(`/airlines/${airline.address}/flights/`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(301);
@@ -43,7 +48,7 @@ describe('Flights', function () {
 
     it('should return flight list', async () => {
       await request(server)
-        .get(`/airlines/${address}/flights`)
+        .get(`/airlines/${airline.address}/flights`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -63,7 +68,7 @@ describe('Flights', function () {
 
     it('should return flight list with instances', async () => {
       await request(server)
-        .get(`/airlines/${address}/flights?fields=flightInstances`)
+        .get(`/airlines/${airline.address}/flights?fields=flightInstances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -83,10 +88,12 @@ describe('Flights', function () {
     });
 
     it('should return warning for old data format version', async () => {
-      let dataFormatVersion = '0.1.0';
-      const airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline({
+        ...deploymentOptions,
+        schemaVersion: '0.1.0',
+      }, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${airline}/flights`)
+        .get(`/airlines/${airline.address}/flights`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -102,9 +109,9 @@ describe('Flights', function () {
     it('should return error for invalid data', async () => {
       let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
       delete airlineFlights.items[0].origin;
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(deploymentOptions, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${airline}/flights`)
+        .get(`/airlines/${airline.address}/flights`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -127,9 +134,9 @@ describe('Flights', function () {
     });
 
     it('should return 404 if airline has no flights', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(deploymentOptions, AIRLINE_DESCRIPTION);
       await request(server)
-        .get(`/airlines/${airline}/flights`)
+        .get(`/airlines/${airline.address}/flights`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
@@ -140,7 +147,7 @@ describe('Flights', function () {
     it('should return flight instances', async () => {
       const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/meta`)
+        .get(`/airlines/${airline.address}/flights/${flightId}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -152,7 +159,7 @@ describe('Flights', function () {
     it('should return 404 for unknown flight id', async () => {
       const flightId = 'flight-000';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}/meta`)
+        .get(`/airlines/${airline.address}/flights/${flightId}/meta`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404)
@@ -166,7 +173,7 @@ describe('Flights', function () {
     it('should return a flight', async () => {
       const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}`)
+        .get(`/airlines/${airline.address}/flights/${flightId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -182,7 +189,7 @@ describe('Flights', function () {
     it('should return a flight with instances', async () => {
       const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}?fields=flightInstances`)
+        .get(`/airlines/${airline.address}/flights/${flightId}?fields=flightInstances`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -204,27 +211,29 @@ describe('Flights', function () {
     it('should return 404 for unknown flight id', async () => {
       const flightId = 'flight-000';
       await request(server)
-        .get(`/airlines/${address}/flights/${flightId}`)
+        .get(`/airlines/${airline.address}/flights/${flightId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
     });
 
     it('should return 404 if airline has no flights', async () => {
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION);
+      const airline = await deployFullAirline(deploymentOptions, AIRLINE_DESCRIPTION);
       const flightId = 'IeKeix6G';
       await request(server)
-        .get(`/airlines/${airline}/flights/${flightId}`)
+        .get(`/airlines/${airline.address}/flights/${flightId}`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect(404);
     });
 
     it('should return warning for old data format version', async () => {
-      let dataFormatVersion = '0.1.0';
-      const airline = await deployFullAirline(dataFormatVersion, await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline({
+        ...deploymentOptions,
+        schemaVersion: '0.1.0',
+      }, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${airline}/flights/IeKeix6G`)
+        .get(`/airlines/${airline.address}/flights/IeKeix6G`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {
@@ -237,9 +246,9 @@ describe('Flights', function () {
     it('should return error for invalid data', async () => {
       let airlineFlights = _.cloneDeep(AIRLINE_FLIGHTS);
       delete airlineFlights.items[0].segments;
-      const airline = await deployFullAirline(getSchemaVersion('@windingtree/wt-airline-schemas'), await wtLibsInstance.getOffChainDataClient('in-memory'), indexContract, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
+      const airline = await deployFullAirline(deploymentOptions, AIRLINE_DESCRIPTION, airlineFlights, FLIGHT_INSTANCES);
       await request(server)
-        .get(`/airlines/${airline}/flights/IeKeix6G`)
+        .get(`/airlines/${airline.address}/flights/IeKeix6G`)
         .set('content-type', 'application/json')
         .set('accept', 'application/json')
         .expect((res) => {

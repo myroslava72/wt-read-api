@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
@@ -8,10 +9,10 @@ const {
   HttpBadGatewayError,
 } = require('../errors');
 const {
-  AIRLINE_FIELDS,
-  AIRLINE_DESCRIPTION_FIELDS,
-  DEFAULT_AIRLINES_FIELDS,
-  DEFAULT_AIRLINE_FIELDS,
+  calculateAirlineFields,
+  calculateAirlinesFields,
+} = require('../services/fields');
+const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   AIRLINE_SCHEMA_MODEL,
@@ -19,7 +20,6 @@ const {
 } = require('../constants');
 const {
   mapAirlineObjectToResponse,
-  mapAirlineFieldsFromQuery,
   REVERSED_AIRLINE_FIELD_MAPPING,
 } = require('../services/property-mapping');
 const {
@@ -35,19 +35,19 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
       const loadInstances = offChainFields.indexOf('flightsUri.items.flightInstancesUri') > -1;
       const depth = loadInstances ? undefined : 3;
 
-      let plainAirline = await airline.toPlainObject(offChainFields, depth);
+      const airlineApis = await airline.getWindingTreeApi();
+      const apiContents = (await airlineApis.airline[0].toPlainObject(offChainFields, depth)).contents;
 
-      if (!loadInstances && plainAirline.dataUri.contents.flightsUri && plainAirline.dataUri.contents.flightsUri.contents) {
-        for (let flight of plainAirline.dataUri.contents.flightsUri.contents.items) {
+      if (!loadInstances && apiContents.flightsUri && apiContents.flightsUri.contents) {
+        for (let flight of apiContents.flightsUri.contents.items) {
           delete flight.flightInstancesUri;
         }
       }
 
-      const flattenedOffChainData = flattenObject(plainAirline.dataUri.contents, offChainFields);
+      const flattenedOffChainData = flattenObject(apiContents, offChainFields);
       airlineData = {
-        dataFormatVersion: plainAirline.dataUri.contents.dataFormatVersion,
+        dataFormatVersion: apiContents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
-        ...(flattenObject(plainAirline, offChainFields)),
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
@@ -100,37 +100,6 @@ const resolveAirlineObject = async (airline, offChainFields, onChainFields) => {
   return mapAirlineObjectToResponse(airlineData);
 };
 
-const calculateFields = (fieldsQuery) => {
-  const fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  const mappedFields = mapAirlineFieldsFromQuery(fieldsArray);
-  return {
-    mapped: mappedFields,
-    onChain: mappedFields.map((f) => {
-      if (AIRLINE_FIELDS.indexOf(f) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-    toFlatten: mappedFields.map((f) => {
-      let firstPart = f;
-      if (f.indexOf('.') > -1) {
-        firstPart = f.substring(0, f.indexOf('.'));
-      }
-      if (AIRLINE_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
-        return `descriptionUri.${f}`;
-      }
-      if ([
-        'flightsUri',
-        'notificationsUri',
-        'bookingUri',
-      ].indexOf(firstPart) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-  };
-};
-
 const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(airlines, limit, startWith, 'address');
@@ -152,8 +121,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
             'airline',
             fields.mapped,
           );
-          delete resolvedAirlineObject.dataFormatVersion;
-          realItems.push(resolvedAirlineObject);
+          realItems.push(_.omit(resolvedAirlineObject, fields.toDrop));
         })
         .catch((e) => {
           if (e instanceof HttpValidationError) {
@@ -175,7 +143,8 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
     })());
   }
   await Promise.all(promises);
-  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  const clientFields = _.xor(fields.mapped, fields.toDrop).join(',');
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillAirlineList(path, fields, airlines, limit - realItems.length, nextStart);
@@ -183,7 +152,7 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -200,12 +169,10 @@ const fillAirlineList = async (path, fields, airlines, limit, startWith) => {
 // Actual controllers
 
 const findAll = async (req, res, next) => {
-  const { limit, startWith } = req.query;
-  const fieldsQuery = req.query.fields || DEFAULT_AIRLINES_FIELDS;
-
+  const { limit, startWith, fields } = req.query;
   try {
-    let airlines = await res.locals.wt.airlineIndex.getAllAirlines();
-    const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateFields(fieldsQuery), airlines, limit, startWith);
+    let airlines = await res.locals.wt.airlineDirectory.getOrganizations();
+    const { items, warnings, errors, next } = await fillAirlineList(req.path, calculateAirlinesFields(fields), airlines, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
@@ -220,8 +187,7 @@ const findAll = async (req, res, next) => {
 
 const find = async (req, res, next) => {
   try {
-    const fieldsQuery = req.query.fields || DEFAULT_AIRLINE_FIELDS;
-    const fields = calculateFields(fieldsQuery);
+    const fields = calculateAirlineFields(req.query.fields);
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AIRLINE_SCHEMA_MODEL, fields.mapped, REVERSED_AIRLINE_FIELD_MAPPING);
     let resolvedAirline;
     try {
@@ -238,7 +204,7 @@ const find = async (req, res, next) => {
         'airline',
         fields.mapped
       );
-      delete resolvedAirline.dataFormatVersion;
+      resolvedAirline = _.omit(resolvedAirline, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
@@ -260,13 +226,14 @@ const find = async (req, res, next) => {
 
 const meta = async (req, res, next) => {
   try {
-    const resolvedAirline = await res.locals.wt.airline.toPlainObject([]);
+    const airlineApis = await res.locals.wt.airline.getWindingTreeApi();
+    const apiObject = await airlineApis.airline[0].toPlainObject([]);
     return res.status(200).json({
-      address: resolvedAirline.address,
-      dataUri: resolvedAirline.dataUri.ref,
-      descriptionUri: resolvedAirline.dataUri.contents.descriptionUri,
-      flightsUri: resolvedAirline.dataUri.contents.flightsUri,
-      dataFormatVersion: resolvedAirline.dataUri.contents.dataFormatVersion,
+      address: res.locals.wt.airline.address,
+      orgJsonUri: apiObject.ref,
+      descriptionUri: apiObject.contents.descriptionUri,
+      flightsUri: apiObject.contents.flightsUri,
+      dataFormatVersion: apiObject.contents.dataFormatVersion,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('airlineNotAccessible', e.message, 'Airline data is not accessible.'));

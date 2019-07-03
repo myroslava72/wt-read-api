@@ -1,4 +1,6 @@
+const _ = require('lodash');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
+const wtJsLibs = require('../services/wt-js-libs');
 const { flattenObject, formatError } = require('../services/utils');
 const { config } = require('../config');
 const { DataFormatValidator } = require('../services/validation');
@@ -8,10 +10,10 @@ const {
   HttpBadGatewayError,
 } = require('../errors');
 const {
-  HOTEL_FIELDS,
-  HOTEL_DESCRIPTION_FIELDS,
-  DEFAULT_HOTELS_FIELDS,
-  DEFAULT_HOTEL_FIELDS,
+  calculateHotelsFields,
+  calculateHotelFields,
+} = require('../services/fields');
+const {
   DEFAULT_PAGE_SIZE,
   SCHEMA_PATH,
   HOTEL_SCHEMA_MODEL,
@@ -19,7 +21,6 @@ const {
 } = require('../constants');
 const {
   mapHotelObjectToResponse,
-  mapHotelFieldsFromQuery,
   REVERSED_HOTEL_FIELD_MAPPING,
 } = require('../services/property-mapping');
 const {
@@ -32,16 +33,18 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
   let hotelData = {};
   try {
     if (offChainFields.length) {
-      const plainHotel = await hotel.toPlainObject(offChainFields);
-      const flattenedOffChainData = flattenObject(plainHotel.dataUri.contents, offChainFields);
+      const hotelApis = await hotel.getWindingTreeApi();
+      const apiContents = (await hotelApis.hotel[0].toPlainObject(offChainFields)).contents;
+
+      const flattenedOffChainData = flattenObject(apiContents, offChainFields);
       hotelData = {
-        dataFormatVersion: plainHotel.dataUri.contents.dataFormatVersion,
+        dataFormatVersion: apiContents.dataFormatVersion,
         ...flattenedOffChainData.descriptionUri,
-        ...(flattenObject(plainHotel, offChainFields)),
       };
       // Some offChainFields need special treatment
       const fieldModifiers = {
         'defaultLocale': (data, source, key) => { data[key] = source[key]; return data; },
+        'guarantee': (data, source, key) => { data[key] = source[key]; return data; },
         'notificationsUri': (data, source, key) => { data[key] = source[key]; return data; },
         'bookingUri': (data, source, key) => { data[key] = source[key]; return data; },
         'ratePlansUri': (data, source, key) => { data.ratePlans = source[key]; return data; },
@@ -79,39 +82,6 @@ const resolveHotelObject = async (hotel, offChainFields, onChainFields) => {
   return mapHotelObjectToResponse(hotelData);
 };
 
-const calculateFields = (fieldsQuery) => {
-  const fieldsArray = Array.isArray(fieldsQuery) ? fieldsQuery : fieldsQuery.split(',');
-  const mappedFields = mapHotelFieldsFromQuery(fieldsArray);
-  return {
-    mapped: mappedFields,
-    onChain: mappedFields.map((f) => {
-      if (HOTEL_FIELDS.indexOf(f) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-    toFlatten: mappedFields.map((f) => {
-      let firstPart = f;
-      if (f.indexOf('.') > -1) {
-        firstPart = f.substring(0, f.indexOf('.'));
-      }
-      if (HOTEL_DESCRIPTION_FIELDS.indexOf(firstPart) > -1) {
-        return `descriptionUri.${f}`;
-      }
-      if ([
-        'ratePlansUri',
-        'availabilityUri',
-        'notificationsUri',
-        'bookingUri',
-        'defaultLocale',
-      ].indexOf(firstPart) > -1) {
-        return f;
-      }
-      return null;
-    }).filter((f) => !!f),
-  };
-};
-
 const fillHotelList = async (path, fields, hotels, limit, startWith) => {
   limit = limit ? parseInt(limit, 10) : DEFAULT_PAGE_SIZE;
   let { items, nextStart } = paginate(hotels, limit, startWith, 'address');
@@ -122,8 +92,16 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     promises.push((() => {
       let resolvedHotelObject;
       return resolveHotelObject(hotel, fields.toFlatten, fields.onChain)
-        .then((resolved) => {
+        .then(async (resolved) => {
           resolvedHotelObject = resolved;
+          if (resolvedHotelObject.error) {
+            throw new HttpValidationError(resolvedHotelObject.error);
+          }
+          const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotelObject.id, resolvedHotelObject.guarantee);
+          // silently remove all that does not pass the test
+          if (!passesTrustworthinessTest) {
+            return;
+          }
           DataFormatValidator.validate(
             resolvedHotelObject,
             HOTEL_SCHEMA_MODEL,
@@ -133,13 +111,12 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
             'hotel',
             fields.mapped
           );
-          delete resolvedHotelObject.dataFormatVersion;
-          realItems.push(resolvedHotelObject);
+          realItems.push(_.omit(resolvedHotelObject, fields.toDrop));
         }).catch((e) => {
           if (e instanceof HttpValidationError) {
             hotel = {
               error: 'Upstream hotel data format validation failed: ' + e.toString(),
-              originalError: e.data.errors.map((err) => { return err.toString(); }).join(';'),
+              originalError: e.data && e.data.errors && e.data.errors.length && e.data.errors.map((err) => { return err.toString(); }).join(';'),
               data: resolvedHotelObject,
             };
             if (e.data && e.data.valid) {
@@ -155,8 +132,8 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     })());
   }
   await Promise.all(promises);
-
-  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nextStart}` : undefined;
+  const clientFields = _.xor(fields.mapped, fields.toDrop).join(',');
+  let next = nextStart ? `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nextStart}` : undefined;
 
   if (realErrors.length && realItems.length < limit && nextStart) {
     const nestedResult = await fillHotelList(path, fields, hotels, limit - realItems.length, nextStart);
@@ -164,7 +141,7 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
     warningItems = warningItems.concat(nestedResult.warnings);
     realErrors = realErrors.concat(nestedResult.errors);
     if (realItems.length && nestedResult.nextStart) {
-      next = `${config.baseUrl}${path}?limit=${limit}&fields=${fields.mapped.join(',')}&startWith=${nestedResult.nextStart}`;
+      next = `${config.baseUrl}${path}?limit=${limit}&fields=${clientFields}&startWith=${nestedResult.nextStart}`;
     } else {
       next = undefined;
     }
@@ -179,14 +156,11 @@ const fillHotelList = async (path, fields, hotels, limit, startWith) => {
 };
 
 // Actual controllers
-
 const findAll = async (req, res, next) => {
-  const { limit, startWith } = req.query;
-  const fieldsQuery = req.query.fields || DEFAULT_HOTELS_FIELDS;
-
+  const { limit, startWith, fields } = req.query;
   try {
-    let hotels = await res.locals.wt.hotelIndex.getAllHotels();
-    const { items, warnings, errors, next } = await fillHotelList(req.path, calculateFields(fieldsQuery), hotels, limit, startWith);
+    let hotels = await res.locals.wt.hotelDirectory.getOrganizations();
+    const { items, warnings, errors, next } = await fillHotelList(req.path, calculateHotelsFields(fields), hotels, limit, startWith);
     res.status(200).json({ items, warnings, errors, next });
   } catch (e) {
     if (e instanceof LimitValidationError) {
@@ -201,14 +175,18 @@ const findAll = async (req, res, next) => {
 
 const find = async (req, res, next) => {
   try {
-    const fieldsQuery = req.query.fields || DEFAULT_HOTEL_FIELDS;
-    const fields = calculateFields(fieldsQuery);
+    const fields = calculateHotelFields(req.query.fields);
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, HOTEL_SCHEMA_MODEL, fields.mapped, REVERSED_HOTEL_FIELD_MAPPING);
     let resolvedHotel;
     try {
       resolvedHotel = await resolveHotelObject(res.locals.wt.hotel, fields.toFlatten, fields.onChain);
       if (resolvedHotel.error) {
         return next(new HttpBadGatewayError('hotelNotAccessible', resolvedHotel.error, 'Hotel data is not accessible.'));
+      }
+      const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(resolvedHotel.id, resolvedHotel.guarantee);
+      // If a hotel does not pass the test, it's like it never existed
+      if (!passesTrustworthinessTest) {
+        return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
       }
       DataFormatValidator.validate(
         resolvedHotel,
@@ -219,7 +197,7 @@ const find = async (req, res, next) => {
         'hotel',
         fields.mapped
       );
-      delete resolvedHotel.dataFormatVersion;
+      resolvedHotel = _.omit(resolvedHotel, fields.toDrop);
     } catch (e) {
       if (e instanceof HttpValidationError) {
         let err = formatError(e);
@@ -235,21 +213,29 @@ const find = async (req, res, next) => {
     }
     return res.status(200).json(resolvedHotel);
   } catch (e) {
+    // improve error handling
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));
   }
 };
 
 const meta = async (req, res, next) => {
   try {
-    const resolvedHotel = await res.locals.wt.hotel.toPlainObject([]);
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiObject = await hotelApis.hotel[0].toPlainObject([]);
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiObject.contents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
     return res.status(200).json({
-      address: resolvedHotel.address,
-      dataUri: resolvedHotel.dataUri.ref,
-      descriptionUri: resolvedHotel.dataUri.contents.descriptionUri,
-      ratePlansUri: resolvedHotel.dataUri.contents.ratePlansUri,
-      availabilityUri: resolvedHotel.dataUri.contents.availabilityUri,
-      dataFormatVersion: resolvedHotel.dataUri.contents.dataFormatVersion,
-      defaultLocale: resolvedHotel.dataUri.contents.defaultLocale,
+      address: res.locals.wt.hotel.address,
+      dataIndexUri: apiObject.ref,
+      orgJsonUri: await res.locals.wt.hotel.orgJsonUri,
+      descriptionUri: apiObject.contents.descriptionUri,
+      ratePlansUri: apiObject.contents.ratePlansUri,
+      availabilityUri: apiObject.contents.availabilityUri,
+      dataFormatVersion: apiObject.contents.dataFormatVersion,
+      defaultLocale: apiObject.contents.defaultLocale,
+      guarantee: apiObject.contents.guarantee,
     });
   } catch (e) {
     return next(new HttpBadGatewayError('hotelNotAccessible', e.message, 'Hotel data is not accessible.'));

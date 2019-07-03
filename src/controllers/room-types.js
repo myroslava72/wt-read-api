@@ -1,5 +1,6 @@
 const { Http404Error, HttpValidationError } = require('../errors');
 const { DataFormatValidator } = require('../services/validation');
+const wtJsLibs = require('../services/wt-js-libs');
 const { formatError } = require('../services/utils');
 const { config } = require('../config');
 const {
@@ -24,7 +25,7 @@ const detectAvailability = (roomTypeId, availabilityObject) => {
   };
 };
 
-const getPlainHotel = async (hotel, fieldsArray) => {
+const getHotelFields = (fieldsArray) => {
   const resolvedFields = ['descriptionUri.roomTypes'];
   if (fieldsArray.indexOf('ratePlans') > -1) {
     resolvedFields.push('ratePlansUri');
@@ -32,20 +33,21 @@ const getPlainHotel = async (hotel, fieldsArray) => {
   if (fieldsArray.indexOf('availability') > -1) {
     resolvedFields.push('availabilityUri');
   }
-  return hotel.toPlainObject(resolvedFields);
+  resolvedFields.push('guarantee');
+  return resolvedFields;
 };
 
-const setAdditionalFields = (roomType, plainHotel, fieldsQuery) => {
+const setAdditionalFields = (roomType, apiContents, fieldsQuery) => {
   if (fieldsQuery.indexOf('ratePlans') > -1) {
-    if (plainHotel.dataUri.contents.ratePlansUri) {
-      roomType.ratePlans = detectRatePlans(roomType.id, plainHotel.dataUri.contents.ratePlansUri.contents);
+    if (apiContents.ratePlansUri) {
+      roomType.ratePlans = detectRatePlans(roomType.id, apiContents.ratePlansUri.contents);
     } else {
       roomType.ratePlans = [];
     }
   }
   if (fieldsQuery.indexOf('availability') > -1) {
-    if (plainHotel.dataUri.contents.availabilityUri) {
-      roomType.availability = detectAvailability(roomType.id, plainHotel.dataUri.contents.availabilityUri.contents);
+    if (apiContents.availabilityUri) {
+      roomType.availability = detectAvailability(roomType.id, apiContents.availabilityUri.contents);
     } else {
       roomType.availability = [];
     }
@@ -62,19 +64,24 @@ const findAll = async (req, res, next) => {
   const fieldsQuery = req.query.fields || [];
   const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
-    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
-    let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(getHotelFields(fieldsArray))).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
+    let roomTypes = apiContents.descriptionUri.contents.roomTypes;
     const items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL);
     for (let roomType of roomTypes) {
-      roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
+      roomType = setAdditionalFields(roomType, apiContents, fieldsQuery);
       try {
         DataFormatValidator.validate(
           roomType,
           ROOM_TYPE_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.hotels,
-          plainHotel.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'room type'
         );
         items.push(roomType);
@@ -108,13 +115,18 @@ const find = async (req, res, next) => {
   const fieldsQuery = req.query.fields || [];
   const fieldsArray = _normalizeQuery(fieldsQuery);
   try {
-    const plainHotel = await getPlainHotel(res.locals.wt.hotel, fieldsArray);
-    let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(getHotelFields(fieldsArray))).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
+    let roomTypes = apiContents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
-    roomType = setAdditionalFields(roomType, plainHotel, fieldsQuery);
+    roomType = setAdditionalFields(roomType, apiContents, fieldsQuery);
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, ROOM_TYPE_MODEL, fieldsArray.length === 0 ? undefined : fieldsArray);
     try {
       DataFormatValidator.validate(
@@ -122,7 +134,7 @@ const find = async (req, res, next) => {
         ROOM_TYPE_MODEL,
         swaggerDocument.components.schemas,
         config.dataFormatVersions.hotels,
-        plainHotel.dataUri.contents.dataFormatVersion,
+        apiContents.dataFormatVersion,
         'room type'
       );
     } catch (e) {
@@ -147,17 +159,21 @@ const find = async (req, res, next) => {
 const findRatePlans = async (req, res, next) => {
   let { roomTypeId } = req.params;
   try {
-    let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['ratePlans']);
-    
-    let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(getHotelFields(['ratePlans']))).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
+    let roomTypes = apiContents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
-    if (!plainHotel.dataUri.contents.ratePlansUri) {
+    if (!apiContents.ratePlansUri) {
       return next(new Http404Error('noRatePlans', 'No ratePlansUri specified.'));
     }
-    const ratePlans = detectRatePlans(roomTypeId, plainHotel.dataUri.contents.ratePlansUri.contents);
+    const ratePlans = detectRatePlans(roomTypeId, apiContents.ratePlansUri.contents);
     const items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, RATE_PLAN_MODEL);
     for (let plan of ratePlans) {
@@ -167,7 +183,7 @@ const findRatePlans = async (req, res, next) => {
           RATE_PLAN_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.hotels,
-          plainHotel.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'rate plan',
         );
         items.push(plan);
@@ -199,17 +215,21 @@ const findRatePlans = async (req, res, next) => {
 const findAvailability = async (req, res, next) => {
   let { roomTypeId } = req.params;
   try {
-    let plainHotel = await getPlainHotel(res.locals.wt.hotel, ['availability']);
-    
-    let roomTypes = plainHotel.dataUri.contents.descriptionUri.contents.roomTypes;
+    const hotelApis = await res.locals.wt.hotel.getWindingTreeApi();
+    const apiContents = (await hotelApis.hotel[0].toPlainObject(getHotelFields(['availability']))).contents;
+    const passesTrustworthinessTest = await wtJsLibs.passesTrustworthinessTest(res.locals.wt.hotel.address, apiContents.guarantee);
+    if (!passesTrustworthinessTest) {
+      return next(new Http404Error('hotelNotFound', 'Hotel does not pass the trustworthiness test.', 'Hotel not found'));
+    }
+    let roomTypes = apiContents.descriptionUri.contents.roomTypes;
     let roomType = roomTypes.find((rt) => { return rt.id === roomTypeId; });
     if (!roomType) {
       return next(new Http404Error('roomTypeNotFound', 'Room type not found'));
     }
-    if (!plainHotel.dataUri.contents.availabilityUri) {
+    if (!apiContents.availabilityUri) {
       return next(new Http404Error('noAvailability', 'No availabilityUri specified.'));
     }
-    const availability = detectAvailability(roomTypeId, plainHotel.dataUri.contents.availabilityUri.contents);
+    const availability = detectAvailability(roomTypeId, apiContents.availabilityUri.contents);
     let items = [], warnings = [], errors = [];
     const swaggerDocument = await DataFormatValidator.loadSchemaFromPath(SCHEMA_PATH, AVAILABILITY_MODEL);
     for (let roomType of availability.roomTypes) {
@@ -219,7 +239,7 @@ const findAvailability = async (req, res, next) => {
           AVAILABILITY_MODEL,
           swaggerDocument.components.schemas,
           config.dataFormatVersions.hotels,
-          plainHotel.dataUri.contents.dataFormatVersion,
+          apiContents.dataFormatVersion,
           'availability',
         );
         items.push(roomType);

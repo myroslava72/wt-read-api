@@ -16,7 +16,7 @@ cleanup() {
 ganache_port=8545
 
 ganache_running() {
-  nc -z localhost "$ganache_port"
+  netstat -a | grep ":$ganache_port" | grep -i listen
 }
 
 start_ganache() {
@@ -37,7 +37,7 @@ start_ganache() {
     --account="0xfc452929dc8ffd956ebab936ed0f56d71a8c537b0393ea9da4807836942045c5,10000000000000000000000000000000000000000000000000000000000000000000000000000000"
   )
 
-  node_modules/.bin/ganache-cli -i 77 --gasLimit 6000000 "${accounts[@]}" > /dev/null &
+  node_modules/.bin/ganache-cli -i 77 --gasLimit 0xfffffffffff "${accounts[@]}" > /dev/null &
   ganache_pid=$!
   sleep 1
 }

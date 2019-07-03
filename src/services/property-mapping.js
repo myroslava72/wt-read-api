@@ -1,8 +1,8 @@
 const hotelMappingToResponse = {
-  manager: 'managerAddress',
+  owner: 'ownerAddress',
 };
 const airlineMappingToResponse = {
-  manager: 'managerAddress',
+  owner: 'ownerAddress',
 };
 
 const mapObjectToResponse = (obj, mapping) => {
@@ -16,12 +16,12 @@ const mapHotelObjectToResponse = (hotel) => mapObjectToResponse(hotel, hotelMapp
 const mapAirlineObjectToResponse = (airline) => mapObjectToResponse(airline, airlineMappingToResponse);
 
 const hotelMappingFromQuery = {
-  managerAddress: 'manager',
+  ownerAddress: 'owner',
   ratePlans: 'ratePlansUri',
   availability: 'availabilityUri',
 };
 const airlineMappingFromQuery = {
-  managerAddress: 'manager',
+  ownerAddress: 'owner',
   flights: 'flightsUri',
   flightInstances: 'flightInstancesUri',
 };

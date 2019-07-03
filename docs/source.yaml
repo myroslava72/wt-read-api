@@ -5,9 +5,9 @@ servers:
   - description: Localhost
     url: 'http://localhost:3000'
 info:
-  description: API for reading hotels from WT
+  description: API for reading inventory from Winding Tree platform
   version: 'will-be-set-at-runtime'
-  title: WT reading
+  title: WT Read API
 paths:
   /:
     get:
@@ -32,30 +32,41 @@ paths:
                   config:
                     type: string
                     description: Which config is the API using. It might be useful to name configs after used ETH networks.
-                  wtIndexAddresses:
+                  directoryAddresses:
                     type: object
                     properties:
                       airlines:
                         type: string
-                        description: Ethereum address of used Winding Tree airline index.
+                        description: Ethereum address of used Winding Tree airline directory.
                       hotels:
                         type: string
-                        description: Ethereum address of used Winding Tree hotel index.
+                        description: Ethereum address of used Winding Tree hotel directory.
                   ethNetwork:
                     type: string
                     description: Name of the ethereum network against which this instance runs.
                   dataFormatVersions:
                     description: Version number indicating the data format specification version the server expects from hotels.
                     type: object
+                    properties:
+                      airlines:
+                        type: string
+                        format: semver
+                        maxLength: 20
+                      hotels:
+                        type: string
+                        format: semver
+                        maxLength: 20
+                  trustClues:
+                    description: Lists all used trust clues and their metadata. Every clue contains name and description field, but it might contiain other fields depending on the clue.
+                    type: array
+                    items:
+                      type: object
                       properties:
-                        airlines:
+                        name:
                           type: string
-                          format: semver
-                          maxLength: 20
-                        hotels:
+                        description:
                           type: string
-                          format: semver
-                          maxLength: 20
+
   /hotels:
     get:
       summary: Lists hotels
@@ -80,8 +91,8 @@ paths:
           in: query
           description: >
             List of fields to return with the hotel item. Selecting only `id`
-            field leads to fastest responses as all data are  trieved from
-            WTIndex only.
+            field leads to fastest responses as all data are retrieved from
+            directory only.
           required: false
           schema:
             default:
@@ -92,22 +103,33 @@ paths:
             items:
               type: string
               enum:
-                - id
-                - name
-                - description
-                - location
-                - contacts
                 - address
-                - roomTypes
-                - timezone
-                - currency
-                - images
                 - amenities
-                - managerAddress
-                - updatedAt
-                - cancellationPolicies
-                - notificationsUri
+                - availability
                 - bookingUri
+                - cancellationPolicies
+                - category
+                - contacts
+                - currency
+                - dataFormatVersion
+                - orgJsonUri
+                - defaultCancellationAmount
+                - defaultLocale
+                - description
+                - guarantee
+                - id
+                - images
+                - location
+                - managerAddress
+                - name
+                - notificationsUri
+                - operator
+                - ratePlans
+                - roomTypes
+                - spokenLanguages
+                - tags
+                - timezone
+                - updatedAt
       responses:
         '200':
           description: >-
@@ -177,24 +199,33 @@ paths:
                 - amenities
                 - updatedAt
               enum:
-                - id
-                - name
-                - description
-                - location
-                - contacts
                 - address
-                - roomTypes
-                - timezone
-                - currency
-                - images
                 - amenities
-                - managerAddress
-                - updatedAt
-                - cancellationPolicies
-                - ratePlans
                 - availability
-                - notificationsUri
                 - bookingUri
+                - cancellationPolicies
+                - category
+                - contacts
+                - currency
+                - dataFormatVersion
+                - orgJsonUri
+                - defaultCancellationAmount
+                - defaultLocale
+                - description
+                - guarantee
+                - id
+                - images
+                - location
+                - managerAddress
+                - name
+                - notificationsUri
+                - operator
+                - ratePlans
+                - roomTypes
+                - spokenLanguages
+                - tags
+                - timezone
+                - updatedAt
       responses:
         '200':
           description: Hotel object
@@ -498,7 +529,7 @@ paths:
           description: >
             List of fields to return with the airline item. Selecting only `id`
             field leads to fastest responses as all data are retrieved from
-            WTIndex only.
+            directory only.
           required: false
           schema:
             default:
@@ -509,20 +540,23 @@ paths:
             items:
               type: string
               enum:
-                - id
-                - name
+                - bookingUri
+                - cancellationPolicies
+                - code
+                - contacts
+                - currency
+                - dataFormatVersion
+                - orgJsonUri
+                - defaultCancellationAmount
                 - description
                 - flights
                 - flights.items.flightInstances
-                - code
-                - contacts
-                - updatedAt
-                - defaultCancellationAmount
-                - currency
+                - id
                 - managerAddress
-                - cancellationPolicies
+                - name
                 - notificationsUri
-                - bookingUri
+                - operator
+                - updatedAt
       responses:
         '200':
           description: >-
@@ -589,20 +623,23 @@ paths:
                 - currency
                 - updatedAt
               enum:
-                - id
-                - name
+                - bookingUri
+                - cancellationPolicies
+                - code
+                - contacts
+                - currency
+                - dataFormatVersion
+                - orgJsonUri
+                - defaultCancellationAmount
                 - description
                 - flights
                 - flights.items.flightInstances
-                - code
-                - contacts
-                - updatedAt
-                - defaultCancellationAmount
-                - currency
+                - id
                 - managerAddress
-                - cancellationPolicies
+                - name
                 - notificationsUri
-                - bookingUri
+                - operator
+                - updatedAt
       responses:
         '200':
           description: Airline object
@@ -914,9 +951,11 @@ components:
           description: >-
             Additional data to this error, typically contains `id` that
             identifies the erroring record.
+
     HotelListItem:
       allOf:
         - $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/HotelDescriptionBase'
+        - $ref: '#/components/schemas/ReducedHotelDataIndex'
         - type: object
           required:
           - id
@@ -925,25 +964,61 @@ components:
               $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
             managerAddress:
               $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
+            ratePlans:
+              $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RatePlans'
+            availability:
+              $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/Availability'
             roomTypes:
-              description: Room types in the hotel
-              $ref: '#/components/schemas/RoomTypesResponse'
+              $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RoomTypes'
     HotelDetail:
       allOf:
       - $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/HotelDescription'
+      - $ref: '#/components/schemas/ReducedHotelDataIndex'
       - type: object
         required:
           - id
         properties:
           id:
             $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
+          managerAddress:
+            $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
           ratePlans:
             $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RatePlans'
           availability:
             $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/Availability'
           roomTypes:
-            description: Room types in the hotel
-            $ref: '#/components/schemas/RoomTypesResponse'
+            $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/RoomTypes'
+    ReducedHotelDataIndex:
+      title: Hotel data index fields that can be resolved in read api
+      type: object
+      properties:
+        orgJsonUri:
+          description: URI of the Hotel ORG.JSON (pointing off-chain)
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
+        dataFormatVersion:
+          description: Version number indicating the data format specification version.
+          type: string
+          format: semver
+          maxLength: 20
+        notificationsUri:
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
+          description: URI pointing to an instance of the WT Notification service.
+        bookingUri:
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
+          description: URI pointing to an instance of the WT Booking service.
+        defaultLocale:
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/LanguageCodeType'
+          description: Code of language in which all textual information for this record is presented. If no default locale is declared, the texts are expected to be in English language.
+        guarantee:
+          description: Object used to prove that a hotel is legitimate.
+          type: object
+          properties:
+            claim:
+              description: Hex encoded JSON serialized claim
+              type: string
+            signature:
+              description: Signature of a serialized `claim` signed by a private key associated with the `claim.guarantor` ETH address with the [eth_sign](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign) compatible method.
+              type: string
 
     RoomTypesResponse:
       description: Array of room types
@@ -955,12 +1030,12 @@ components:
             $ref: '#/components/schemas/RoomTypeResponse'
         warnings:
           type: array
-          description: Array of Flights
+          description: Array of room types warnings
           items:
             $ref: '#/components/schemas/HotelListError'
         errors:
           type: array
-          description: Array of Flights
+          description: Array of room types errors
           items:
             $ref: '#/components/schemas/HotelListError'
 
@@ -1067,28 +1142,33 @@ components:
       description: Collection of identifiers required to look up hotel data
       required:
         - address
-        - dataUri
+        - orgJsonUri
       properties:
         address:
           description: Ethereum address of the hotel
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/EthereumAddressType'
-        dataUri:
-          description: URI of the Hotel data index (pointing off-chain)
+        orgJsonUri:
+          description: URI of the Hotel ORG.JSON (pointing off-chain)
+          $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
+        dataIndexUri:
+          description: URI of the Hotel API data index
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         descriptionUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel description (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         ratePlansUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel rate plans (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         availabilityUri:
-          description: URI of the Hotel data index (pointing off-chain)
+          description: URI of the Hotel availability (pointing off-chain)
           $ref: '@windingtree/wt-shared-schemas/swagger.yaml#/components/schemas/UriType'
         dataFormatVersion:
           description: Version number indicating the data format specification version.
           type: string
           format: semver
           maxLength: 20
+        guarantee:
+          $ref: '@windingtree/wt-hotel-schemas/swagger.yaml#/components/schemas/GuarantorMessage'
 
     Error:
       title: Error
