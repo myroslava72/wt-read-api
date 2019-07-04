@@ -8,6 +8,7 @@ const { TrustClueLifDeposit } = require('@windingtree/trust-clue-lif-deposit');
 
 const { deployHotelApp, deployFullHotel,
   deployAirlineApp, deployFullAirline,
+  deployAncillaryApp, deployFullAncillary,
   deployCuratedListTrustClue, deployLifDepositTrustClue,
 } = require('../../management/local-network');
 const { getSchemaVersion } = require('../../test/utils/schemas');
@@ -18,9 +19,10 @@ const {
   AIRLINE_DESCRIPTION,
   AIRLINE_FLIGHTS,
   FLIGHT_INSTANCES,
+  ANCILLARY_DESCRIPTION,
 } = require('../../test/utils/test-data');
 
-const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ANCILLARY_SEGMENT_ID } = require('../constants');
 const web3ProviderAddress = 'http://localhost:8545';
 
 module.exports = {
@@ -123,6 +125,20 @@ module.exports = {
         app: airlineApp,
       }, AIRLINE_DESCRIPTION, AIRLINE_FLIGHTS, FLIGHT_INSTANCES);
       currentConfig.logger.info(`Example airline deployed to ${airline.address}`);
+    }
+     if (segmentsToStart.indexOf(ANCILLARY_SEGMENT_ID) !== -1) {
+      const ancillaryApp = await deployAncillaryApp(currentConfig);
+      currentConfig.directoryAddresses[ANCILLARY_SEGMENT_ID] = ancillaryApp.directory.address;
+      currentConfig.factoryAddresses[ANCILLARY_SEGMENT_ID] = ancillaryApp.factory.address;
+      currentConfig.logger.info(`Winding Tree ancillary directory deployed to ${ancillaryApp.directory.address}`);
+      currentConfig.logger.info(`Winding Tree ancillary factory deployed to ${ancillaryApp.factory.address}`);
+
+      const ancillary = await deployFullAncillary({
+        schemaVersion: getSchemaVersion('@windingtree/wt-ancillary-schemas'),
+        offChainDataClient: currentConfig.wtLibs.getOffChainDataClient('in-memory'),
+        app: ancillaryApp,
+      }, ANCILLARY_DESCRIPTION);
+      currentConfig.logger.info(`Example ancillary deployed to ${ancillary.address}`);
     }
   },
   logger: winston.createLogger({
