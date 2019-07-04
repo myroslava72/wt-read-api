@@ -4,6 +4,7 @@ const _ = require('lodash');
 const {
   mapAirlineFieldsFromQuery,
   mapHotelFieldsFromQuery,
+  mapAncillaryFieldsFromQuery,
 } = require('./property-mapping');
 const swaggerDocument = YAML.load(path.resolve(__dirname, '../../docs/swagger.yaml'));
 
@@ -46,6 +47,25 @@ const HOTEL_DEFAULT_FIELDS = HOTEL_DEFAULT_FIELDS_LIST.concat([
 const HOTEL_ONCHAIN_FIELDS = ['owner', 'created'];
 const HOTEL_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDescriptionBase');
 const HOTEL_DATAINDEX_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-hotel-schemas-HotelDataIndex');
+
+
+
+
+
+const ANCILLARY_DEFAULT_FIELDS_LIST = [
+  'id',
+  'name',
+  'image',  
+  'description',
+  'url',
+];
+const ANCILLARY_ONCHAIN_FIELDS = ['owner', 'created'];
+const ANCILLARY_DESCRIPTION_FIELDS = getListOfFieldsFromSwagger('windingtree-wt-ancillary-schemas-AncillaryDescriptionBase');
+
+
+
+
+
 
 const AIRLINE_DEFAULT_FIELDS_LIST = [
   'id',
@@ -109,6 +129,21 @@ const _hotelFields = (fields, defaults) => {
   );
 };
 
+
+const _ancillaryFields = (fields, defaults) => {
+  fields = fields || defaults;
+  const fieldsArray = Array.isArray(fields) ? fields : fields.split(',');
+  const required = ['dataFormatVersion'];
+  return _calculateFields(
+    _.uniq(fieldsArray.concat(required)),
+    mapAncillaryFieldsFromQuery,
+    ANCILLARY_ONCHAIN_FIELDS,
+    ANCILLARY_DESCRIPTION_FIELDS,
+    required.map((f) => fields.indexOf(f) === -1 ? f : null)
+  );
+};
+
+
 // TODO always include dataFormatVersion, guarantee
 const calculateHotelFields = (fields) => {
   return _hotelFields(fields, HOTEL_DEFAULT_FIELDS);
@@ -126,6 +161,11 @@ const calculateAirlinesFields = (fields) => {
   return _airlineFields(fields, AIRLINE_DEFAULT_FIELDS_LIST);
 };
 
+const calculateAncillaryFields = (fields) => {
+  return _ancillaryFields(fields, ANCILLARY_DEFAULT_FIELDS_LIST);
+};
+
+
 module.exports = {
   _calculateFields,
   _airlineFields,
@@ -134,4 +174,5 @@ module.exports = {
   calculateAirlinesFields,
   calculateHotelFields,
   calculateHotelsFields,
+  calculateAncillaryFields,
 };
