@@ -1,7 +1,7 @@
 const Web3Utils = require('web3-utils');
 const { errors: wtJsLibsErrors } = require('@windingtree/wt-js-libs');
 const wtJsLibs = require('../services/wt-js-libs');
-const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID } = require('../constants');
+const { AIRLINE_SEGMENT_ID, HOTEL_SEGMENT_ID, ANCILLARY_SEGMENT_ID } = require('../constants');
 const { HttpBadGatewayError, HttpPaymentRequiredError,
   HttpValidationError, HttpForbiddenError,
   HttpInternalError, Http404Error } = require('../errors');
@@ -25,6 +25,9 @@ const injectWtLibs = async (req, res, next) => {
   if (usedSegments.indexOf(AIRLINE_SEGMENT_ID) !== -1) {
     wt.airlineDirectory = await wtJsLibs.getAirlineDirectory();
   }
+  if (usedSegments.indexOf(ANCILLARY_SEGMENT_ID) !== -1) {
+    wt.ancillaryDirectory = await wtJsLibs.getAncillaryDirectory();
+  }
   res.locals.wt = wt;
   next();
 };
@@ -42,6 +45,14 @@ const validateAirlineAddress = (req, res, next) => {
   const { airlineAddress } = req.params;
   if (isZeroAddress(airlineAddress) || !Web3Utils.checkAddressChecksum(airlineAddress)) {
     return next(new HttpValidationError('airlineChecksum', 'Given airline address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for airline address.'));
+  }
+  next();
+};
+
+const validateAncillaryAddress = (req, res, next) => {
+  const { ancillaryAddress } = req.params;
+  if (isZeroAddress(ancillaryAddress) || !Web3Utils.checkAddressChecksum(ancillaryAddress)) {
+    return next(new HttpValidationError('airlineChecksum', 'Given ancillary address is not a valid Ethereum address. Must be a valid checksum address.', 'Checksum failed for airline address.'));
   }
   next();
 };
@@ -113,6 +124,22 @@ const resolveAirline = async (req, res, next) => {
   }
 };
 
+/**
+ * Resolves an ancillary from req.params.ancillaryAddress
+ */
+const resolveAncillary = async (req, res, next) => {
+  if (!res.locals.wt) {
+    return next(new HttpInternalError('Bad middleware order.'));
+  }
+  let { ancillaryAddress } = req.params;
+  try {
+    res.locals.wt.ancillary = await res.locals.wt.ancillaryDirectory.getOrganization(ancillaryAddress);
+    return next();
+  } catch (e) {
+    return next(new Http404Error('hotelNotFound', 'Ancillary not found'));
+  }
+};
+
 module.exports = {
   injectWtLibs,
   validateHotelAddress,
@@ -121,4 +148,5 @@ module.exports = {
   handleDataFetchingErrors,
   resolveHotel,
   resolveAirline,
+  resolveAncillary,
 };
